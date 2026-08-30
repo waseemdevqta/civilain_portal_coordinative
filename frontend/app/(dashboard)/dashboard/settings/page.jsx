@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useTheme } from '@/context/ThemeContext';
 import { Navbar } from '@/components/common/Navbar';
 import { Footer } from '@/components/common/Footer';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
@@ -20,14 +19,11 @@ import {
   Key,
   CheckCircle2,
   Save,
-  Sun,
-  Moon,
-  Laptop,
+  Sparkles,
 } from 'lucide-react';
 
 export default function SettingsPage() {
   const { user } = useAuth();
-  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('account');
 
   // Preferences State with LocalStorage Persistence
@@ -59,34 +55,34 @@ export default function SettingsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors">
+      <div className="flex min-h-screen flex-col bg-[#F8F9FF] text-[#0B1C30] transition-colors">
         <Navbar />
 
         <main className="flex-1 container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-7">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-3 py-0.5 text-xs font-bold text-[#1E40AF] mb-2">
               <Sliders className="h-3.5 w-3.5 text-slate-500" />
               <span>PREFERENCES & CONFIGURATION</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0B1C30]">
               System Settings
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Configure application defaults, visual appearance, and notification policies.
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              Configure application defaults, notifications, and security policies.
             </p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 max-w-md bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl">
-              <TabsTrigger value="account" className="gap-2 text-xs font-semibold rounded-xl">
+            <TabsList className="grid w-full grid-cols-3 max-w-md bg-[#EFF4FF] p-1 rounded-2xl border border-slate-200">
+              <TabsTrigger value="account" className="gap-2 text-xs font-bold rounded-xl data-[state=active]:bg-white data-[state=active]:text-[#0B1C30] data-[state=active]:shadow-xs">
                 <User className="h-4 w-4" />
                 Account
               </TabsTrigger>
-              <TabsTrigger value="preferences" className="gap-2 text-xs font-semibold rounded-xl">
+              <TabsTrigger value="preferences" className="gap-2 text-xs font-bold rounded-xl data-[state=active]:bg-white data-[state=active]:text-[#0B1C30] data-[state=active]:shadow-xs">
                 <Sliders className="h-4 w-4" />
                 Preferences
               </TabsTrigger>
-              <TabsTrigger value="security" className="gap-2 text-xs font-semibold rounded-xl">
+              <TabsTrigger value="security" className="gap-2 text-xs font-bold rounded-xl data-[state=active]:bg-white data-[state=active]:text-[#0B1C30] data-[state=active]:shadow-xs">
                 <Shield className="h-4 w-4" />
                 Security
               </TabsTrigger>
@@ -94,32 +90,32 @@ export default function SettingsPage() {
 
             {/* Account Tab */}
             <TabsContent value="account">
-              <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111827] shadow-[0_4px_20px_rgba(15,23,42,0.03)] p-6 sm:p-8 space-y-5">
+              <div className="rounded-3xl border border-slate-200 bg-white shadow-[0_4px_20px_rgba(11,28,48,0.03)] p-6 sm:p-8 space-y-5">
                 <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Account Configurations</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <h3 className="text-lg font-bold text-[#0B1C30]">Account Configurations</h3>
+                  <p className="text-xs text-slate-500">
                     General account information associated with your session credentials.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Account Name</Label>
-                    <Input value={user?.name || ''} disabled className="bg-slate-50 dark:bg-slate-800/50 text-xs font-medium" />
+                    <Label className="text-xs font-semibold text-slate-700">Account Name</Label>
+                    <Input value={user?.name || ''} disabled className="bg-[#F8F9FF] border-slate-200 text-xs font-medium" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Registered Email</Label>
-                    <Input value={user?.email || ''} disabled className="bg-slate-50 dark:bg-slate-800/50 text-xs font-mono" />
+                    <Label className="text-xs font-semibold text-slate-700">Registered Email</Label>
+                    <Input value={user?.email || ''} disabled className="bg-[#F8F9FF] border-slate-200 text-xs font-mono" />
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Assigned Role</Label>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 mb-3">
+                <div className="pt-4 border-t border-slate-100">
+                  <Label className="text-xs font-semibold text-slate-700">Assigned Role</Label>
+                  <p className="text-xs text-slate-500 mt-0.5 mb-3">
                     Your role determines access permissions across citizen reporting and officer dispatch queues.
                   </p>
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-bold capitalize border border-slate-200 dark:border-slate-700">
-                    <Shield className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#E8F9ED] text-[#1F6C3A] text-xs font-bold capitalize border border-[#A4F1B2]">
+                    <Shield className="h-3.5 w-3.5 text-[#1F6C3A]" />
                     {user?.role || 'Citizen'} Role Access
                   </div>
                 </div>
@@ -128,60 +124,17 @@ export default function SettingsPage() {
 
             {/* Preferences Tab */}
             <TabsContent value="preferences">
-              <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111827] shadow-[0_4px_20px_rgba(15,23,42,0.03)] p-6 sm:p-8 space-y-6">
+              <div className="rounded-3xl border border-slate-200 bg-white shadow-[0_4px_20px_rgba(11,28,48,0.03)] p-6 sm:p-8 space-y-6">
                 <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Theme & UI Preferences</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Customize appearance and notification behavior.</p>
-                </div>
-
-                {/* Theme Selector */}
-                <div className="space-y-2 pb-4 border-b border-slate-100 dark:border-slate-800">
-                  <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Theme Appearance</Label>
-                  <div className="grid grid-cols-3 gap-3 max-w-sm">
-                    <button
-                      type="button"
-                      onClick={() => setTheme('light')}
-                      className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                        theme === 'light'
-                          ? 'border-slate-900 dark:border-slate-100 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 shadow-sm'
-                          : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <Sun className="h-4 w-4 text-amber-500" />
-                      Light
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTheme('dark')}
-                      className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                        theme === 'dark'
-                          ? 'border-slate-900 dark:border-slate-100 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 shadow-sm'
-                          : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <Moon className="h-4 w-4 text-blue-400" />
-                      Dark
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTheme('system')}
-                      className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                        theme === 'system'
-                          ? 'border-slate-900 dark:border-slate-100 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 shadow-sm'
-                          : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <Laptop className="h-4 w-4 text-slate-400" />
-                      System
-                    </button>
-                  </div>
+                  <h3 className="text-lg font-bold text-[#0B1C30]">UI & Notification Preferences</h3>
+                  <p className="text-xs text-slate-500">Customize real-time polling and interface behavior.</p>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between py-2 border-b border-slate-100">
                     <div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">Live Pulse Polling</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">Keep community ledger updated in real time</p>
+                      <p className="text-xs font-bold text-[#0B1C30]">Live Pulse Polling</p>
+                      <p className="text-[11px] text-slate-500">Keep community ledger updated in real time</p>
                     </div>
                     <input
                       type="checkbox"
@@ -189,14 +142,14 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         setPreferences((prev) => ({ ...prev, autoRefresh: e.target.checked }))
                       }
-                      className="h-4 w-4 rounded text-slate-900 focus:ring-slate-900 cursor-pointer"
+                      className="h-4 w-4 rounded text-[#0F172A] focus:ring-[#0F172A] cursor-pointer"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between py-2 border-b border-slate-100">
                     <div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">Compact Queue Rows</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">Optimize table padding for high ticket volume</p>
+                      <p className="text-xs font-bold text-[#0B1C30]">Compact Queue Rows</p>
+                      <p className="text-[11px] text-slate-500">Optimize table padding for high ticket volume</p>
                     </div>
                     <input
                       type="checkbox"
@@ -204,14 +157,14 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         setPreferences((prev) => ({ ...prev, compactTable: e.target.checked }))
                       }
-                      className="h-4 w-4 rounded text-slate-900 focus:ring-slate-900 cursor-pointer"
+                      className="h-4 w-4 rounded text-[#0F172A] focus:ring-[#0F172A] cursor-pointer"
                     />
                   </div>
 
                   <div className="flex items-center justify-between py-2">
                     <div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">Toast Notifications</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">Show instant alerts on ticket updates and upvotes</p>
+                      <p className="text-xs font-bold text-[#0B1C30]">Toast Notifications</p>
+                      <p className="text-[11px] text-slate-500">Show instant alerts on ticket updates and upvotes</p>
                     </div>
                     <input
                       type="checkbox"
@@ -219,13 +172,13 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         setPreferences((prev) => ({ ...prev, emailAlerts: e.target.checked }))
                       }
-                      className="h-4 w-4 rounded text-slate-900 focus:ring-slate-900 cursor-pointer"
+                      className="h-4 w-4 rounded text-[#0F172A] focus:ring-[#0F172A] cursor-pointer"
                     />
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <Button onClick={handleSavePreferences} className="gap-2 h-10 px-5 rounded-xl text-xs font-bold">
+                <div className="flex justify-end pt-4 border-t border-slate-100">
+                  <Button onClick={handleSavePreferences} className="gap-2 h-10 px-5 rounded-xl text-xs font-bold bg-[#0F172A] hover:bg-[#1E293B] text-white shadow-sm hover:-translate-y-0.5 transition-all">
                     <Save className="h-4 w-4" /> Save Preferences
                   </Button>
                 </div>
@@ -234,38 +187,38 @@ export default function SettingsPage() {
 
             {/* Security Tab */}
             <TabsContent value="security">
-              <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111827] shadow-[0_4px_20px_rgba(15,23,42,0.03)] p-6 sm:p-8 space-y-5">
+              <div className="rounded-3xl border border-slate-200 bg-white shadow-[0_4px_20px_rgba(11,28,48,0.03)] p-6 sm:p-8 space-y-5">
                 <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Security & Encryption Policies</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <h3 className="text-lg font-bold text-[#0B1C30]">Security & Encryption Policies</h3>
+                  <p className="text-xs text-slate-500">
                     JSON Web Token (JWT) standards and encryption policies for AWAZ.
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#182235] p-5 space-y-3.5 text-xs">
+                <div className="rounded-2xl border border-slate-200 bg-[#F8F9FF] p-5 space-y-3.5 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <span className="font-bold text-[#0B1C30] flex items-center gap-2">
                       <Key className="h-4 w-4 text-slate-500" /> Token Standard
                     </span>
-                    <span className="font-mono text-[11px] bg-white dark:bg-slate-900 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-800 font-semibold">
+                    <span className="font-mono text-[11px] bg-white px-2.5 py-1 rounded-full border border-slate-200 font-bold">
                       JWT HS256 (Rotational Refresh)
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <Database className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Password Hashing
+                    <span className="font-bold text-[#0B1C30] flex items-center gap-2">
+                      <Database className="h-4 w-4 text-[#1F6C3A]" /> Password Hashing
                     </span>
-                    <span className="font-mono text-[11px] bg-white dark:bg-slate-900 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-800 font-semibold">
+                    <span className="font-mono text-[11px] bg-white px-2.5 py-1 rounded-full border border-slate-200 font-bold">
                       bcrypt (salt rounds: 10)
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400" /> Role-Based Access Control
+                    <span className="font-bold text-[#0B1C30] flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-[#1E40AF]" /> Role-Based Access Control
                     </span>
-                    <span className="font-mono text-[11px] bg-white dark:bg-slate-900 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-800 font-semibold">
+                    <span className="font-mono text-[11px] bg-white px-2.5 py-1 rounded-full border border-slate-200 font-bold">
                       Strict Citizen / Officer Segregation
                     </span>
                   </div>

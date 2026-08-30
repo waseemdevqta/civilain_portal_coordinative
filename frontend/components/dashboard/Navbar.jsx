@@ -18,26 +18,26 @@ import { Menu, User, Settings, LogOut, Activity, ChevronDown } from 'lucide-reac
 
 export function DashboardNavbar() {
   const router = useRouter();
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout } = useAuth();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border/80 bg-card/80 px-4 sm:px-6 backdrop-blur-xl">
-      {/* Left: Mobile hamburger & title */}
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-4 sm:px-6 backdrop-blur-xl">
+      {/* Left: Mobile hamburger & status */}
       <div className="flex items-center space-x-3">
         <button
           type="button"
           onClick={() => setMobileDrawerOpen(true)}
-          className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          className="md:hidden p-2 rounded-xl text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF]"
           aria-label="Open navigation menu"
         >
           <Menu className="h-5 w-5" />
         </button>
 
         <div className="hidden sm:flex items-center space-x-2">
-          <Badge variant="success" className="gap-1.5 py-1 px-2.5 text-[11px]">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>REST API Active</span>
+          <Badge variant="success" className="gap-1.5 py-1 px-3 text-[11px] bg-[#E8F9ED] text-[#1F6C3A] border border-[#A4F1B2]">
+            <span className="h-2 w-2 rounded-full bg-[#1F6C3A] animate-pulse" />
+            <span>Civic API Synchronized</span>
           </Badge>
         </div>
       </div>
@@ -46,29 +46,29 @@ export function DashboardNavbar() {
       <div className="flex items-center space-x-4">
         <DropdownMenu
           trigger={
-            <button className="flex items-center space-x-3 rounded-xl p-1.5 hover:bg-muted/50 transition-colors focus:outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring">
+            <button className="flex items-center space-x-3 rounded-2xl p-1.5 hover:bg-[#F8F9FF] transition-colors focus:outline-none cursor-pointer">
               <Avatar name={user?.name || 'User'} size="default" />
               <div className="hidden text-left md:block">
-                <p className="text-sm font-semibold text-foreground leading-none">{user?.name || 'User'}</p>
-                <p className="text-[11px] text-muted-foreground mt-1 capitalize font-medium">{user?.role || 'member'}</p>
+                <p className="text-sm font-bold text-[#0B1C30] leading-none">{user?.name || 'User'}</p>
+                <p className="text-[11px] text-slate-500 mt-1 capitalize font-medium">{user?.role || 'Citizen'}</p>
               </div>
-              <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:block" />
+              <ChevronDown className="h-4 w-4 text-slate-400 hidden md:block" />
             </button>
           }
         >
           <DropdownMenuLabel>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground">{user?.name}</span>
-              <span className="text-xs text-muted-foreground font-normal">{user?.email}</span>
+              <span className="text-sm font-bold text-[#0B1C30]">{user?.name}</span>
+              <span className="text-xs text-slate-500 font-normal">{user?.email}</span>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
-            <User className="mr-2 h-4 w-4 text-primary" />
+            <User className="mr-2 h-4 w-4 text-[#0F172A]" />
             Profile & Account
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
-            <Settings className="mr-2 h-4 w-4 text-indigo-400" />
+            <Settings className="mr-2 h-4 w-4 text-slate-500" />
             System Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />

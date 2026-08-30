@@ -84,6 +84,59 @@ const makeRequest = (method, endpoint, body = null, token = null, rawBody = null
   });
 };
 
+const uploadMultipart = (reqPath, fileBuffer, filename, mimetype, token = null) => {
+  return new Promise((resolve, reject) => {
+    const boundary = '----WebKitFormBoundary' + Math.random().toString(36).substring(2);
+    const parsedUrl = new URL(reqPath, baseUrl);
+
+    const header = `--${boundary}\r\nContent-Disposition: form-data; name="image"; filename="${filename}"\r\nContent-Type: ${mimetype}\r\n\r\n`;
+    const footer = `\r\n--${boundary}--\r\n`;
+
+    const bodyBuffer = Buffer.concat([
+      Buffer.from(header, 'utf-8'),
+      fileBuffer,
+      Buffer.from(footer, 'utf-8'),
+    ]);
+
+    const headers = {
+      'Content-Type': `multipart/form-data; boundary=${boundary}`,
+      'Content-Length': bodyBuffer.length,
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const req = http.request(
+      {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port,
+        path: parsedUrl.pathname + parsedUrl.search,
+        method: 'POST',
+        headers,
+      },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+        res.on('end', () => {
+          let json = null;
+          try {
+            json = JSON.parse(data);
+          } catch (e) {
+            json = { raw: data };
+          }
+          resolve({ status: res.statusCode, data: json, headers: res.headers });
+        });
+      }
+    );
+
+    req.on('error', (err) => reject(err));
+    req.write(bodyBuffer);
+    req.end();
+  });
+};
+
 const assert = (condition, testName, details = '') => {
   totalTests++;
   if (condition) {
@@ -917,6 +970,138 @@ const runAggressiveSuite = async () => {
       unconfiguredAiRes.data
     );
     process.env.GEMINI_API_KEY = savedApiKey;
+
+    // ----------------------------------------------------
+    // Section 17b: Gemini AI Smart Triage Assistant
+    // ----------------------------------------------------
+    console.log('\n--- Section 17b: Gemini AI Smart Triage Assistant ---');
+    const aiTriageRes = await makeRequest(
+      'POST',
+      '/api/ai/analyze-complaint',
+      {
+        title: 'Broken high voltage cable sparking on street',
+        description: 'Cable fell down after storm and is throwing sparks near puddles',
+        area: 'Satellite Town',
+      },
+      citizenToken
+    );
+    assert(
+      aiTriageRes.status === 200 &&
+      aiTriageRes.data.success === true &&
+      (aiTriageRes.data.data.suggestedCategory === 'electricity' || aiTriageRes.data.data.suggestedCategory !== undefined),
+      'POST /api/ai/analyze-complaint returns structured triage recommendation',
+      aiTriageRes.data
+    );
+
+    // ----------------------------------------------------
+    // Section 17c: Hotspot Cluster Density & Visual Evidence
+    // ----------------------------------------------------
+    console.log('\n--- Section 17c: Hotspot Cluster Density & Visual Evidence ---');
+    const hotspotsRes = await makeRequest('GET', '/api/complaints/hotspots');
+    assert(
+      hotspotsRes.status === 200 &&
+      Array.isArray(hotspotsRes.data.data) &&
+      hotspotsRes.data.data.length > 0 &&
+      hotspotsRes.data.data[0].riskLevel !== undefined,
+      'GET /api/complaints/hotspots returns aggregated neighborhood cluster density metrics',
+      hotspotsRes.data
+    );
+
+    // 17c.1 Upload without file (400 Bad Request)
+    const uploadNoFileRes = await makeRequest('POST', '/api/upload', {}, citizenToken);
+    assert(
+      uploadNoFileRes.status === 400,
+      'POST /api/upload without image file returns 400 Bad Request',
+      uploadNoFileRes.data
+    );
+
+    // 17c.2 Upload unauthenticated (401 Unauthorized)
+    const uploadNoAuthRes = await makeRequest('POST', '/api/upload', {});
+    assert(
+      uploadNoAuthRes.status === 401,
+      'POST /api/upload without token returns 401 Unauthorized',
+      uploadNoAuthRes.data
+    );
+
+    // 17c.3 Upload non-image text file (400 Bad Request)
+    const fakeTextBuffer = Buffer.from('Not an image content', 'utf-8');
+    const uploadInvalidTypeRes = await uploadMultipart('/api/upload', fakeTextBuffer, 'document.txt', 'text/plain', citizenToken);
+    assert(
+      uploadInvalidTypeRes.status === 400,
+      'POST /api/upload with non-image file is rejected with 400 Bad Request',
+      uploadInvalidTypeRes.data
+    );
+
+    // 17c.4 Upload valid image buffer (200 OK + URL)
+    // Minimal 1x1 valid JPEG binary buffer
+    const mockJpegBuffer = Buffer.from([
+      0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+      0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00, 0xff, 0xdb, 0x00, 0x43,
+      0x00, 0x08, 0x06, 0x06, 0x07, 0x06, 0x05, 0x08, 0x07, 0x07, 0x07, 0x09,
+      0x09, 0x08, 0x0a, 0x0c, 0x14, 0x0d, 0x0c, 0x0b, 0x0b, 0x0c, 0x19, 0x12,
+      0x13, 0x0f, 0x14, 0x1d, 0x1a, 0x1f, 0x1e, 0x1d, 0x1a, 0x1c, 0x1c, 0x20,
+      0x24, 0x2e, 0x27, 0x20, 0x22, 0x2c, 0x23, 0x1c, 0x1c, 0x28, 0x37, 0x29,
+      0x2c, 0x30, 0x31, 0x34, 0x34, 0x34, 0x1f, 0x27, 0x39, 0x3d, 0x38, 0x32,
+      0x3c, 0x2e, 0x33, 0x34, 0x32, 0xff, 0xc0, 0x00, 0x0b, 0x08, 0x00, 0x01,
+      0x00, 0x01, 0x01, 0x01, 0x11, 0x00, 0xff, 0xc4, 0x00, 0x1f, 0x00, 0x00,
+      0x01, 0x05, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+      0x09, 0x0a, 0x0b, 0xff, 0xda, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3f,
+      0x00, 0xbf, 0x80, 0xff, 0xd9
+    ]);
+
+    const uploadSuccessRes = await uploadMultipart('/api/upload', mockJpegBuffer, 'evidence.jpg', 'image/jpeg', citizenToken);
+    assert(
+      uploadSuccessRes.status === 200 &&
+      uploadSuccessRes.data.success === true &&
+      typeof uploadSuccessRes.data.data.url === 'string' &&
+      uploadSuccessRes.data.data.url.length > 10,
+      'POST /api/upload uploads valid JPEG image and returns delivery URL',
+      uploadSuccessRes.data
+    );
+
+    const uploadedImageUrl = uploadSuccessRes.data.data?.url || 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7';
+
+    // 17c.5 Create complaint with visual evidence imageUrl
+    const visualComplaintRes = await makeRequest(
+      'POST',
+      '/api/complaints',
+      {
+        title: 'Exposed rusted drainage grating with vehicle damage photo',
+        description: 'Grating has collapsed into the storm drain with sharp iron edges.',
+        category: 'road',
+        area: 'Jinnah Road',
+        imageUrl: uploadedImageUrl,
+      },
+      citizenToken
+    );
+    assert(
+      visualComplaintRes.status === 201 &&
+      visualComplaintRes.data.data.imageUrl === uploadedImageUrl,
+      'POST /api/complaints saves attached photo evidence imageUrl',
+      visualComplaintRes.data
+    );
+
+    const visualComplaintId = visualComplaintRes.data.data._id;
+
+    // 17c.6 Officer resolves complaint with resolutionImageUrl
+    const resolutionProofUrl = 'https://images.unsplash.com/photo-1590402494682-cd3fb53b1f70?w=800';
+    const visualResolveRes = await makeRequest(
+      'PATCH',
+      `/api/complaints/${visualComplaintId}/status`,
+      {
+        status: 'resolved',
+        officerRemark: 'Replaced with cast iron reinforced grate.',
+        resolutionImageUrl: resolutionProofUrl,
+      },
+      officerToken
+    );
+    assert(
+      visualResolveRes.status === 200 &&
+      visualResolveRes.data.data.resolutionImageUrl === resolutionProofUrl,
+      'PATCH /api/complaints/:id/status stores officer resolutionImageUrl proof',
+      visualResolveRes.data
+    );
 
     // ----------------------------------------------------
     // Section 18: Malformed Request & Error Handling

@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { PriorityBadge } from '@/components/common/PriorityBadge';
 import { CategoryBadge } from '@/components/common/CategoryBadge';
+import ImageLightbox from '@/components/common/ImageLightbox';
+import WorkOrderModal from '@/components/common/WorkOrderModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/toaster';
 import {
@@ -43,6 +45,9 @@ import {
   Droplets,
   Zap,
   Loader2,
+  Printer,
+  Camera,
+  ExternalLink,
 } from 'lucide-react';
 
 export default function ComplaintDetailPage({ params }) {
@@ -56,6 +61,10 @@ export default function ComplaintDetailPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [upvoting, setUpvoting] = useState(false);
+
+  // Lightbox and Docket states
+  const [activeLightbox, setActiveLightbox] = useState(null);
+  const [showDocketModal, setShowDocketModal] = useState(false);
 
   // Feedback modal state
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -142,39 +151,37 @@ export default function ComplaintDetailPage({ params }) {
       : complaint?.createdBy;
   const isOwner = userIdStr && creatorIdStr && userIdStr.toString() === creatorIdStr.toString();
 
-  const getCategoryIconDetails = (cat) => {
-    switch ((cat || '').toLowerCase()) {
-      case 'road':
-        return { icon: Route, color: 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' };
-      case 'garbage':
-        return { icon: Trash2, color: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' };
-      case 'water':
-        return { icon: Droplets, color: 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300' };
-      case 'electricity':
-        return { icon: Zap, color: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' };
-      default:
-        return { icon: FileText, color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' };
-    }
-  };
-
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors">
+    <div className="flex min-h-screen flex-col bg-[#F8F9FF] text-[#0B1C30] transition-colors">
       <Navbar />
 
       <main className="flex-1 container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-7">
-        {/* BACK BUTTON */}
-        <div>
+        {/* TOP BAR WITH BACK & DOCKET ACTION */}
+        <div className="flex items-center justify-between">
           <Link href="/complaints">
-            <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl h-9 px-3">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-slate-600 hover:text-[#0B1C30] hover:bg-[#EFF4FF] rounded-xl h-9 px-3 font-semibold">
               <ArrowLeft className="h-4 w-4" />
               Back to Community Ledger
             </Button>
           </Link>
+
+          {complaint && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDocketModal(true)}
+              className="gap-1.5 text-xs font-semibold rounded-xl h-9 px-3.5 border-slate-200 bg-white hover:bg-[#F8F9FF] text-[#0B1C30] shadow-2xs"
+            >
+              <Printer className="h-3.5 w-3.5 text-[#1F6C3A]" />
+              Print Municipal Docket
+            </Button>
+          )}
         </div>
 
         {/* LOADING STATE */}
         {loading && (
-          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-8 space-y-6">
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 space-y-6">
             <div className="flex gap-2">
               <Skeleton className="h-6 w-24 rounded-full" />
               <Skeleton className="h-6 w-24 rounded-full" />
@@ -187,12 +194,12 @@ export default function ComplaintDetailPage({ params }) {
 
         {/* ERROR STATE */}
         {error && !loading && (
-          <div className="rounded-3xl border border-red-200/90 dark:border-red-900/60 bg-red-50/90 dark:bg-red-950/40 p-8 text-center space-y-4">
-            <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400 mx-auto" />
-            <h2 className="text-base font-bold text-red-900 dark:text-red-200">Unable to locate complaint record</h2>
-            <p className="text-xs sm:text-sm text-red-700 dark:text-red-300 max-w-md mx-auto">{error}</p>
+          <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center space-y-4">
+            <AlertCircle className="h-8 w-8 text-[#BA1A1A] mx-auto" />
+            <h2 className="text-base font-bold text-red-900">Unable to locate complaint record</h2>
+            <p className="text-xs sm:text-sm text-red-700 max-w-md mx-auto">{error}</p>
             <Link href="/complaints">
-              <Button size="sm" variant="outline" className="text-xs rounded-xl mt-2">
+              <Button size="sm" variant="outline" className="text-xs rounded-xl mt-2 border-red-200">
                 Return to Issues Feed
               </Button>
             </Link>
@@ -203,11 +210,11 @@ export default function ComplaintDetailPage({ params }) {
         {complaint && !loading && (
           <div className="space-y-6">
             {/* MAIN CARD */}
-            <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 sm:p-9 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-7">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-9 shadow-[0_4px_20px_rgba(11,28,48,0.03)] space-y-7">
               {/* Header Badges */}
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
+                  <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
                     #CF-{complaint._id.slice(-6).toUpperCase()}
                   </span>
                   <CategoryBadge category={complaint.category} />
@@ -215,7 +222,7 @@ export default function ComplaintDetailPage({ params }) {
                   <PriorityBadge priority={complaint.priority} score={complaint.priorityScore} showScore={true} />
                 </div>
 
-                <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                <div className="text-xs text-slate-500 flex items-center gap-1 font-medium">
                   <Calendar className="h-3.5 w-3.5 text-slate-400" />
                   Logged {new Date(complaint.createdAt).toLocaleDateString()}
                 </div>
@@ -223,16 +230,16 @@ export default function ComplaintDetailPage({ params }) {
 
               {/* Title & Metadata */}
               <div className="space-y-3">
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0B1C30] leading-tight">
                   {complaint.title}
                 </h1>
 
-                <div className="flex flex-wrap items-center gap-5 text-xs text-slate-500 dark:text-slate-400">
-                  <span className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
+                <div className="flex flex-wrap items-center gap-5 text-xs text-slate-500">
+                  <span className="flex items-center gap-1.5 font-semibold text-slate-800">
                     <MapPin className="h-4 w-4 text-slate-400" />
                     {complaint.area}
                   </span>
-                  <span className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+                  <span className="flex items-center gap-1.5 font-medium text-slate-700">
                     <User className="h-4 w-4 text-slate-400" />
                     Reported by {complaint.createdBy?.name || 'Citizen'}
                   </span>
@@ -240,18 +247,18 @@ export default function ComplaintDetailPage({ params }) {
               </div>
 
               {/* LIFECYCLE PROGRESS BAR */}
-              <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#182235]/60 p-5 space-y-3">
-                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+              <div className="rounded-2xl border border-slate-200 bg-[#F8F9FF] p-5 space-y-3">
+                <div className="text-xs font-bold text-[#0B1C30] uppercase tracking-wider">
                   Lifecycle Progress
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center text-xs">
                   {/* Step 1: Reported */}
-                  <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
-                    <div className="flex items-center justify-center gap-1 text-emerald-700 dark:text-emerald-400 font-bold">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-1 shadow-2xs">
+                    <div className="flex items-center justify-center gap-1 text-[#1F6C3A] font-bold">
+                      <CheckCircle2 className="h-4 w-4 text-[#1F6C3A]" />
                       Reported
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                    <div className="text-[11px] text-slate-500">
                       {new Date(complaint.createdAt).toLocaleDateString()}
                     </div>
                   </div>
@@ -260,19 +267,19 @@ export default function ComplaintDetailPage({ params }) {
                   <div
                     className={`p-3 rounded-xl border space-y-1 ${
                       complaint.status === 'in-progress' || complaint.status === 'resolved'
-                        ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-blue-700 dark:text-blue-400'
-                        : 'bg-transparent border-dashed border-slate-300 dark:border-slate-700 text-slate-400'
+                        ? 'bg-white border-slate-200 text-[#1E40AF] shadow-2xs'
+                        : 'bg-transparent border-dashed border-slate-300 text-slate-400'
                     }`}
                   >
                     <div className="flex items-center justify-center gap-1 font-bold">
                       {complaint.status === 'in-progress' || complaint.status === 'resolved' ? (
-                        <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <CheckCircle2 className="h-4 w-4 text-[#1E40AF]" />
                       ) : (
                         <Clock className="h-4 w-4" />
                       )}
                       In Progress
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                    <div className="text-[11px] text-slate-500">
                       {complaint.status === 'in-progress' || complaint.status === 'resolved'
                         ? 'Field Crew Active'
                         : 'Pending dispatch'}
@@ -283,19 +290,19 @@ export default function ComplaintDetailPage({ params }) {
                   <div
                     className={`p-3 rounded-xl border space-y-1 ${
                       complaint.status === 'resolved'
-                        ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200'
-                        : 'bg-transparent border-dashed border-slate-300 dark:border-slate-700 text-slate-400'
+                        ? 'bg-[#E8F9ED] border-[#A4F1B2] text-[#1F6C3A] shadow-2xs'
+                        : 'bg-transparent border-dashed border-slate-300 text-slate-400'
                     }`}
                   >
                     <div className="flex items-center justify-center gap-1 font-bold">
                       {complaint.status === 'resolved' ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                        <CheckCircle2 className="h-4 w-4 text-[#1F6C3A]" />
                       ) : (
                         <Clock className="h-4 w-4" />
                       )}
                       Resolved
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                    <div className="text-[11px] text-slate-500">
                       {complaint.resolvedAt
                         ? new Date(complaint.resolvedAt).toLocaleDateString()
                         : 'Awaiting completion'}
@@ -306,35 +313,133 @@ export default function ComplaintDetailPage({ params }) {
 
               {/* WHAT HAPPENED — DESCRIPTION */}
               <div className="space-y-2 pt-2">
-                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                <h3 className="text-xs font-bold text-[#0B1C30] uppercase tracking-wider">
                   What Happened?
                 </h3>
-                <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-[#F7F8FC]/60 dark:bg-[#182235]/40 p-5 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                <div className="rounded-2xl border border-slate-200 bg-[#F8F9FF] p-5 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">
                   {complaint.description}
                 </div>
               </div>
 
+              {/* VISUAL EVIDENCE & BEFORE/AFTER FIX SECTION */}
+              {(complaint.imageUrl || complaint.resolutionImageUrl) && (
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold text-[#0B1C30] uppercase tracking-wider flex items-center gap-1.5">
+                      <Camera className="w-4 h-4 text-[#1F6C3A]" />
+                      Visual Photographic Evidence
+                    </h3>
+                    <span className="text-[11px] text-[#526071]">Click any photo to zoom</span>
+                  </div>
+
+                  {/* If both report and resolution images exist, display side-by-side Before/After */}
+                  {complaint.imageUrl && complaint.resolutionImageUrl ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Before (Citizen Report) */}
+                      <div
+                        onClick={() =>
+                          setActiveLightbox({
+                            url: complaint.imageUrl,
+                            title: 'Initial Incident Report (Before Fix)',
+                            subtitle: `Submitted by citizen on ${new Date(complaint.createdAt).toLocaleDateString()}`,
+                          })
+                        }
+                        className="group relative rounded-2xl overflow-hidden bg-[#F1F5F9] border border-[#CBD5E1] cursor-pointer shadow-xs"
+                      >
+                        <div className="h-52 w-full overflow-hidden">
+                          <img
+                            src={complaint.imageUrl}
+                            alt="Before Fix"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                        <div className="p-3 bg-white border-t border-[#E2E8F0] flex items-center justify-between">
+                          <div>
+                            <span className="text-[11px] font-bold uppercase text-[#BA1A1A] block">Before Inspection</span>
+                            <span className="text-xs text-[#526071]">Citizen Reported Photo</span>
+                          </div>
+                          <span className="text-xs font-semibold text-[#1F6C3A] group-hover:underline">Zoom ↗</span>
+                        </div>
+                      </div>
+
+                      {/* After (Resolution Proof) */}
+                      <div
+                        onClick={() =>
+                          setActiveLightbox({
+                            url: complaint.resolutionImageUrl,
+                            title: 'Municipal Resolution Proof (After Fix)',
+                            subtitle: `Verified resolved on ${complaint.resolvedAt ? new Date(complaint.resolvedAt).toLocaleDateString() : 'Recent date'}`,
+                          })
+                        }
+                        className="group relative rounded-2xl overflow-hidden bg-[#E8F9ED] border border-[#A4F1B2] cursor-pointer shadow-xs"
+                      >
+                        <div className="h-52 w-full overflow-hidden">
+                          <img
+                            src={complaint.resolutionImageUrl}
+                            alt="After Fix"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                        <div className="p-3 bg-white border-t border-[#A4F1B2] flex items-center justify-between">
+                          <div>
+                            <span className="text-[11px] font-bold uppercase text-[#1F6C3A] block">After Municipal Fix</span>
+                            <span className="text-xs text-[#526071]">Officer Resolution Proof</span>
+                          </div>
+                          <span className="text-xs font-semibold text-[#1F6C3A] group-hover:underline">Zoom ↗</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Single Image View */
+                    <div
+                      onClick={() =>
+                        setActiveLightbox({
+                          url: complaint.imageUrl || complaint.resolutionImageUrl,
+                          title: complaint.imageUrl ? 'Citizen Report Photo Evidence' : 'Resolution Proof Photo',
+                          subtitle: complaint.title,
+                        })
+                      }
+                      className="group relative rounded-2xl overflow-hidden bg-[#F1F5F9] border border-[#CBD5E1] cursor-pointer shadow-xs max-w-lg"
+                    >
+                      <div className="h-64 w-full overflow-hidden">
+                        <img
+                          src={complaint.imageUrl || complaint.resolutionImageUrl}
+                          alt="Evidence"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <div className="p-3 bg-white border-t border-[#E2E8F0] flex items-center justify-between">
+                        <span className="text-xs font-semibold text-[#0B1C30]">
+                          {complaint.imageUrl ? 'Citizen Incident Photo Evidence' : 'Officer Resolution Proof'}
+                        </span>
+                        <span className="text-xs font-semibold text-[#1F6C3A] group-hover:underline">Click to view full photo ↗</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* OFFICIAL MUNICIPAL RESPONSE */}
               {complaint.officerRemark && (
-                <div className="rounded-2xl border border-blue-200/90 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/40 p-5 sm:p-6 space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-bold text-blue-900 dark:text-blue-200 uppercase tracking-wider">
-                    <ShieldCheck className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <div className="rounded-2xl border border-blue-200 bg-[#EFF4FF] p-5 sm:p-6 space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#1E40AF] uppercase tracking-wider">
+                    <ShieldCheck className="h-4 w-4 text-blue-600" />
                     Official Municipal Response
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-800 leading-relaxed">
                     {complaint.officerRemark}
                   </p>
                 </div>
               )}
 
               {/* COMMUNITY SUPPORT & UPVOTES */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
                 <div>
-                  <div className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <div className="text-sm font-bold text-[#0B1C30] flex items-center gap-2">
                     <ThumbsUp className="h-4 w-4 text-slate-500" />
                     {complaint.upvotes || 0} Citizens Supporting This Issue
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     Community support directly affects dynamic municipal priority score.
                   </p>
                 </div>
@@ -343,15 +448,15 @@ export default function ComplaintDetailPage({ params }) {
                   size="sm"
                   onClick={handleUpvote}
                   disabled={upvoting || hasUserUpvoted}
-                  className={`gap-1.5 h-10 px-5 rounded-xl text-xs font-bold transition-all ${
+                  className={`gap-1.5 h-10 px-5 rounded-xl text-xs font-bold transition-all shadow-xs ${
                     hasUserUpvoted
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                      : 'bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 shadow-sm'
+                      ? 'bg-[#E8F9ED] text-[#1F6C3A] border border-[#A4F1B2]'
+                      : 'bg-[#0F172A] hover:bg-[#1E293B] text-white hover:-translate-y-0.5'
                   }`}
                 >
                   {hasUserUpvoted ? (
                     <>
-                      <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      <Check className="h-4 w-4 text-[#1F6C3A]" />
                       <span>Supported ({complaint.upvotes || 0})</span>
                     </>
                   ) : (
@@ -365,9 +470,9 @@ export default function ComplaintDetailPage({ params }) {
 
               {/* CITIZEN RESOLUTION REVIEW (IF GIVEN) */}
               {complaint.feedbackGiven && (
-                <div className="rounded-2xl border border-amber-200/80 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/30 p-5 space-y-2">
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 space-y-2 shadow-2xs">
                   <div className="flex items-center justify-between">
-                    <div className="text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider flex items-center gap-1.5">
+                    <div className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
                       <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
                       Citizen Resolution Rating
                     </div>
@@ -378,14 +483,14 @@ export default function ComplaintDetailPage({ params }) {
                           className={`h-4 w-4 ${
                             i < complaint.feedbackRating
                               ? 'fill-amber-400 text-amber-500'
-                              : 'text-slate-300 dark:text-slate-700'
+                              : 'text-slate-300'
                           }`}
                         />
                       ))}
                     </div>
                   </div>
                   {complaint.feedbackComment && (
-                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 italic">
+                    <p className="text-xs sm:text-sm text-slate-700 italic">
                       &quot;{complaint.feedbackComment}&quot;
                     </p>
                   )}
@@ -394,20 +499,20 @@ export default function ComplaintDetailPage({ params }) {
 
               {/* OWNER RESOLUTION FEEDBACK TRIGGER (IF RESOLVED AND NOT YET GIVEN) */}
               {complaint.status === 'resolved' && !complaint.feedbackGiven && isOwner && (
-                <div className="rounded-2xl border border-emerald-200/90 dark:border-emerald-900/60 bg-emerald-50/80 dark:bg-emerald-950/40 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="rounded-2xl border border-[#A4F1B2] bg-[#E8F9ED] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
                   <div>
-                    <div className="text-sm font-bold text-emerald-950 dark:text-emerald-100 flex items-center gap-1.5">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <div className="text-sm font-bold text-[#14532D] flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-[#1F6C3A]" />
                       Your reported issue has been marked resolved.
                     </div>
-                    <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5">
+                    <p className="text-xs text-[#1F6C3A] mt-0.5">
                       Please rate the quality of the municipal resolution to verify completion.
                     </p>
                   </div>
                   <Button
                     size="sm"
                     onClick={() => setShowFeedbackModal(true)}
-                    className="bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white gap-1.5 text-xs h-10 px-5 rounded-xl shrink-0 font-bold shadow-sm"
+                    className="bg-[#1F6C3A] hover:bg-[#14532D] text-white gap-1.5 text-xs h-10 px-5 rounded-xl shrink-0 font-bold shadow-xs hover:-translate-y-0.5 transition-all"
                   >
                     <Star className="h-3.5 w-3.5" />
                     Rate Resolution Quality
@@ -420,26 +525,26 @@ export default function ComplaintDetailPage({ params }) {
 
         {/* FEEDBACK DIALOG */}
         <Dialog open={showFeedbackModal} onOpenChange={setShowFeedbackModal}>
-          <DialogContent className="bg-white dark:bg-[#111827] border-slate-200 dark:border-slate-800 sm:max-w-md">
+          <DialogContent className="bg-white border-slate-200 sm:max-w-md shadow-[0_12px_32px_rgba(11,28,48,0.1)] rounded-3xl">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100 text-lg font-bold">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <DialogTitle className="flex items-center gap-2 text-[#0B1C30] text-lg font-bold">
+                <CheckCircle2 className="h-5 w-5 text-[#1F6C3A]" />
                 Rate Resolution Quality
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              <DialogDescription className="text-xs sm:text-sm text-slate-500">
                 Your rating confirms work completion and helps evaluate municipal service standards.
               </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={handleFeedbackSubmit} className="space-y-4 py-2">
-              <div className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#182235] text-xs">
-                <div className="font-bold text-slate-900 dark:text-slate-100 truncate">{complaint?.title}</div>
-                <div className="text-slate-500 dark:text-slate-400 mt-0.5">{complaint?.area}</div>
+              <div className="p-3.5 rounded-2xl border border-slate-200 bg-[#F8F9FF] text-xs">
+                <div className="font-bold text-[#0B1C30] truncate">{complaint?.title}</div>
+                <div className="text-slate-500 mt-0.5">{complaint?.area}</div>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Service Rating (1–5 Stars)</Label>
-                <div className="flex items-center gap-2.5 justify-center py-3 bg-[#F7F8FC] dark:bg-[#182235] rounded-2xl border border-slate-200 dark:border-slate-800">
+                <Label className="text-xs font-semibold text-slate-700">Service Rating (1–5 Stars)</Label>
+                <div className="flex items-center gap-2.5 justify-center py-3 bg-[#F8F9FF] rounded-2xl border border-slate-200">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
@@ -451,13 +556,13 @@ export default function ComplaintDetailPage({ params }) {
                         className={`h-7 w-7 ${
                           star <= rating
                             ? 'fill-amber-400 text-amber-500'
-                            : 'text-slate-300 dark:text-slate-700 hover:text-amber-300'
+                            : 'text-slate-300 hover:text-amber-300'
                         }`}
                       />
                     </button>
                   ))}
                 </div>
-                <div className="text-center text-xs font-bold text-slate-800 dark:text-slate-200">
+                <div className="text-center text-xs font-bold text-[#0B1C30]">
                   {rating === 5 && '5 Stars — Excellent Resolution'}
                   {rating === 4 && '4 Stars — Good Work'}
                   {rating === 3 && '3 Stars — Acceptable'}
@@ -467,7 +572,7 @@ export default function ComplaintDetailPage({ params }) {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="detail-comment" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <Label htmlFor="detail-comment" className="text-xs font-semibold text-slate-700">
                   Feedback Remarks (Optional)
                 </Label>
                 <Textarea
@@ -476,7 +581,7 @@ export default function ComplaintDetailPage({ params }) {
                   value={feedbackComment}
                   onChange={(e) => setFeedbackComment(e.target.value)}
                   rows={3}
-                  className="text-xs sm:text-sm"
+                  className="text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
                 />
               </div>
 
@@ -487,14 +592,14 @@ export default function ComplaintDetailPage({ params }) {
                   size="sm"
                   onClick={() => setShowFeedbackModal(false)}
                   disabled={submittingFeedback}
-                  className="text-xs h-10 px-4 rounded-xl border-slate-200 dark:border-slate-800"
+                  className="text-xs h-10 px-4 rounded-xl border-slate-200"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   size="sm"
-                  className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 font-bold text-xs h-10 px-5 rounded-xl shadow-sm"
+                  className="bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold text-xs h-10 px-5 rounded-xl shadow-xs"
                   disabled={submittingFeedback}
                 >
                   {submittingFeedback ? (
@@ -510,6 +615,26 @@ export default function ComplaintDetailPage({ params }) {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* PRINTABLE DOCKET MODAL */}
+        {showDocketModal && (
+          <WorkOrderModal
+            isOpen={true}
+            onClose={() => setShowDocketModal(false)}
+            complaint={complaint}
+          />
+        )}
+
+        {/* IMAGE LIGHTBOX */}
+        {activeLightbox && (
+          <ImageLightbox
+            isOpen={true}
+            onClose={() => setActiveLightbox(null)}
+            imageUrl={activeLightbox.url}
+            title={activeLightbox.title}
+            subtitle={activeLightbox.subtitle}
+          />
+        )}
       </main>
 
       <Footer />

@@ -147,6 +147,7 @@ export const complaintApi = {
   submitFeedback: (id, data) => api.patch(`/complaints/${id}/feedback`, data),
   getDuplicates: (params) => api.get('/complaints/duplicates', { params }),
   getStats: () => api.get('/complaints/stats'),
+  getHotspots: () => api.get('/complaints/hotspots'),
   exportCSV: (params) =>
     api.get('/complaints/export', {
       params,
@@ -155,10 +156,34 @@ export const complaintApi = {
 };
 
 /* ============================================================
-   AI SERVICES
+   UPLOAD API SERVICES (Cloudinary)
+   ============================================================ */
+export const uploadApi = {
+  uploadImage: async (file, type = 'evidence') => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const token = typeof window !== 'undefined'
+      ? localStorage.getItem('accessToken') || localStorage.getItem('token')
+      : null;
+
+    const res = await axios.post(`${API_BASE_URL}/upload?type=${type}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    return res.data;
+  },
+};
+
+/* ============================================================
+   AI SERVICES (Gemini)
    ============================================================ */
 export const aiApi = {
   getOfficerSummary: () => api.post('/ai/officer-summary'),
+  analyzeComplaint: (draft) => api.post('/ai/analyze-complaint', draft),
 };
 
 /* ============================================================

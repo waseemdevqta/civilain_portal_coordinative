@@ -12,6 +12,7 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { PriorityBadge } from '@/components/common/PriorityBadge';
 import { CategoryBadge } from '@/components/common/CategoryBadge';
 import { EmptyState } from '@/components/common/EmptyState';
+import ImageLightbox from '@/components/common/ImageLightbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/toaster';
 import {
@@ -27,11 +28,8 @@ import {
   X,
   Check,
   Layers,
-  Route,
-  Trash2,
-  Droplets,
-  Zap,
-  FileText,
+  Camera,
+  CheckCircle2,
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -65,6 +63,9 @@ export default function ComplaintsFeedPage() {
   const [sort, setSort] = useState('recent');
 
   const [upvotingIds, setUpvotingIds] = useState(new Set());
+
+  // Lightbox State
+  const [activeLightbox, setActiveLightbox] = useState(null);
 
   const fetchComplaints = useCallback(async () => {
     setLoading(true);
@@ -105,17 +106,14 @@ export default function ComplaintsFeedPage() {
     }
 
     setUpvotingIds((prev) => new Set(prev).add(complaintId));
-
     try {
       const res = await complaintApi.upvote(complaintId);
-      const updated = res.data;
-
       setComplaints((prev) =>
-        prev.map((c) => (c._id === complaintId ? updated : c))
+        prev.map((c) => (c._id === complaintId ? res.data : c))
       );
-      toast.success('Support registered! Issue priority updated.');
+      toast.success('Your support was registered! Dynamic priority score updated.');
     } catch (err) {
-      toast.error(err.message || 'Failed to support complaint');
+      toast.error(err.message || 'Could not register upvote.');
     } finally {
       setUpvotingIds((prev) => {
         const next = new Set(prev);
@@ -125,77 +123,60 @@ export default function ComplaintsFeedPage() {
     }
   };
 
-  const clearFilters = () => {
-    setSearch('');
-    setCategory('');
-    setStatus('');
-    setArea('');
-    setSort('recent');
-  };
-
-  const hasActiveFilters = search || category || status || area || sort !== 'recent';
-
-  const getCategoryIconDetails = (cat) => {
-    switch ((cat || '').toLowerCase()) {
-      case 'road':
-        return { icon: Route, color: 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' };
-      case 'garbage':
-        return { icon: Trash2, color: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' };
-      case 'water':
-        return { icon: Droplets, color: 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300' };
-      case 'electricity':
-        return { icon: Zap, color: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' };
-      default:
-        return { icon: FileText, color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' };
-    }
+  const hasUpvoted = (complaint) => {
+    const userIdStr = user?.id || user?._id;
+    if (!userIdStr || !complaint.upvotedBy) return false;
+    return complaint.upvotedBy.some(
+      (uid) => (typeof uid === 'object' ? uid._id || uid : uid).toString() === userIdStr.toString()
+    );
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors">
+    <div className="flex min-h-screen flex-col bg-[#F8F9FF] text-[#0B1C30] transition-colors">
       <Navbar />
 
       <main className="flex-1 container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-7">
-        {/* HEADER */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-6">
+        {/* HEADER SECTION */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-              <span className="h-2 w-2 rounded-full bg-blue-500" />
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-3 py-0.5 text-xs font-bold text-[#1E40AF]">
+              <Layers className="h-3.5 w-3.5 text-[#1E40AF]" />
               <span>COMMUNITY LEDGER</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
-              Community Issues
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0B1C30]">
+              Neighborhood Issues Feed
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              See what your city is talking about. Upvote reported problems to indicate civic urgency.
+            <p className="text-xs sm:text-sm text-slate-500">
+              Browse public municipal reports, inspect verified photo evidence, rally community support, and track dispatch status in real time.
             </p>
           </div>
 
-          {isAuthenticated && isCitizen && (
+          <div className="shrink-0">
             <Link href="/complaints/new">
-              <Button size="lg" className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 gap-2 font-bold text-xs sm:text-sm h-11 px-5 rounded-xl shadow-[0_2px_10px_rgba(15,23,42,0.1)] shrink-0">
+              <Button size="lg" className="w-full sm:w-auto bg-[#0F172A] hover:bg-[#1E293B] text-white gap-2 font-bold text-xs sm:text-sm h-11 px-5 rounded-xl shadow-[0_4px_16px_rgba(15,23,42,0.15)] hover:-translate-y-0.5 transition-all">
                 <FilePlus className="h-4 w-4" />
                 Report an Issue
               </Button>
             </Link>
-          )}
+          </div>
         </div>
 
-        {/* SEARCH & FILTERS TOOLBAR */}
-        <div className="space-y-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 sm:p-6 shadow-[0_4px_20px_rgba(15,23,42,0.03)]">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {/* Search Bar */}
-            <div className="relative md:col-span-2">
+        {/* SEARCH & FILTERS BAR */}
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-[0_4px_20px_rgba(11,28,48,0.03)] p-5 sm:p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+            {/* Search Input */}
+            <div className="relative md:col-span-6">
               <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
               <Input
-                placeholder="Search community issues, keywords, locations..."
+                placeholder="Search by keywords, title, or details..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-10 text-xs sm:text-sm"
+                className="pl-10 h-10 text-xs sm:text-sm rounded-xl bg-[#F8F9FF] border-slate-200"
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -203,37 +184,50 @@ export default function ComplaintsFeedPage() {
             </div>
 
             {/* Area Filter */}
-            <div className="relative">
+            <div className="relative md:col-span-3">
               <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
               <Input
-                placeholder="Filter by neighborhood area..."
+                placeholder="Filter by neighborhood..."
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
-                className="pl-10 h-10 text-xs sm:text-sm"
+                className="pl-10 h-10 text-xs sm:text-sm rounded-xl bg-[#F8F9FF] border-slate-200"
               />
               {area && (
                 <button
                   onClick={() => setArea('')}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
                 >
                   <X className="h-4 w-4" />
                 </button>
               )}
             </div>
+
+            {/* Sort Selector */}
+            <div className="md:col-span-3">
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                className="w-full h-10 rounded-xl border border-slate-200 bg-[#F8F9FF] px-3 text-xs sm:text-sm font-semibold text-[#0B1C30] focus:outline-none focus:ring-2 focus:ring-slate-900"
+              >
+                <option value="recent">Sort: Newest First</option>
+                <option value="upvotes">Sort: Highest Community Support</option>
+                <option value="priority">Sort: Priority Urgency</option>
+              </select>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+          {/* Category Chips & Status Filter Strip */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
             {/* Category Chips */}
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-1">Category:</span>
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat.value}
                   onClick={() => setCategory(cat.value)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                     category === cat.value
-                      ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                      ? 'bg-[#0F172A] text-white shadow-xs'
+                      : 'bg-[#F8F9FF] text-slate-700 hover:bg-[#EFF4FF] border border-slate-200'
                   }`}
                 >
                   {cat.label}
@@ -241,179 +235,188 @@ export default function ComplaintsFeedPage() {
               ))}
             </div>
 
-            {/* Status & Sort */}
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Status */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Status:</span>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] px-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-400"
-                >
-                  {STATUSES.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Sort */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Sort:</span>
-                <select
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value)}
-                  className="h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] px-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-400"
-                >
-                  <option value="recent">Recent</option>
-                  <option value="upvotes">Most Supported</option>
-                </select>
-              </div>
-
-              {hasActiveFilters && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="h-9 text-xs text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 gap-1 px-2.5 rounded-xl"
-                >
-                  <X className="h-3.5 w-3.5" />
-                  Reset
-                </Button>
-              )}
+            {/* Status Select */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-500">Status:</span>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="h-8 rounded-xl border border-slate-200 bg-[#F8F9FF] px-2.5 text-xs font-semibold text-[#0B1C30] focus:outline-none"
+              >
+                {STATUSES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
 
         {/* ERROR STATE */}
         {error && (
-          <div className="flex items-center gap-2 rounded-2xl border border-red-200/90 dark:border-red-900/60 bg-red-50/90 dark:bg-red-950/40 p-4 text-xs text-red-700 dark:text-red-300">
+          <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-[#BA1A1A]">
             <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>We couldn&apos;t load community issues. {error}</span>
+            <span>{error}</span>
           </div>
         )}
 
         {/* COMPLAINTS LIST */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
-            <span>
-              Showing <strong className="text-slate-900 dark:text-slate-100">{complaints.length}</strong> community reports
-            </span>
-            {hasActiveFilters && <span className="font-semibold text-slate-700 dark:text-slate-300">Filtered view active</span>}
+          <div className="flex items-center justify-between text-xs text-slate-500 px-1 font-semibold">
+            <span>Showing {complaints.length} complaint(s)</span>
+            {(category || status || area || search) && (
+              <button
+                onClick={() => {
+                  setSearch('');
+                  setCategory('');
+                  setStatus('');
+                  setArea('');
+                  setSort('recent');
+                }}
+                className="text-[#1E40AF] hover:underline font-bold"
+              >
+                Clear all filters
+              </button>
+            )}
           </div>
 
           {loading ? (
             <div className="space-y-3.5">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 space-y-3">
+                <div key={i} className="rounded-3xl border border-slate-200 bg-white p-6 space-y-3">
                   <div className="flex gap-2">
-                    <Skeleton className="h-5 w-20 rounded-full" />
-                    <Skeleton className="h-5 w-20 rounded-full" />
+                    <Skeleton className="h-5 w-24 rounded-full" />
                     <Skeleton className="h-5 w-20 rounded-full" />
                   </div>
-                  <Skeleton className="h-6 w-3/4 rounded-lg" />
-                  <Skeleton className="h-4 w-full rounded-md" />
+                  <Skeleton className="h-5 w-3/4 rounded-md" />
+                  <Skeleton className="h-12 w-full rounded-xl" />
                 </div>
               ))}
             </div>
           ) : complaints.length === 0 ? (
             <EmptyState
-              icon={Filter}
-              title="No community reports found"
-              description="Try adjusting your search terms or clearing category and neighborhood filters."
-              actionText="Reset Filters"
-              onAction={clearFilters}
+              icon={Layers}
+              title="No complaints match your filter."
+              description="Try clearing your search query or selecting another category to see more neighborhood reports."
+              actionText="Reset All Filters"
+              onAction={() => {
+                setSearch('');
+                setCategory('');
+                setStatus('');
+                setArea('');
+              }}
             />
           ) : (
             <div className="space-y-3.5">
               {complaints.map((complaint) => {
-                const userIdStr = user?.id || user?._id;
-                const hasUserUpvoted =
-                  userIdStr &&
-                  complaint.upvotedBy &&
-                  complaint.upvotedBy.some(
-                    (uid) => (typeof uid === 'object' ? uid._id || uid : uid).toString() === userIdStr.toString()
-                  );
-                const isUpvoting = upvotingIds.has(complaint._id);
-                const { icon: CatIcon, color: iconContainerClass } = getCategoryIconDetails(complaint.category);
+                const userUpvoted = hasUpvoted(complaint);
+                const isUpvotingThis = upvotingIds.has(complaint._id);
+                const hasPhoto = Boolean(complaint.imageUrl);
+                const hasResolutionPhoto = Boolean(complaint.resolutionImageUrl);
 
                 return (
                   <div
                     key={complaint._id}
-                    className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 sm:p-6 shadow-[0_2px_12px_rgba(15,23,42,0.02)] hover:border-slate-300 dark:hover:border-slate-700 transition-all hover:-translate-y-0.5"
+                    className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs hover:border-slate-300 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                      {/* Left icon + Details */}
-                      <div className="flex items-start gap-3.5 flex-1 min-w-0">
-                        <div className={`h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 ${iconContainerClass}`}>
-                          <CatIcon className="h-5 w-5" />
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                      {/* Photo Thumbnail if present */}
+                      {hasPhoto && (
+                        <div
+                          onClick={() =>
+                            setActiveLightbox({
+                              url: complaint.imageUrl,
+                              title: complaint.title,
+                              subtitle: `Reported in ${complaint.area}`,
+                            })
+                          }
+                          className="relative w-full sm:w-28 h-28 rounded-2xl overflow-hidden bg-[#F1F5F9] border border-[#CBD5E1] flex-shrink-0 cursor-pointer group shadow-2xs"
+                          title="Click to expand photo"
+                        >
+                          <img
+                            src={complaint.imageUrl}
+                            alt={complaint.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-[#0B1C30]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                            <Camera className="w-5 h-5 drop-shadow-md" />
+                          </div>
+                          <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-[#0B1C30]/80 backdrop-blur-xs text-[10px] font-bold text-white flex items-center gap-1">
+                            <Camera className="w-3 h-3" />
+                            Photo
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Complaint Information */}
+                      <div className="space-y-2.5 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                            #CF-{complaint._id.slice(-6).toUpperCase()}
+                          </span>
+                          <CategoryBadge category={complaint.category} />
+                          <StatusBadge status={complaint.status} />
+                          <PriorityBadge
+                            priority={complaint.priority}
+                            score={complaint.priorityScore}
+                            showScore={true}
+                          />
+                          {hasResolutionPhoto && (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1F6C3A] bg-[#E8F9ED] px-2 py-0.5 rounded-full border border-[#A4F1B2]">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Fixed With Photo Proof
+                            </span>
+                          )}
                         </div>
 
-                        <div className="space-y-1.5 flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-mono text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-                              #CF-{complaint._id.slice(-6).toUpperCase()}
-                            </span>
-                            <CategoryBadge category={complaint.category} />
-                            <StatusBadge status={complaint.status} />
-                            <PriorityBadge
-                              priority={complaint.priority}
-                              score={complaint.priorityScore}
-                              showScore={true}
-                            />
-                          </div>
+                        <Link
+                          href={`/complaints/${complaint._id}`}
+                          className="text-base sm:text-lg font-bold text-[#0B1C30] hover:text-[#1E40AF] block transition-colors leading-snug"
+                        >
+                          {complaint.title}
+                        </Link>
 
-                          <Link
-                            href={`/complaints/${complaint._id}`}
-                            className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 hover:text-slate-700 dark:hover:text-slate-300 block leading-snug"
-                          >
-                            {complaint.title}
-                          </Link>
+                        <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                          {complaint.description}
+                        </p>
 
-                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                            {complaint.description}
-                          </p>
-
-                          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400 pt-1">
-                            <span className="flex items-center gap-1 font-semibold text-slate-800 dark:text-slate-200">
-                              <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                              {complaint.area}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                              {new Date(complaint.createdAt).toLocaleDateString()}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <User className="h-3.5 w-3.5 text-slate-400" />
-                              {complaint.createdBy?.name || 'Citizen'}
-                            </span>
-                          </div>
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
+                          <span className="flex items-center gap-1 font-semibold text-slate-700">
+                            <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                            {complaint.area}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                            {new Date(complaint.createdAt).toLocaleDateString()}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <User className="h-3.5 w-3.5 text-slate-400" />
+                            {complaint.createdBy?.name || 'Citizen'}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Right Actions */}
-                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                      {/* Right Action: Upvote & View Details */}
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2.5 shrink-0 pt-2 sm:pt-0">
                         <Button
-                          variant={hasUserUpvoted ? 'secondary' : 'outline'}
                           size="sm"
                           onClick={() => handleUpvote(complaint._id)}
-                          disabled={isUpvoting || hasUserUpvoted}
-                          className={`gap-1.5 h-9 rounded-xl text-xs font-bold px-3.5 transition-all ${
-                            hasUserUpvoted
-                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
+                          disabled={isUpvotingThis || userUpvoted}
+                          className={`gap-1.5 h-10 px-4 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                            userUpvoted
+                              ? 'bg-[#E8F9ED] text-[#1F6C3A] border border-[#A4F1B2] hover:bg-[#E8F9ED]'
+                              : 'bg-[#0F172A] hover:bg-[#1E293B] text-white'
                           }`}
                         >
-                          {hasUserUpvoted ? (
+                          {userUpvoted ? (
                             <>
-                              <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                              <Check className="h-3.5 w-3.5 text-[#1F6C3A]" />
                               <span>Supported ({complaint.upvotes || 0})</span>
                             </>
                           ) : (
                             <>
-                              <ThumbsUp className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                              <ThumbsUp className="h-3.5 w-3.5" />
                               <span>Support ({complaint.upvotes || 0})</span>
                             </>
                           )}
@@ -423,20 +426,19 @@ export default function ComplaintsFeedPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-9 rounded-xl text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white gap-1 font-semibold px-3"
+                            className="text-xs h-9 rounded-xl text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF] px-3 font-semibold"
                           >
-                            View Record
-                            <ArrowRight className="h-3.5 w-3.5" />
+                            View Details &rarr;
                           </Button>
                         </Link>
                       </div>
                     </div>
 
-                    {/* Officer Remark */}
+                    {/* Officer Remark snippet if present */}
                     {complaint.officerRemark && (
-                      <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs bg-[#F7F8FC] dark:bg-[#182235] p-3 rounded-xl text-slate-700 dark:text-slate-300 flex items-start gap-2">
-                        <span className="font-bold text-slate-900 dark:text-slate-100 shrink-0">Official Remark:</span>
-                        <span className="text-slate-600 dark:text-slate-400">{complaint.officerRemark}</span>
+                      <div className="mt-4 pt-3 border-t border-slate-100 text-xs bg-[#F8F9FF] p-3.5 rounded-2xl text-slate-700 flex items-start gap-2 border border-slate-100">
+                        <span className="font-bold text-[#0B1C30] shrink-0">Official Response:</span>
+                        <span className="text-slate-600 leading-relaxed">{complaint.officerRemark}</span>
                       </div>
                     )}
                   </div>
@@ -446,6 +448,18 @@ export default function ComplaintsFeedPage() {
           )}
         </div>
       </main>
+
+      {/* Lightbox Modal */}
+      {activeLightbox && (
+        <ImageLightbox
+          isOpen={true}
+          onClose={() => setActiveLightbox(null)}
+          imageUrl={activeLightbox.url}
+          title={activeLightbox.title}
+          subtitle={activeLightbox.subtitle}
+        />
+      )}
+
       <Footer />
     </div>
   );

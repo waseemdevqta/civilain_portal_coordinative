@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { PriorityBadge } from '@/components/common/PriorityBadge';
 import { CategoryBadge } from '@/components/common/CategoryBadge';
+import HotspotHeatmap from '@/components/common/HotspotHeatmap';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   TrendingUp,
@@ -61,22 +62,22 @@ export default function AnalyticsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors">
+      <div className="flex min-h-screen flex-col bg-[#F8F9FF] text-[#0B1C30] transition-colors">
         <Navbar />
 
         <main className="flex-1 container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-7">
           {/* Top Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-                <Activity className="h-3.5 w-3.5 text-slate-500" />
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-3 py-0.5 text-xs font-bold text-[#1E40AF]">
+                <Activity className="h-3.5 w-3.5 text-[#1E40AF]" />
                 <span>MUNICIPAL DATA LEDGER</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0B1C30]">
                 Civic Analytics & Volume Insights
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                Real-time complaint resolution velocity, category distributions, and community satisfaction trends.
+              <p className="text-xs sm:text-sm text-slate-500">
+                Real-time complaint resolution velocity, category distributions, neighborhood density heatmaps, and community satisfaction trends.
               </p>
             </div>
 
@@ -85,7 +86,7 @@ export default function AnalyticsPage() {
               size="sm"
               onClick={fetchAnalytics}
               disabled={loading}
-              className="gap-1.5 h-10 px-4 rounded-xl text-xs font-semibold border-slate-200 dark:border-slate-800 shrink-0"
+              className="gap-1.5 h-10 px-4 rounded-xl text-xs font-semibold border-slate-200 bg-white text-slate-800 hover:bg-[#F8F9FF] shrink-0 shadow-xs"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
               Refresh Metrics
@@ -94,35 +95,35 @@ export default function AnalyticsPage() {
 
           {/* Summary KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-2">
-              <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_4px_20px_rgba(11,28,48,0.03)] space-y-2">
+              <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 Total City Complaints
               </div>
-              <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-50">
+              <div className="text-3xl font-extrabold text-[#0B1C30]">
                 {loading ? <Skeleton className="h-9 w-16" /> : total}
               </div>
-              <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
+              <p className="text-xs text-[#1F6C3A] flex items-center gap-1 font-semibold">
                 <TrendingUp className="h-3.5 w-3.5" /> Synchronized with live database
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-2">
-              <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_4px_20px_rgba(11,28,48,0.03)] space-y-2">
+              <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 Resolution Efficiency Rate
               </div>
-              <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-50">
+              <div className="text-3xl font-extrabold text-[#0B1C30]">
                 {loading ? <Skeleton className="h-9 w-16" /> : `${resolutionRate}%`}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <p className="text-xs text-slate-500 font-medium">
                 {resolved} of {total} issues inspected & closed
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-2">
-              <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_4px_20px_rgba(11,28,48,0.03)] space-y-2">
+              <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 Average Citizen Rating
               </div>
-              <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-50 flex items-center gap-2">
+              <div className="text-3xl font-extrabold text-[#0B1C30] flex items-center gap-2">
                 {loading ? (
                   <Skeleton className="h-9 w-16" />
                 ) : (
@@ -134,57 +135,60 @@ export default function AnalyticsPage() {
                   </>
                 )}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <p className="text-xs text-slate-500 font-medium">
                 Citizen post-resolution verification
               </p>
             </div>
           </div>
 
+          {/* Interactive Neighborhood Hotspots & Cluster Density Breakdown */}
+          <HotspotHeatmap />
+
           {/* Breakdown Grids */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Status Breakdown */}
-            <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 sm:p-7 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-5">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-[0_4px_20px_rgba(11,28,48,0.03)] space-y-5">
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Docket Status Breakdown</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Current state of active vs completed civic complaints</p>
+                <h3 className="text-base font-bold text-[#0B1C30]">Docket Status Breakdown</h3>
+                <p className="text-xs text-slate-500">Current state of active vs completed civic complaints</p>
               </div>
 
               <div className="space-y-3.5">
                 {/* Resolved */}
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500" /> Resolved
+                    <span className="text-[#1F6C3A] flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-[#1F6C3A]" /> Resolved
                     </span>
-                    <span className="text-slate-900 dark:text-slate-100 font-bold">{resolved} ({total > 0 ? Math.round((resolved / total) * 100) : 0}%)</span>
+                    <span className="text-[#0B1C30] font-bold">{resolved} ({total > 0 ? Math.round((resolved / total) * 100) : 0}%)</span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                    <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${total > 0 ? (resolved / total) * 100 : 0}%` }} />
+                  <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-full bg-[#1F6C3A] transition-all duration-500" style={{ width: `${total > 0 ? (resolved / total) * 100 : 0}%` }} />
                   </div>
                 </div>
 
                 {/* In Progress */}
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-blue-700 dark:text-blue-400 flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-blue-500" /> In Progress (Field Deployed)
+                    <span className="text-[#1E40AF] flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-blue-600" /> In Progress (Field Deployed)
                     </span>
-                    <span className="text-slate-900 dark:text-slate-100 font-bold">{inProgress} ({total > 0 ? Math.round((inProgress / total) * 100) : 0}%)</span>
+                    <span className="text-[#0B1C30] font-bold">{inProgress} ({total > 0 ? Math.round((inProgress / total) * 100) : 0}%)</span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                    <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${total > 0 ? (inProgress / total) * 100 : 0}%` }} />
+                  <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-full bg-blue-600 transition-all duration-500" style={{ width: `${total > 0 ? (inProgress / total) * 100 : 0}%` }} />
                   </div>
                 </div>
 
                 {/* Pending */}
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                    <span className="text-amber-800 flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-amber-500" /> Pending Review
                     </span>
-                    <span className="text-slate-900 dark:text-slate-100 font-bold">{pending} ({total > 0 ? Math.round((pending / total) * 100) : 0}%)</span>
+                    <span className="text-[#0B1C30] font-bold">{pending} ({total > 0 ? Math.round((pending / total) * 100) : 0}%)</span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
                     <div className="h-full bg-amber-500 transition-all duration-500" style={{ width: `${total > 0 ? (pending / total) * 100 : 0}%` }} />
                   </div>
                 </div>
@@ -192,10 +196,10 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Top Categories */}
-            <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 sm:p-7 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-5">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-[0_4px_20px_rgba(11,28,48,0.03)] space-y-5">
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Top Problem Divisions</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Distribution across municipal service departments</p>
+                <h3 className="text-base font-bold text-[#0B1C30]">Top Problem Divisions</h3>
+                <p className="text-xs text-slate-500">Distribution across municipal service departments</p>
               </div>
 
               {stats?.topCategories && stats.topCategories.length > 0 ? (
@@ -203,10 +207,10 @@ export default function AnalyticsPage() {
                   {stats.topCategories.map((catItem) => (
                     <div
                       key={catItem.category}
-                      className="flex items-center justify-between p-3 rounded-2xl bg-[#F7F8FC] dark:bg-[#182235] text-xs"
+                      className="flex items-center justify-between p-3 rounded-2xl bg-[#F8F9FF] border border-slate-100 text-xs"
                     >
                       <CategoryBadge category={catItem.category} />
-                      <span className="font-bold text-slate-900 dark:text-slate-100">{catItem.count} report(s)</span>
+                      <span className="font-bold text-[#0B1C30]">{catItem.count} report(s)</span>
                     </div>
                   ))}
                 </div>

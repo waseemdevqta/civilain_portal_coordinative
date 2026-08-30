@@ -7,7 +7,6 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import ThemeToggle from '@/components/common/ThemeToggle';
 import { toast } from '@/components/ui/toaster';
 import {
   Megaphone,
@@ -82,11 +81,7 @@ export default function SignupPage() {
     setLoading(true);
     setError('');
 
-    const res = await signup(
-      formData.name.trim(),
-      formData.email.trim(),
-      formData.password
-    );
+    const res = await signup(formData.name.trim(), formData.email.trim(), formData.password);
 
     if (res.success) {
       toast.success(`Account created! Welcome to AWAZ, ${res.user.name}.`);
@@ -99,86 +94,71 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col justify-between transition-colors">
+    <div className="min-h-screen bg-[#F8F9FF] text-[#0B1C30] flex flex-col justify-between transition-colors">
       {/* Top Header */}
       <header className="container mx-auto max-w-6xl px-4 py-6 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-3 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 shadow-sm transition-transform group-hover:scale-105">
-            <Megaphone className="h-4.5 w-4.5" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0F172A] text-white shadow-sm transition-transform group-hover:scale-105">
+            <Megaphone className="h-5 w-5" />
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-slate-50">
+            <span className="font-black text-xl tracking-tight text-[#0B1C30]">
               AWAZ
             </span>
-            <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[9px] font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-              REGISTRATION
+            <span className="rounded-full bg-[#EFF4FF] px-2.5 py-0.5 text-[9px] font-extrabold text-[#1F6C3A] border border-[#A4F1B2]">
+              CITIZEN
             </span>
           </div>
         </Link>
-
-        <ThemeToggle />
       </header>
 
-      {/* Main Registration Split */}
+      {/* Main 2-Column Split */}
       <main className="container mx-auto max-w-5xl px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
-          {/* Left Context Info */}
+          {/* Left Context Side */}
           <div className="hidden md:block md:col-span-6 space-y-6 text-left pr-4">
             <div className="space-y-2">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2.5 py-1 rounded-full">
-                CITIZEN ENROLLMENT
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#1F6C3A] bg-[#E8F9ED] border border-[#A4F1B2] px-2.5 py-1 rounded-full">
+                JOIN YOUR NEIGHBORS
               </span>
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-tight">
-                Make your voice count.
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#0B1C30] leading-tight">
+                Empower your community. Track verified fixes.
               </h1>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Join your neighbors on AWAZ. File local complaints, receive official updates as crews work on site, and verify completed infrastructure repairs.
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                Registering a citizen account allows you to lodge municipal complaints, track official dispatch status, and rally community upvotes.
               </p>
             </div>
 
             <div className="space-y-3 pt-2">
-              <div className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                <span>Instant complaint filing with automated duplicate prevention.</span>
+              <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
+                <CheckCircle2 className="h-4 w-4 text-[#1F6C3A] shrink-0 mt-0.5" />
+                <span>Instant ticket tracking ID and duplicate detection protection.</span>
               </div>
-              <div className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                <span>Rally neighborhood support with democratic issue upvotes.</span>
+              <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
+                <CheckCircle2 className="h-4 w-4 text-[#1F6C3A] shrink-0 mt-0.5" />
+                <span>Official resolution verification and municipal quality scoring.</span>
               </div>
-              <div className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                <span>Personal case tracking with transparent lifecycle records.</span>
+              <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
+                <CheckCircle2 className="h-4 w-4 text-[#1F6C3A] shrink-0 mt-0.5" />
+                <span>Zero unsolicited marketing. Strictly civic and municipal use.</span>
               </div>
-            </div>
-
-            {/* Privacy notice */}
-            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/70 dark:bg-[#111827] p-4 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              <span className="font-bold text-slate-900 dark:text-slate-100">Institutional Privacy:</span> Your account is strictly used to track municipal tickets and service reviews. Citizen PII is never exposed to public AI briefing prompts.
             </div>
           </div>
 
           {/* Right Form Card */}
           <div className="md:col-span-6 max-w-md mx-auto w-full">
-            <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111827] shadow-[0_10px_30px_rgba(15,23,42,0.04)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)] p-7 sm:p-9 space-y-5">
+            <div className="rounded-3xl border border-slate-200 bg-white shadow-[0_12px_32px_rgba(11,28,48,0.06)] p-7 sm:p-9 space-y-6">
               <div className="space-y-1.5">
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0B1C30]">
                   Register Citizen Account
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                  Fill in your details below to create your citizen profile.
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Fill in your details to begin submitting neighborhood issues.
                 </p>
               </div>
 
-              {/* Institutional Role Badge */}
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#182235] p-3 text-[11px] text-slate-600 dark:text-slate-400 flex items-start gap-2.5">
-                <ShieldCheck className="h-4 w-4 text-slate-700 dark:text-slate-300 shrink-0 mt-0.5" />
-                <span>
-                  Public signup creates <strong>Citizen</strong> accounts. Government officer accounts are authorized internally by existing officers.
-                </span>
-              </div>
-
               {error && (
-                <div className="flex items-center gap-2 rounded-2xl border border-red-200/90 dark:border-red-900/60 bg-red-50/90 dark:bg-red-950/40 p-3.5 text-xs text-red-700 dark:text-red-300">
+                <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-xs text-[#BA1A1A]">
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -186,7 +166,7 @@ export default function SignupPage() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="name" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <Label htmlFor="name" className="text-xs font-semibold text-slate-700">
                     Full Name
                   </Label>
                   <div className="relative">
@@ -194,8 +174,8 @@ export default function SignupPage() {
                     <Input
                       id="name"
                       name="name"
-                      placeholder="e.g. Ahmed Khan"
-                      className="pl-10 h-10 text-xs"
+                      placeholder="e.g. Fatima Ali"
+                      className="pl-10 h-10 text-xs bg-[#F8F9FF] border-slate-200"
                       value={formData.name}
                       onChange={handleChange}
                       required
@@ -204,7 +184,7 @@ export default function SignupPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <Label htmlFor="email" className="text-xs font-semibold text-slate-700">
                     Email Address
                   </Label>
                   <div className="relative">
@@ -213,17 +193,18 @@ export default function SignupPage() {
                       id="email"
                       name="email"
                       type="email"
-                      placeholder="ahmed@example.com"
-                      className="pl-10 h-10 text-xs"
+                      placeholder="name@example.com"
+                      className="pl-10 h-10 text-xs bg-[#F8F9FF] border-slate-200"
                       value={formData.email}
                       onChange={handleChange}
                       required
+                      autoComplete="email"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="password" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <Label htmlFor="password" className="text-xs font-semibold text-slate-700">
                     Password (min 6 characters)
                   </Label>
                   <div className="relative">
@@ -233,15 +214,16 @@ export default function SignupPage() {
                       name="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className="pl-10 pr-10 h-10 text-xs"
+                      className="pl-10 pr-10 h-10 text-xs bg-[#F8F9FF] border-slate-200"
                       value={formData.password}
                       onChange={handleChange}
                       required
+                      autoComplete="new-password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                      className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-700"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -249,7 +231,7 @@ export default function SignupPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="confirmPassword" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <Label htmlFor="confirmPassword" className="text-xs font-semibold text-slate-700">
                     Confirm Password
                   </Label>
                   <div className="relative">
@@ -259,17 +241,18 @@ export default function SignupPage() {
                       name="confirmPassword"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className="pl-10 pr-10 h-10 text-xs"
+                      className="pl-10 h-10 text-xs bg-[#F8F9FF] border-slate-200"
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       required
+                      autoComplete="new-password"
                     />
                   </div>
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 font-bold shadow-[0_2px_10px_rgba(15,23,42,0.1)] mt-2 text-xs sm:text-sm rounded-xl"
+                  className="w-full h-11 bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold shadow-[0_4px_14px_rgba(15,23,42,0.15)] mt-2 text-xs sm:text-sm rounded-xl hover:-translate-y-0.5 transition-all"
                   disabled={loading}
                 >
                   {loading ? (
@@ -278,15 +261,15 @@ export default function SignupPage() {
                       Creating Account...
                     </>
                   ) : (
-                    'Create Citizen Account'
+                    'Complete Registration'
                   )}
                 </Button>
               </form>
 
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-500 dark:text-slate-400">
-                Already registered?{' '}
-                <Link href="/login" className="font-bold text-slate-900 dark:text-slate-100 hover:underline">
-                  Sign In
+              <div className="pt-3 border-t border-slate-100 text-center text-xs text-slate-500">
+                Already have an account?{' '}
+                <Link href="/login" className="font-bold text-[#0B1C30] hover:underline">
+                  Sign In Here
                 </Link>
               </div>
             </div>

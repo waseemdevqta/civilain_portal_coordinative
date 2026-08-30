@@ -3,19 +3,19 @@ import { cva } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const alertVariants = cva(
-  'relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground',
+  'relative w-full rounded-2xl border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4',
   {
     variants: {
       variant: {
-        default: 'bg-background text-foreground',
+        default: 'bg-white text-[#0B1C30] border-slate-200 shadow-2xs',
         destructive:
-          'border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive',
+          'border-red-200 bg-red-50 text-[#BA1A1A] [&>svg]:text-[#BA1A1A]',
         warning:
-          'border-amber-500/50 bg-amber-500/10 text-amber-600 dark:text-amber-400 [&>svg]:text-amber-500',
+          'border-amber-200 bg-amber-50 text-amber-800 [&>svg]:text-amber-600',
         info:
-          'border-sky-500/50 bg-sky-500/10 text-sky-600 dark:text-sky-400 [&>svg]:text-sky-500',
+          'border-blue-200 bg-[#EFF4FF] text-[#1E40AF] [&>svg]:text-blue-600',
         success:
-          'border-emerald-500/50 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 [&>svg]:text-emerald-500',
+          'border-[#A4F1B2] bg-[#E8F9ED] text-[#1F6C3A] [&>svg]:text-[#1F6C3A]',
       },
     },
     defaultVariants: {
@@ -37,7 +37,7 @@ Alert.displayName = 'Alert';
 const AlertTitle = React.forwardRef(({ className, ...props }, ref) => (
   <h5
     ref={ref}
-    className={cn('mb-1 font-medium leading-none tracking-tight', className)}
+    className={cn('mb-1 font-bold text-xs sm:text-sm leading-none tracking-tight', className)}
     {...props}
   />
 ));
@@ -46,7 +46,7 @@ AlertTitle.displayName = 'AlertTitle';
 const AlertDescription = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('text-sm [&_p]:leading-relaxed', className)}
+    className={cn('text-xs [&_p]:leading-relaxed', className)}
     {...props}
   />
 ));

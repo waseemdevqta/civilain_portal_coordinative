@@ -28,6 +28,7 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
 
+  --radius-2xl: 1rem;
   --radius-xl: var(--radius);
   --radius-lg: calc(var(--radius) - 2px);
   --radius-md: calc(var(--radius) - 4px);
@@ -35,84 +36,51 @@
 }
 
 :root {
-  /* LIGHT MODE: Warm, soft, welcoming civic foundation */
-  --background: 230 40% 98%;      /* #F7F8FC */
-  --foreground: 220 38% 15%;      /* #172033 */
+  /* CIVIC EXCELLENCE PURE LIGHT THEME */
+  --background: 231 100% 98.6%;   /* #F8F9FF */
+  --foreground: 213 63% 12%;      /* #0B1C30 */
 
-  /* Pure white cards with soft depth */
+  /* Pure white cards / surfaces */
   --card: 0 0% 100%;             /* #FFFFFF */
-  --card-foreground: 220 38% 15%;
+  --card-foreground: 213 63% 12%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 220 38% 15%;
+  --popover-foreground: 213 63% 12%;
 
   /* Deep Navy primary */
-  --primary: 222 57% 21%;         /* #172554 */
-  --primary-foreground: 210 40% 98%;
+  --primary: 222 47% 11%;         /* #0F172A */
+  --primary-foreground: 0 0% 100%;
 
   /* Forest Green */
-  --secondary: 142 72% 29%;       /* #15803D */
+  --secondary: 141 55% 27%;       /* #1F6C3A */
   --secondary-foreground: 0 0% 100%;
 
-  /* Soft inner surface */
-  --muted: 210 40% 96.1%;         /* #F1F5F9 */
-  --muted-foreground: 215 16% 47%;/* #64748B */
+  /* Soft inner container surfaces */
+  --muted: 220 100% 97%;          /* #EFF4FF */
+  --muted-foreground: 225 6% 29%; /* #45464D */
 
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222 57% 21%;
+  --accent: 220 80% 95%;          /* #E5EEFF */
+  --accent-foreground: 222 47% 11%;
 
   /* Crimson Destructive */
-  --destructive: 0 84% 41%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive: 0 75% 42%;       /* #BA1A1A */
+  --destructive-foreground: 0 0% 100%;
 
-  /* Subtle slate borders and inputs */
+  /* Crisp subtle borders */
   --border: 214 32% 91%;          /* #E2E8F0 */
   --input: 214 32% 91%;
-  --ring: 222 57% 21%;
+  --ring: 222 47% 11%;
 
-  /* Soft friendly radius default (12px) */
+  /* Base Radius */
   --radius: 0.75rem;
-}
-
-.dark {
-  /* DARK MODE: Deep warm navy, calm and soft */
-  --background: 222 48% 7%;       /* #090E1A */
-  --foreground: 210 40% 98%;      /* #F8FAFC */
-
-  /* Surface navy cards */
-  --card: 222 38% 11%;           /* #111827 */
-  --card-foreground: 210 40% 98%;
-
-  --popover: 222 38% 11%;
-  --popover-foreground: 210 40% 98%;
-
-  /* Soft primary blue */
-  --primary: 213 94% 78%;         /* #93C5FD */
-  --primary-foreground: 222 48% 7%;
-
-  /* Soft emerald green */
-  --secondary: 142 71% 58%;       /* #4ADE80 */
-  --secondary-foreground: 222 48% 7%;
-
-  /* Elevated surface */
-  --muted: 220 37% 15%;          /* #182235 */
-  --muted-foreground: 215 20% 65%;/* #94A3B8 */
-
-  --accent: 220 37% 15%;
-  --accent-foreground: 210 40% 98%;
-
-  /* Destructive Dark */
-  --destructive: 0 72% 51%;
-  --destructive-foreground: 210 40% 98%;
-
-  /* Soft navy borders */
-  --border: 216 31% 22%;          /* #263449 */
-  --input: 218 35% 16%;           /* #1B2638 */
-  --ring: 213 94% 78%;
 }
 
 * {
   border-color: hsl(var(--border));
+}
+
+html {
+  color-scheme: light;
 }
 
 body {
@@ -120,10 +88,10 @@ body {
   color: hsl(var(--foreground));
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  min-height: 100vh;
 }
 
-/* Civic scrollbars */
+/* Civic Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -138,14 +106,35 @@ body {
   border-radius: 9999px;
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: #334155;
-}
-
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+/* Animations & Micro-Interactions */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.15);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-float {
+  animation: floatGentle 4s ease-in-out infinite;
 }

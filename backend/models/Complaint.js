@@ -34,6 +34,27 @@ const complaintSchema = new mongoose.Schema(
       },
       default: 'pending',
     },
+    // Visual Evidence Fields (Cloudinary)
+    imageUrl: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    imagePublicId: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    resolutionImageUrl: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    resolutionImagePublicId: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     upvotes: {
       type: Number,
       default: 0,

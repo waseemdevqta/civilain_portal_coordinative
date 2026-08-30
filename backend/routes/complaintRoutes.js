@@ -10,6 +10,7 @@ const {
   submitFeedback,
   detectDuplicates,
   getOfficerStats,
+  getHotspots,
   exportComplaintsCSV,
 } = require('../controllers/complaintController');
 const { protect } = require('../middleware/authMiddleware');
@@ -25,6 +26,9 @@ router.get('/', getComplaints);
 
 // Export complaints as CSV (Officer only)
 router.get('/export', protect, requireOfficer, exportComplaintsCSV);
+
+// Get neighborhood cluster hotspot density (Public)
+router.get('/hotspots', getHotspots);
 
 // Get logged-in citizen's complaints (Citizen only)
 router.get('/mine', protect, requireCitizen, getMyComplaints);

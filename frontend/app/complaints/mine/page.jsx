@@ -12,6 +12,8 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { PriorityBadge } from '@/components/common/PriorityBadge';
 import { CategoryBadge } from '@/components/common/CategoryBadge';
 import { EmptyState } from '@/components/common/EmptyState';
+import ImageLightbox from '@/components/common/ImageLightbox';
+import WorkOrderModal from '@/components/common/WorkOrderModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
@@ -36,10 +38,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Loader2,
-  Route,
-  Trash2,
-  Droplets,
-  Zap,
+  Camera,
+  Printer,
 } from 'lucide-react';
 
 export default function MyComplaintsPage() {
@@ -47,6 +47,10 @@ export default function MyComplaintsPage() {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Lightbox and Docket states
+  const [activeLightbox, setActiveLightbox] = useState(null);
+  const [docketComplaint, setDocketComplaint] = useState(null);
 
   // Feedback modal state
   const [feedbackComplaint, setFeedbackComplaint] = useState(null);
@@ -98,6 +102,7 @@ export default function MyComplaintsPage() {
       setComplaints((prev) =>
         prev.map((c) => (c._id === feedbackComplaint._id ? res.data : c))
       );
+
       setFeedbackComplaint(null);
     } catch (err) {
       toast.error(err.message || 'Failed to submit feedback');
@@ -106,226 +111,238 @@ export default function MyComplaintsPage() {
     }
   };
 
-  const getCategoryIconDetails = (cat) => {
-    switch ((cat || '').toLowerCase()) {
-      case 'road':
-        return { icon: Route, color: 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' };
-      case 'garbage':
-        return { icon: Trash2, color: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' };
-      case 'water':
-        return { icon: Droplets, color: 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300' };
-      case 'electricity':
-        return { icon: Zap, color: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' };
-      default:
-        return { icon: FileText, color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' };
-    }
-  };
-
   return (
     <ProtectedRoute citizenOnly={true}>
-      <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors">
+      <div className="flex min-h-screen flex-col bg-[#F8F9FF] text-[#0B1C30] transition-colors">
         <Navbar />
 
         <main className="flex-1 container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-7">
           {/* HEADER */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-                <FileText className="h-3.5 w-3.5 text-slate-500" />
-                <span>CASE TRACKER</span>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-3 py-0.5 text-xs font-bold text-[#1E40AF]">
+                <FileText className="h-3.5 w-3.5 text-[#1E40AF]" />
+                <span>MY CIVIC RECORD</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0B1C30]">
                 My Reported Complaints
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                Direct lifecycle tracking, official municipal remarks, and verified resolution feedback.
+              <p className="text-xs sm:text-sm text-slate-500">
+                Track status updates, inspect uploaded photo evidence, and rate municipal field repairs.
               </p>
             </div>
 
-            <Link href="/complaints/new">
-              <Button size="lg" className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 gap-2 font-bold text-xs sm:text-sm h-11 px-5 rounded-xl shadow-[0_2px_10px_rgba(15,23,42,0.1)] shrink-0">
-                <FilePlus className="h-4 w-4" />
-                Report New Issue
-              </Button>
-            </Link>
+            <div className="shrink-0">
+              <Link href="/complaints/new">
+                <Button size="lg" className="w-full sm:w-auto bg-[#0F172A] hover:bg-[#1E293B] text-white gap-2 font-bold text-xs sm:text-sm h-11 px-5 rounded-xl shadow-[0_4px_16px_rgba(15,23,42,0.15)] hover:-translate-y-0.5 transition-all">
+                  <FilePlus className="h-4 w-4" />
+                  Report New Issue
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* ERROR ALERT */}
           {error && (
-            <div className="flex items-center gap-2 rounded-2xl border border-red-200/90 dark:border-red-900/60 bg-red-50/90 dark:bg-red-950/40 p-4 text-xs text-red-700 dark:text-red-300">
+            <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-[#BA1A1A]">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {/* COMPLAINTS LIST */}
-          {loading ? (
-            <div className="space-y-3.5">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 space-y-3">
-                  <div className="flex gap-2">
-                    <Skeleton className="h-5 w-20 rounded-full" />
-                    <Skeleton className="h-5 w-20 rounded-full" />
-                    <Skeleton className="h-5 w-20 rounded-full" />
+          <div className="space-y-4">
+            {loading ? (
+              <div className="space-y-3.5">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="rounded-3xl border border-slate-200 bg-white p-6 space-y-3">
+                    <Skeleton className="h-5 w-1/4 rounded-full" />
+                    <Skeleton className="h-6 w-3/4 rounded-md" />
+                    <Skeleton className="h-10 w-full rounded-xl" />
                   </div>
-                  <Skeleton className="h-6 w-3/4 rounded-lg" />
-                  <Skeleton className="h-4 w-full rounded-md" />
-                </div>
-              ))}
-            </div>
-          ) : complaints.length === 0 ? (
-            <EmptyState
-              icon={FileText}
-              title="No complaints registered yet"
-              description="Whenever you notice civic issues like potholes, waste accumulation, or water outages, report them to alert municipal crews."
-              actionText="Report an Issue"
-              onAction={() => {
-                window.location.href = '/complaints/new';
-              }}
-            />
-          ) : (
-            <div className="space-y-4">
-              {complaints.map((complaint) => {
-                const { icon: CatIcon, color: iconContainerClass } = getCategoryIconDetails(complaint.category);
+                ))}
+              </div>
+            ) : complaints.length === 0 ? (
+              <EmptyState
+                icon={FilePlus}
+                title="You have not filed any reports yet."
+                description="When you lodge a municipal complaint regarding roads, waste, water, or electricity, it will appear here with live tracking."
+                actionText="File Your First Report"
+                onAction={() => {
+                  window.location.href = '/complaints/new';
+                }}
+              />
+            ) : (
+              <div className="space-y-4">
+                {complaints.map((complaint) => {
+                  const hasPhoto = Boolean(complaint.imageUrl);
 
-                return (
-                  <div
-                    key={complaint._id}
-                    className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 sm:p-7 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-4 hover:border-slate-300 dark:hover:border-slate-700 transition-all"
-                  >
-                    {/* Badges & Date */}
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
-                          #CF-{complaint._id.slice(-6).toUpperCase()}
-                        </span>
-                        <CategoryBadge category={complaint.category} />
-                        <StatusBadge status={complaint.status} />
-                        <PriorityBadge priority={complaint.priority} score={complaint.priorityScore} showScore={true} />
-                      </div>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                        Submitted {new Date(complaint.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-
-                    {/* Title */}
-                    <div className="flex items-start gap-3.5">
-                      <div className={`h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 ${iconContainerClass}`}>
-                        <CatIcon className="h-5 w-5" />
-                      </div>
-                      <div className="space-y-1 min-w-0 flex-1">
-                        <Link
-                          href={`/complaints/${complaint._id}`}
-                          className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 hover:text-slate-700 dark:hover:text-slate-300 block leading-snug"
-                        >
-                          {complaint.title}
-                        </Link>
-                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2">
-                          {complaint.description}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Metadata */}
-                    <div className="flex flex-wrap items-center gap-5 text-xs text-slate-500 dark:text-slate-400 pt-1">
-                      <span className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
-                        <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                        {complaint.area}
-                      </span>
-                      <span className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
-                        <ThumbsUp className="h-3.5 w-3.5 text-slate-500" />
-                        {complaint.upvotes || 0} supporters
-                      </span>
-                    </div>
-
-                    {/* Officer Remark Block */}
-                    {complaint.officerRemark && (
-                      <div className="p-4 rounded-2xl border border-blue-200/80 dark:border-blue-900/60 bg-blue-50/60 dark:bg-blue-950/40 text-xs space-y-1.5">
-                        <div className="font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
-                          <MessageSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                          Official Municipal Officer Remark:
+                  return (
+                    <div
+                      key={complaint._id}
+                      className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs hover:border-slate-300 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 space-y-4"
+                    >
+                      {/* Top Badges & ID */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                            #CF-{complaint._id.slice(-6).toUpperCase()}
+                          </span>
+                          <CategoryBadge category={complaint.category} />
+                          <StatusBadge status={complaint.status} />
+                          <PriorityBadge priority={complaint.priority} score={complaint.priorityScore} showScore={true} />
                         </div>
-                        <p className="text-slate-700 dark:text-slate-300 pl-5.5 leading-relaxed">{complaint.officerRemark}</p>
-                      </div>
-                    )}
 
-                    {/* RESOLVED ACTION / FEEDBACK ROW */}
-                    {complaint.status === 'resolved' && (
-                      <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#F7F8FC] dark:bg-[#182235]/60 -mx-6 sm:-mx-7 -mb-6 sm:-mb-7 p-4 sm:p-5 rounded-b-3xl">
-                        {complaint.feedbackGiven ? (
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="font-bold text-slate-900 dark:text-slate-100">Your Rating:</span>
-                            <div className="flex items-center text-amber-500">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-4 w-4 ${
-                                    i < complaint.feedbackRating
-                                      ? 'fill-amber-400 text-amber-500'
-                                      : 'text-slate-300 dark:text-slate-700'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            {complaint.feedbackComment && (
-                              <span className="text-slate-600 dark:text-slate-400 italic truncate max-w-xs">
-                                &quot;{complaint.feedbackComment}&quot;
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-3">
-                            <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300">
-                              <strong className="text-slate-900 dark:text-slate-100">Issue Resolved.</strong> Please rate municipal resolution quality.
-                            </div>
-                            <Button
-                              size="sm"
-                              onClick={() => openFeedbackDialog(complaint)}
-                              className="bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white gap-1.5 text-xs h-9 px-4 rounded-xl shrink-0 font-bold shadow-sm"
-                            >
-                              <Star className="h-3.5 w-3.5" />
-                              Rate Resolution Quality
-                            </Button>
+                        <div className="text-xs text-slate-500 flex items-center gap-1 font-medium">
+                          <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                          Logged {new Date(complaint.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+
+                      {/* Content Section with Photo */}
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        {hasPhoto && (
+                          <div
+                            onClick={() =>
+                              setActiveLightbox({
+                                url: complaint.imageUrl,
+                                title: complaint.title,
+                                subtitle: `Photo evidence for ${complaint.area}`,
+                              })
+                            }
+                            className="relative w-full sm:w-28 h-28 rounded-2xl overflow-hidden bg-[#F1F5F9] border border-[#CBD5E1] flex-shrink-0 cursor-pointer group shadow-2xs"
+                            title="Click to zoom photo"
+                          >
+                            <img
+                              src={complaint.imageUrl}
+                              alt={complaint.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-[#0B1C30]/80 backdrop-blur-xs text-[10px] font-bold text-white flex items-center gap-1">
+                              <Camera className="w-3 h-3" />
+                              Photo
+                            </span>
                           </div>
                         )}
 
-                        <Link href={`/complaints/${complaint._id}`} className="shrink-0 self-end sm:self-auto">
-                          <Button variant="ghost" size="sm" className="text-xs gap-1 h-9 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-semibold">
-                            View Details
+                        <div className="space-y-2 flex-1 min-w-0">
+                          <Link
+                            href={`/complaints/${complaint._id}`}
+                            className="text-base sm:text-lg font-bold text-[#0B1C30] hover:text-[#1E40AF] block transition-colors"
+                          >
+                            {complaint.title}
+                          </Link>
+
+                          <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed">
+                            {complaint.description}
+                          </p>
+
+                          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
+                            <span className="flex items-center gap-1 font-semibold text-slate-700">
+                              <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                              {complaint.area}
+                            </span>
+                            <span className="flex items-center gap-1 font-bold text-slate-800">
+                              <ThumbsUp className="h-3.5 w-3.5 text-slate-500" />
+                              {complaint.upvotes || 0} neighborhood supporter(s)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Official Municipal Response (If any) */}
+                      {complaint.officerRemark && (
+                        <div className="p-3.5 rounded-2xl bg-[#EFF4FF] border border-blue-200 text-xs space-y-1">
+                          <div className="font-bold text-[#1E40AF] flex items-center gap-1.5 uppercase text-[10px] tracking-wider">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Official Municipal Response
+                          </div>
+                          <p className="text-slate-800 leading-relaxed">{complaint.officerRemark}</p>
+                        </div>
+                      )}
+
+                      {/* Resolution Rating Box / Trigger */}
+                      {complaint.status === 'resolved' && (
+                        <div className="p-4 rounded-2xl bg-[#E8F9ED] border border-[#A4F1B2] text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <div className="font-bold text-[#14532D] flex items-center gap-1.5 text-xs">
+                              <CheckCircle2 className="h-4 w-4 text-[#1F6C3A]" />
+                              Issue Resolved & Closed
+                            </div>
+                            <p className="text-[#1F6C3A] text-[11px] mt-0.5">
+                              {complaint.feedbackGiven
+                                ? `You rated this resolution ${complaint.feedbackRating} / 5 stars.`
+                                : 'Please submit your feedback to verify resolution quality for municipal records.'}
+                            </p>
+                          </div>
+
+                          {complaint.feedbackGiven ? (
+                            <div className="flex items-center gap-1 text-amber-500 font-bold text-xs bg-white px-3 py-1.5 rounded-full border border-amber-200">
+                              <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+                              <span>{complaint.feedbackRating}.0 / 5.0</span>
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => openFeedbackDialog(complaint)}
+                              className="bg-[#1F6C3A] hover:bg-[#14532D] text-white gap-1.5 text-xs font-bold rounded-xl h-9 px-4 shrink-0 shadow-xs hover:-translate-y-0.5 transition-all"
+                            >
+                              <Star className="h-3.5 w-3.5" />
+                              Rate Resolution
+                            </Button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Bottom Actions */}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDocketComplaint(complaint)}
+                          className="text-xs text-slate-600 hover:text-[#0B1C30] gap-1.5 h-8 px-2.5 rounded-lg"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-[#1F6C3A]" />
+                          Docket
+                        </Button>
+
+                        <Link href={`/complaints/${complaint._id}`}>
+                          <Button variant="ghost" size="sm" className="text-xs rounded-xl text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF] font-semibold gap-1">
+                            View Full Case Record
                             <ArrowRight className="h-3.5 w-3.5" />
                           </Button>
                         </Link>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-          {/* FEEDBACK DIALOG */}
+          {/* RESOLUTION FEEDBACK MODAL */}
           <Dialog open={!!feedbackComplaint} onOpenChange={(open) => !open && setFeedbackComplaint(null)}>
-            <DialogContent className="bg-white dark:bg-[#111827] border-slate-200 dark:border-slate-800 sm:max-w-md">
+            <DialogContent className="bg-white border-slate-200 sm:max-w-md rounded-3xl shadow-[0_12px_32px_rgba(11,28,48,0.1)]">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100 text-lg font-bold">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                  Rate Resolution Quality
+                <DialogTitle className="flex items-center gap-2 text-[#0B1C30] text-lg font-bold">
+                  <CheckCircle2 className="h-5 w-5 text-[#1F6C3A]" />
+                  Rate Municipal Resolution Quality
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                  Your rating confirms work completion and helps evaluate municipal service standards.
+                <DialogDescription className="text-xs sm:text-sm text-slate-500">
+                  Your feedback helps maintain public service accountability and confirms field repair standards.
                 </DialogDescription>
               </DialogHeader>
 
               <form onSubmit={handleFeedbackSubmit} className="space-y-4 py-2">
-                <div className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#182235] text-xs">
-                  <div className="font-bold text-slate-900 dark:text-slate-100 truncate">{feedbackComplaint?.title}</div>
-                  <div className="text-slate-500 dark:text-slate-400 mt-0.5">{feedbackComplaint?.area}</div>
+                <div className="p-3.5 rounded-2xl border border-slate-200 bg-[#F8F9FF] text-xs">
+                  <div className="font-bold text-[#0B1C30] truncate">{feedbackComplaint?.title}</div>
+                  <div className="text-slate-500 mt-0.5">{feedbackComplaint?.area}</div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Service Rating (1–5 Stars)</Label>
-                  <div className="flex items-center gap-2.5 justify-center py-3 bg-[#F7F8FC] dark:bg-[#182235] rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <Label className="text-xs font-semibold text-slate-700">Quality Rating (1–5 Stars)</Label>
+                  <div className="flex items-center gap-2.5 justify-center py-3 bg-[#F8F9FF] rounded-2xl border border-slate-200">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
@@ -337,24 +354,24 @@ export default function MyComplaintsPage() {
                           className={`h-7 w-7 ${
                             star <= rating
                               ? 'fill-amber-400 text-amber-500'
-                              : 'text-slate-300 dark:text-slate-700 hover:text-amber-300'
+                              : 'text-slate-300 hover:text-amber-300'
                           }`}
                         />
                       </button>
                     ))}
                   </div>
-                  <div className="text-center text-xs font-bold text-slate-800 dark:text-slate-200">
-                    {rating === 5 && '5 Stars — Excellent Resolution'}
-                    {rating === 4 && '4 Stars — Good Work'}
+                  <div className="text-center text-xs font-bold text-[#0B1C30]">
+                    {rating === 5 && '5 Stars — Excellent Work'}
+                    {rating === 4 && '4 Stars — Good Quality'}
                     {rating === 3 && '3 Stars — Acceptable'}
-                    {rating === 2 && '2 Stars — Below Standard'}
+                    {rating === 2 && '2 Stars — Needs Improvement'}
                     {rating === 1 && '1 Star — Unsatisfactory'}
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="comment" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Feedback Remarks (Optional)
+                  <Label htmlFor="comment" className="text-xs font-semibold text-slate-700">
+                    Verification Comments (Optional)
                   </Label>
                   <Textarea
                     id="comment"
@@ -362,7 +379,7 @@ export default function MyComplaintsPage() {
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     rows={3}
-                    className="text-xs sm:text-sm"
+                    className="text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
                   />
                 </div>
 
@@ -373,14 +390,14 @@ export default function MyComplaintsPage() {
                     size="sm"
                     onClick={() => setFeedbackComplaint(null)}
                     disabled={submittingFeedback}
-                    className="text-xs h-10 px-4 rounded-xl border-slate-200 dark:border-slate-800"
+                    className="text-xs h-10 px-4 rounded-xl border-slate-200"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     size="sm"
-                    className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 font-bold text-xs h-10 px-5 rounded-xl shadow-sm"
+                    className="bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold text-xs h-10 px-5 rounded-xl shadow-xs"
                     disabled={submittingFeedback}
                   >
                     {submittingFeedback ? (
@@ -396,6 +413,26 @@ export default function MyComplaintsPage() {
               </form>
             </DialogContent>
           </Dialog>
+
+          {/* DOCKET MODAL */}
+          {docketComplaint && (
+            <WorkOrderModal
+              isOpen={true}
+              onClose={() => setDocketComplaint(null)}
+              complaint={docketComplaint}
+            />
+          )}
+
+          {/* IMAGE LIGHTBOX */}
+          {activeLightbox && (
+            <ImageLightbox
+              isOpen={true}
+              onClose={() => setActiveLightbox(null)}
+              imageUrl={activeLightbox.url}
+              title={activeLightbox.title}
+              subtitle={activeLightbox.subtitle}
+            />
+          )}
         </main>
         <Footer />
       </div>

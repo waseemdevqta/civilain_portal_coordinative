@@ -3,27 +3,27 @@ import { cva } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 dark:focus-visible:ring-blue-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] cursor-pointer',
   {
     variants: {
       variant: {
         default:
-          'bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 shadow-[0_2px_8px_rgba(15,23,42,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)]',
+          'bg-[#0F172A] hover:bg-[#1E293B] text-white shadow-[0_2px_8px_rgba(15,23,42,0.12)]',
         forest:
-          'bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.12)]',
+          'bg-[#1F6C3A] hover:bg-[#16562E] text-white shadow-[0_2px_8px_rgba(31,108,58,0.15)]',
         success:
-          'bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.12)]',
+          'bg-[#1F6C3A] hover:bg-[#16562E] text-white shadow-[0_2px_8px_rgba(31,108,58,0.15)]',
         destructive:
-          'bg-red-600 hover:bg-red-700 text-white shadow-[0_2px_8px_rgba(239,68,68,0.12)]',
+          'bg-[#BA1A1A] hover:bg-[#961515] text-white shadow-[0_2px_8px_rgba(186,26,26,0.15)]',
         outline:
-          'border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 shadow-[0_1px_2px_rgba(0,0,0,0.02)]',
+          'border border-slate-200 bg-white text-slate-800 hover:bg-[#F8F9FF] hover:border-slate-300 shadow-2xs',
         secondary:
-          'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-700/80',
+          'bg-[#EFF4FF] text-[#1E40AF] hover:bg-[#DBEAFE]',
         ghost:
-          'hover:bg-slate-100/80 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white',
-        link: 'text-slate-900 dark:text-slate-100 underline-offset-4 hover:underline',
+          'hover:bg-[#EFF4FF] text-slate-700 hover:text-[#0B1C30]',
+        link: 'text-[#0B1C30] underline-offset-4 hover:underline',
         gradient:
-          'bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 shadow-[0_2px_8px_rgba(15,23,42,0.08)]',
+          'bg-[#0F172A] hover:bg-[#1E293B] text-white shadow-[0_2px_8px_rgba(15,23,42,0.12)]',
       },
       size: {
         default: 'h-10 px-4 py-2 text-xs sm:text-sm',

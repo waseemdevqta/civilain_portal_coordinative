@@ -97,7 +97,7 @@ const computeComplaintsStats = async () => {
  */
 const createComplaint = async (req, res, next) => {
   try {
-    const { title, description, category, area } = req.body;
+    const { title, description, category, area, imageUrl, imagePublicId } = req.body;
 
     if (!title || typeof title !== 'string' || title.trim() === '') {
       return errorResponse(res, 400, 'Please provide a complaint title');
@@ -124,6 +124,8 @@ const createComplaint = async (req, res, next) => {
       description: description.trim(),
       category,
       area: area.trim(),
+      imageUrl: imageUrl && typeof imageUrl === 'string' ? imageUrl.trim() : '',
+      imagePublicId: imagePublicId && typeof imagePublicId === 'string' ? imagePublicId.trim() : '',
       status: 'pending',
       createdBy: req.user._id,
       upvotes: 0,
@@ -191,6 +193,11 @@ const getComplaints = async (req, res, next) => {
 
     const formattedComplaints = complaints.map(attachPriority);
 
+    // If sort by priority score
+    if (sort === 'priority') {
+      formattedComplaints.sort((a, b) => b.priorityScore - a.priorityScore);
+    }
+
     return successResponse(
       res,
       200,
@@ -203,7 +210,7 @@ const getComplaints = async (req, res, next) => {
 };
 
 /**
- * @desc    Get current citizen's complaints
+ * @desc    Get current user's submitted complaints
  * @route   GET /api/complaints/mine
  * @access  Private (Citizen only)
  */
@@ -218,7 +225,7 @@ const getMyComplaints = async (req, res, next) => {
     return successResponse(
       res,
       200,
-      'User complaints retrieved successfully',
+      'My complaints retrieved successfully',
       formattedComplaints
     );
   } catch (error) {
@@ -227,7 +234,7 @@ const getMyComplaints = async (req, res, next) => {
 };
 
 /**
- * @desc    Get single complaint details
+ * @desc    Get single complaint by ID
  * @route   GET /api/complaints/:id
  * @access  Public
  */
@@ -248,7 +255,7 @@ const getComplaintById = async (req, res, next) => {
     return successResponse(
       res,
       200,
-      'Complaint details retrieved successfully',
+      'Complaint retrieved successfully',
       attachPriority(complaint)
     );
   } catch (error) {
@@ -275,7 +282,7 @@ const upvoteComplaint = async (req, res, next) => {
       return errorResponse(res, 404, 'Complaint not found');
     }
 
-    // Check if citizen already upvoted
+    // Check if user has already upvoted
     const userIdStr = req.user._id.toString();
     const hasUpvoted = complaint.upvotedBy.some(
       (uid) => uid.toString() === userIdStr
@@ -285,8 +292,10 @@ const upvoteComplaint = async (req, res, next) => {
       return errorResponse(res, 400, 'You have already upvoted this complaint');
     }
 
-    complaint.upvotedBy.push(req.user._id);
+    // Atomic increment
     complaint.upvotes = (complaint.upvotes || 0) + 1;
+    complaint.upvotedBy.push(req.user._id);
+
     await complaint.save();
 
     const populatedComplaint = await Complaint.findById(complaint._id).populate(
@@ -306,14 +315,14 @@ const upvoteComplaint = async (req, res, next) => {
 };
 
 /**
- * @desc    Update complaint status (Officer only)
+ * @desc    Update complaint status and officer remarks
  * @route   PATCH /api/complaints/:id/status
  * @access  Private (Officer only)
  */
 const updateComplaintStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status, remark } = req.body;
+    const { status, officerRemark, remark, resolutionImageUrl, resolutionImagePublicId } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return errorResponse(res, 400, 'Invalid complaint ID format');
@@ -334,8 +343,16 @@ const updateComplaintStatus = async (req, res, next) => {
     }
 
     complaint.status = status;
-    if (remark !== undefined) {
-      complaint.officerRemark = typeof remark === 'string' ? remark.trim() : '';
+    const effectiveRemark = officerRemark !== undefined ? officerRemark : remark;
+    if (effectiveRemark !== undefined) {
+      complaint.officerRemark = typeof effectiveRemark === 'string' ? effectiveRemark.trim() : '';
+    }
+
+    if (resolutionImageUrl !== undefined) {
+      complaint.resolutionImageUrl = typeof resolutionImageUrl === 'string' ? resolutionImageUrl.trim() : '';
+    }
+    if (resolutionImagePublicId !== undefined) {
+      complaint.resolutionImagePublicId = typeof resolutionImagePublicId === 'string' ? resolutionImagePublicId.trim() : '';
     }
 
     if (status === 'resolved') {
@@ -458,16 +475,14 @@ const detectDuplicates = async (req, res, next) => {
 
     const duplicates = await Complaint.find({
       category: trimmedCategory,
-      area: { $regex: trimmedArea, $options: 'i' },
+      area: { $regex: `^${trimmedArea}$`, $options: 'i' },
       status: { $in: ['pending', 'in-progress'] },
-    })
-      .limit(10)
-      .populate('createdBy', 'name email');
+    }).populate('createdBy', 'name email');
 
-    const formattedDuplicates = duplicates.map(attachPriority);
+    const formatted = duplicates.map(attachPriority);
 
-    return successResponse(res, 200, 'Duplicate complaints found', {
-      duplicates: formattedDuplicates,
+    return successResponse(res, 200, 'Duplicate check completed', {
+      duplicates: formatted,
     });
   } catch (error) {
     next(error);
@@ -475,73 +490,129 @@ const detectDuplicates = async (req, res, next) => {
 };
 
 /**
- * @desc    Get aggregated statistics for complaints (Officer only)
+ * @desc    Get officer statistics
  * @route   GET /api/complaints/stats
- * @access  Private (Officer only)
+ * @access  Public
  */
 const getOfficerStats = async (req, res, next) => {
   try {
     const stats = await computeComplaintsStats();
-    return successResponse(res, 200, 'Officer statistics retrieved successfully', stats);
+    return successResponse(res, 200, 'Officer statistics retrieved', stats);
   } catch (error) {
     next(error);
   }
 };
 
 /**
- * @desc    Export complaints to CSV with active filters (Officer only)
+ * @desc    Get neighborhood cluster hotspot density
+ * @route   GET /api/complaints/hotspots
+ * @access  Public
+ */
+const getHotspots = async (req, res, next) => {
+  try {
+    const allComplaints = await Complaint.find({});
+    const areaMap = {};
+
+    for (const c of allComplaints) {
+      const area = (c.area || 'General').trim();
+      if (!areaMap[area]) {
+        areaMap[area] = {
+          area,
+          total: 0,
+          pending: 0,
+          inProgress: 0,
+          resolved: 0,
+          critical: 0,
+          high: 0,
+          upvotes: 0,
+          categories: {},
+        };
+      }
+
+      areaMap[area].total++;
+      areaMap[area].upvotes += c.upvotes || 0;
+      if (c.status === 'pending') areaMap[area].pending++;
+      else if (c.status === 'in-progress') areaMap[area].inProgress++;
+      else if (c.status === 'resolved') areaMap[area].resolved++;
+
+      const { priority } = calculatePriority(c);
+      if (priority === 'critical') areaMap[area].critical++;
+      else if (priority === 'high') areaMap[area].high++;
+
+      if (c.category) {
+        areaMap[area].categories[c.category] = (areaMap[area].categories[c.category] || 0) + 1;
+      }
+    }
+
+    const hotspots = Object.values(areaMap).map((item) => {
+      const resolutionRate = item.total > 0 ? Math.round((item.resolved / item.total) * 100) : 0;
+      const topCategory = Object.entries(item.categories).sort((a, b) => b[1] - a[1])[0]?.[0] || 'other';
+
+      let riskLevel = 'normal';
+      if (item.critical >= 2 || item.total >= 5) riskLevel = 'critical';
+      else if (item.high >= 2 || item.total >= 3) riskLevel = 'elevated';
+
+      return {
+        area: item.area,
+        total: item.total,
+        pending: item.pending,
+        inProgress: item.inProgress,
+        resolved: item.resolved,
+        critical: item.critical,
+        high: item.high,
+        upvotes: item.upvotes,
+        resolutionRate,
+        topCategory,
+        riskLevel,
+      };
+    }).sort((a, b) => b.critical - a.critical || b.total - a.total);
+
+    return successResponse(res, 200, 'Hotspots retrieved successfully', hotspots);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Export complaints as CSV
  * @route   GET /api/complaints/export
  * @access  Private (Officer only)
  */
 const exportComplaintsCSV = async (req, res, next) => {
   try {
-    const { search, category, status, area } = req.query;
-
+    const { category, status } = req.query;
     const query = {};
 
     if (category && VALID_CATEGORIES.includes(category)) {
       query.category = category;
     }
-
     if (status && VALID_STATUSES.includes(status)) {
       query.status = status;
-    }
-
-    if (area && typeof area === 'string' && area.trim() !== '') {
-      query.area = { $regex: area.trim(), $options: 'i' };
-    }
-
-    if (search && typeof search === 'string' && search.trim() !== '') {
-      const searchRegex = { $regex: search.trim(), $options: 'i' };
-      query.$or = [
-        { title: searchRegex },
-        { description: searchRegex },
-        { area: searchRegex },
-      ];
     }
 
     const complaints = await Complaint.find(query)
       .sort({ createdAt: -1 })
       .populate('createdBy', 'name email');
 
-    // CSV header row
     const headers = [
       'Ticket ID',
-      'Full ID',
+      'Complaint ID',
       'Title',
       'Category',
       'Area',
       'Status',
-      'Priority',
+      'Priority Level',
       'Priority Score',
-      'Upvotes',
-      'Filed By',
-      'Citizen Email',
-      'Filed On',
-      'Last Updated',
+      'Upvotes Count',
+      'Reported By Name',
+      'Reported By Email',
+      'Created At',
+      'Updated At',
+      'Image Evidence URL',
+      'Resolution Image URL',
       'Officer Remark',
-      'Citizen Rating',
-      'Citizen Feedback',
+      'Citizen Feedback Rating',
+      'Citizen Feedback Comment',
     ];
 
     const escapeCsv = (val) => {
@@ -566,6 +637,8 @@ const exportComplaintsCSV = async (req, res, next) => {
         escapeCsv(c.createdBy?.email || ''),
         escapeCsv(c.createdAt ? new Date(c.createdAt).toISOString() : ''),
         escapeCsv(c.updatedAt ? new Date(c.updatedAt).toISOString() : ''),
+        escapeCsv(c.imageUrl || ''),
+        escapeCsv(c.resolutionImageUrl || ''),
         escapeCsv(c.officerRemark || ''),
         escapeCsv(c.feedbackRating || ''),
         escapeCsv(c.feedbackComment || ''),
@@ -597,6 +670,7 @@ module.exports = {
   submitFeedback,
   detectDuplicates,
   getOfficerStats,
+  getHotspots,
   exportComplaintsCSV,
   computeComplaintsStats,
 };

@@ -14,6 +14,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { PriorityBadge } from '@/components/common/PriorityBadge';
 import { CategoryBadge } from '@/components/common/CategoryBadge';
+import ImageUploader from '@/components/common/ImageUploader';
+import ImageLightbox from '@/components/common/ImageLightbox';
+import WorkOrderModal from '@/components/common/WorkOrderModal';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -51,6 +54,9 @@ import {
   Trash2,
   Droplets,
   Zap,
+  Camera,
+  Printer,
+  ExternalLink,
 } from 'lucide-react';
 
 export default function OfficerDashboardPage() {
@@ -67,6 +73,10 @@ export default function OfficerDashboardPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
 
+  // Lightbox and Docket states
+  const [activeLightbox, setActiveLightbox] = useState(null);
+  const [docketComplaint, setDocketComplaint] = useState(null);
+
   // Filters
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -76,6 +86,8 @@ export default function OfficerDashboardPage() {
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [newStatus, setNewStatus] = useState('');
   const [officerRemark, setOfficerRemark] = useState('');
+  const [resolutionImageUrl, setResolutionImageUrl] = useState('');
+  const [resolutionImagePublicId, setResolutionImagePublicId] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
   // New Officer Provisioning Modal State
@@ -135,11 +147,13 @@ export default function OfficerDashboardPage() {
     fetchAiSummary();
   }, []);
 
-  // Handle status update
+  // Handle status update modal open
   const handleOpenStatusModal = (complaint) => {
     setSelectedComplaint(complaint);
     setNewStatus(complaint.status);
     setOfficerRemark(complaint.officerRemark || '');
+    setResolutionImageUrl(complaint.resolutionImageUrl || '');
+    setResolutionImagePublicId(complaint.resolutionImagePublicId || '');
   };
 
   const handleUpdateStatusSubmit = async (e) => {
@@ -151,6 +165,8 @@ export default function OfficerDashboardPage() {
       const res = await complaintApi.updateStatus(selectedComplaint._id, {
         status: newStatus,
         officerRemark: officerRemark.trim(),
+        resolutionImageUrl: resolutionImageUrl.trim(),
+        resolutionImagePublicId: resolutionImagePublicId.trim(),
       });
 
       toast.success(`Complaint status updated to ${newStatus}`);
@@ -194,7 +210,7 @@ export default function OfficerDashboardPage() {
     }
   };
 
-  // Section 5.14: CSV Export Trigger via complaintApi.exportCSV
+  // CSV Export Trigger via complaintApi.exportCSV
   const handleExportCsv = async () => {
     setExportingCsv(true);
     try {
@@ -224,22 +240,22 @@ export default function OfficerDashboardPage() {
 
   return (
     <ProtectedRoute officerOnly={true}>
-      <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors">
+      <div className="flex min-h-screen flex-col bg-[#F8F9FF] text-[#0B1C30] transition-colors">
         <Navbar />
 
         <main className="flex-1 container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
           {/* HEADER BAR */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F9ED] px-3 py-0.5 text-xs font-bold text-[#1F6C3A] border border-[#A4F1B2]">
+                <ShieldCheck className="h-3.5 w-3.5 text-[#1F6C3A]" />
                 <span>MUNICIPAL OPERATIONS COMMAND</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0B1C30]">
                 Operations Console
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                Municipal Officer: <strong className="text-slate-800 dark:text-slate-200">{user?.name}</strong> • Dispatch queue, priority escalation & feedback audit.
+              <p className="text-xs sm:text-sm text-slate-500">
+                Municipal Officer: <strong className="text-slate-800">{user?.name}</strong> • Dispatch queue, photo verification, priority escalation & feedback audit.
               </p>
             </div>
 
@@ -249,160 +265,137 @@ export default function OfficerDashboardPage() {
                 size="sm"
                 onClick={handleExportCsv}
                 disabled={exportingCsv}
-                className="gap-1.5 h-10 px-4 text-xs font-bold rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+                className="gap-1.5 text-xs font-semibold rounded-xl h-10 px-3.5 border-slate-200 bg-white hover:bg-[#F8F9FF] text-slate-800 shadow-2xs"
               >
-                <Download className="h-3.5 w-3.5 text-slate-500" />
-                {exportingCsv ? 'Exporting...' : 'Export CSV'}
+                <FileSpreadsheet className="h-4 w-4 text-[#1F6C3A]" />
+                {exportingCsv ? 'Exporting...' : 'Export CSV Report'}
               </Button>
 
               <Button
                 size="sm"
                 onClick={() => setShowProvisionModal(true)}
-                className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 gap-1.5 h-10 px-4 text-xs font-bold rounded-xl shadow-sm"
+                className="gap-1.5 bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-bold rounded-xl h-10 px-4 shadow-[0_4px_14px_rgba(15,23,42,0.15)] hover:-translate-y-0.5 transition-all"
               >
-                <UserPlus className="h-3.5 w-3.5" />
-                Provision Officer
+                <UserPlus className="h-4 w-4" />
+                Add New Officer
               </Button>
             </div>
           </div>
 
-          {/* ERROR ALERT */}
-          {error && (
-            <div className="flex items-center gap-2 rounded-2xl border border-red-200/90 dark:border-red-900/60 bg-red-50/90 dark:bg-red-950/40 p-4 text-xs text-red-700 dark:text-red-300">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* 6 OPERATIONAL METRIC BLOCKS */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-            {/* Total */}
-            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#111827] p-4 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Docket</div>
-              <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-50 mt-1">
-                {stats ? stats.total : <Skeleton className="h-7 w-10" />}
-              </div>
-            </div>
-
-            {/* Pending */}
-            <div className="rounded-2xl border border-amber-200/80 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/20 p-4 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">Pending Review</div>
-              <div className="text-xl sm:text-2xl font-extrabold text-amber-900 dark:text-amber-200 mt-1">
-                {stats ? stats.pending : <Skeleton className="h-7 w-10" />}
-              </div>
-            </div>
-
-            {/* In Progress */}
-            <div className="rounded-2xl border border-blue-200/80 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-950/20 p-4 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-blue-800 dark:text-blue-300">Field Dispatched</div>
-              <div className="text-xl sm:text-2xl font-extrabold text-blue-900 dark:text-blue-200 mt-1">
-                {stats ? stats.inProgress : <Skeleton className="h-7 w-10" />}
-              </div>
-            </div>
-
-            {/* Resolved */}
-            <div className="rounded-2xl border border-emerald-200/80 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Resolved</div>
-              <div className="text-xl sm:text-2xl font-extrabold text-emerald-900 dark:text-emerald-200 mt-1">
-                {stats ? stats.resolved : <Skeleton className="h-7 w-10" />}
-              </div>
-            </div>
-
-            {/* Critical Priority */}
-            <div className="rounded-2xl border border-red-200/80 dark:border-red-900/40 bg-red-50/50 dark:bg-red-950/20 p-4 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-red-800 dark:text-red-300 flex items-center gap-1">
-                <Flame className="h-3 w-3" /> Critical
-              </div>
-              <div className="text-xl sm:text-2xl font-extrabold text-red-900 dark:text-red-200 mt-1">
-                {stats ? (stats.critical ?? stats.criticalPriority ?? 0) : <Skeleton className="h-7 w-10" />}
-              </div>
-            </div>
-
-            {/* Avg Rating */}
-            <div className="rounded-2xl border border-amber-200/80 dark:border-amber-900/40 bg-white dark:bg-[#111827] p-4 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                <Star className="h-3 w-3 text-amber-500 fill-amber-500" /> Satisfaction
-              </div>
-              <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-50 mt-1">
-                {stats && (typeof stats.averageRating === 'number' || typeof stats.averageFeedbackRating === 'number') ? (
-                  `${(stats.averageRating ?? stats.averageFeedbackRating).toFixed(1)} / 5.0`
-                ) : (
-                  <Skeleton className="h-7 w-10" />
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* GEMINI AI OPERATIONS BRIEFING (SOFT TINTED CONTAINER, NOT FLASHY GRADIENTS) */}
-          <div className="rounded-3xl border border-blue-200/80 dark:border-blue-950/80 bg-blue-50/50 dark:bg-[#111c30] p-6 sm:p-7 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-blue-600 dark:bg-blue-500 text-white shadow-sm">
+          {/* AI OPERATIONAL BRIEFING CARD */}
+          <div className="rounded-3xl border border-blue-200 bg-gradient-to-br from-[#EFF4FF] to-white p-6 sm:p-7 shadow-[0_4px_20px_rgba(30,64,175,0.04)] space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-2xl bg-[#1E40AF] flex items-center justify-center text-white shadow-xs">
                   <Sparkles className="h-4 w-4" />
-                </span>
+                </div>
                 <div>
-                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-blue-950 dark:text-blue-200">
-                    AI OPERATIONS BRIEFING
-                  </h3>
-                  <p className="text-[11px] text-blue-800/80 dark:text-blue-300/80">
-                    Generated from live municipal complaint dataset (Zero Citizen PII Exposed)
-                  </p>
+                  <h3 className="text-sm font-bold text-[#0B1C30]">Gemini AI Operational Briefing</h3>
+                  <p className="text-xs text-slate-500">Live intelligence summary generated from active complaints database</p>
                 </div>
               </div>
 
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={fetchAiSummary}
                 disabled={aiLoading}
-                className="h-8 rounded-xl border-blue-200 dark:border-blue-900/60 bg-white dark:bg-[#182235] text-xs font-semibold text-blue-950 dark:text-blue-200 hover:bg-blue-50 gap-1 px-3 shadow-sm"
+                className="gap-1 text-xs text-[#1E40AF] hover:text-[#1E3A8A] hover:bg-[#EFF4FF] rounded-xl h-8 px-2.5 font-semibold"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${aiLoading ? 'animate-spin' : ''}`} />
-                <span>{aiLoading ? 'Analyzing...' : 'Regenerate Briefing'}</span>
+                <span>{aiLoading ? 'Analyzing...' : 'Refresh AI'}</span>
               </Button>
             </div>
 
-            <div className="rounded-2xl border border-blue-200/60 dark:border-blue-900/40 bg-white/90 dark:bg-[#0c1424] p-5">
-              {aiLoading ? (
-                <div className="space-y-2 py-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-5/6" />
-                  <Skeleton className="h-4 w-4/6" />
-                </div>
-              ) : aiError ? (
-                <div className="text-xs text-red-600 dark:text-red-400">{aiError}</div>
-              ) : (
-                <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
-                  {aiSummary || 'Loading live operational briefing...'}
-                </p>
-              )}
-            </div>
+            {aiLoading ? (
+              <div className="py-4 space-y-2">
+                <Skeleton className="h-4 w-full rounded-md" />
+                <Skeleton className="h-4 w-4/5 rounded-md" />
+              </div>
+            ) : aiError ? (
+              <div className="p-3.5 rounded-2xl bg-white border border-red-200 text-xs text-[#BA1A1A]">
+                {aiError}
+              </div>
+            ) : aiSummary ? (
+              <div className="p-4 rounded-2xl bg-white/80 backdrop-blur-xs border border-blue-100 text-xs sm:text-sm text-slate-800 leading-relaxed">
+                {aiSummary}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 italic">No AI briefing generated yet.</p>
+            )}
           </div>
 
-          {/* DISPATCH QUEUE & COMPLAINTS LEDGER */}
-          <div className="space-y-4">
-            <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111827] shadow-[0_4px_20px_rgba(15,23,42,0.03)] p-6 space-y-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
-                  Municipal Dispatch Queue ({complaints.length})
-                </h2>
+          {/* METRIC STATS TILES */}
+          {stats && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase text-slate-500 block">Total Workload</span>
+                <span className="text-2xl font-black text-[#0B1C30]">{stats.total || 0}</span>
+                <span className="text-[10px] text-slate-400 block">{stats.complaintsToday || 0} logged today</span>
+              </div>
 
-                {/* Filters */}
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <div className="relative">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase text-amber-800 block">Pending</span>
+                <span className="text-2xl font-black text-amber-900">{stats.pending || 0}</span>
+                <span className="text-[10px] text-amber-700 block">Awaiting field crew</span>
+              </div>
+
+              <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-4 shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase text-blue-800 block">In Progress</span>
+                <span className="text-2xl font-black text-blue-900">{stats.inProgress || 0}</span>
+                <span className="text-[10px] text-blue-700 block">Active field repairs</span>
+              </div>
+
+              <div className="rounded-2xl border border-[#A4F1B2] bg-[#E8F9ED]/50 p-4 shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase text-[#1F6C3A] block">Resolved</span>
+                <span className="text-2xl font-black text-[#14532D]">{stats.resolved || 0}</span>
+                <span className="text-[10px] text-[#1F6C3A] block">Completed & verified</span>
+              </div>
+
+              <div className="rounded-2xl border border-red-200 bg-red-50/50 p-4 shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase text-[#BA1A1A] block">Critical / High</span>
+                <span className="text-2xl font-black text-red-900">{(stats.critical || 0) + (stats.high || 0)}</span>
+                <span className="text-[10px] text-[#BA1A1A] block">{stats.critical || 0} critical urgent</span>
+              </div>
+
+              <div className="rounded-2xl border border-amber-200 bg-white p-4 shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase text-amber-700 block">Citizen Rating</span>
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+                  <span className="text-2xl font-black text-[#0B1C30]">
+                    {stats.averageFeedbackRating || stats.averageRating || '0.0'}
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-400 block">Across resolved cases</span>
+              </div>
+            </div>
+          )}
+
+          {/* DISPATCH & QUEUE MANAGEMENT SECTION */}
+          <div className="space-y-4">
+            <div className="rounded-3xl border border-slate-200 bg-white shadow-[0_4px_20px_rgba(11,28,48,0.03)] p-5 sm:p-7 space-y-5">
+              {/* Filter controls */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                  <h3 className="text-lg font-bold text-[#0B1C30]">Municipal Dispatch Queue</h3>
+                  <p className="text-xs text-slate-500">Filter complaints by sector, dispatch status, or search area</p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="relative min-w-[200px]">
                     <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                     <Input
                       placeholder="Search tickets..."
                       value={filterSearch}
                       onChange={(e) => setFilterSearch(e.target.value)}
-                      className="pl-8.5 h-9 text-xs w-44 rounded-xl"
+                      className="pl-8 h-9 text-xs rounded-xl bg-[#F8F9FF] border-slate-200"
                     />
                   </div>
 
                   <select
                     value={filterCategory}
                     onChange={(e) => setFilterCategory(e.target.value)}
-                    className="h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] px-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none"
+                    className="h-9 rounded-xl border border-slate-200 bg-[#F8F9FF] px-2.5 text-xs font-semibold text-slate-800 focus:outline-none"
                   >
                     <option value="">All Categories</option>
                     <option value="road">Roads</option>
@@ -415,7 +408,7 @@ export default function OfficerDashboardPage() {
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] px-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none"
+                    className="h-9 rounded-xl border border-slate-200 bg-[#F8F9FF] px-2.5 text-xs font-semibold text-slate-800 focus:outline-none"
                   >
                     <option value="">All Statuses</option>
                     <option value="pending">Pending</option>
@@ -429,81 +422,118 @@ export default function OfficerDashboardPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#182235]/60 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                    <tr className="border-b border-slate-200 bg-[#F8F9FF] text-slate-600 font-bold uppercase tracking-wider text-[10px]">
                       <th className="py-3 px-3.5 rounded-l-xl">Ticket ID</th>
+                      <th className="py-3 px-3.5">Photo Evidence</th>
                       <th className="py-3 px-3.5">Title & Area</th>
                       <th className="py-3 px-3.5">Category</th>
-                      <th className="py-3 px-3.5">Priority Score</th>
+                      <th className="py-3 px-3.5">Priority</th>
                       <th className="py-3 px-3.5">Status</th>
                       <th className="py-3 px-3.5">Support</th>
                       <th className="py-3 px-3.5 rounded-r-xl text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+                  <tbody className="divide-y divide-slate-100">
                     {loading ? (
                       [1, 2, 3, 4, 5].map((i) => (
                         <tr key={i}>
-                          <td colSpan={7} className="py-3.5 px-3.5">
+                          <td colSpan={8} className="py-3.5 px-3.5">
                             <Skeleton className="h-4 w-full rounded-md" />
                           </td>
                         </tr>
                       ))
                     ) : complaints.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-8 text-center text-slate-500 dark:text-slate-400">
+                        <td colSpan={8} className="py-8 text-center text-slate-500">
                           No complaints match the current filter criteria.
                         </td>
                       </tr>
                     ) : (
-                      complaints.map((c) => (
-                        <tr key={c._id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                          <td className="py-3.5 px-3.5 font-mono font-bold text-slate-900 dark:text-slate-100">
-                            #CF-{c._id.slice(-6).toUpperCase()}
-                          </td>
-                          <td className="py-3.5 px-3.5 max-w-xs truncate">
-                            <div className="font-bold text-slate-900 dark:text-slate-100 truncate">{c.title}</div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
-                              <MapPin className="h-3 w-3" />
-                              {c.area}
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-3.5">
-                            <CategoryBadge category={c.category} />
-                          </td>
-                          <td className="py-3.5 px-3.5">
-                            <PriorityBadge priority={c.priority} score={c.priorityScore} showScore={true} />
-                          </td>
-                          <td className="py-3.5 px-3.5">
-                            <StatusBadge status={c.status} />
-                          </td>
-                          <td className="py-3.5 px-3.5 font-bold text-slate-800 dark:text-slate-200">
-                            <span className="flex items-center gap-1">
-                              <ThumbsUp className="h-3 w-3 text-slate-400" />
-                              {c.upvotes || 0}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-3.5 text-right space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleOpenStatusModal(c)}
-                              className="h-8 rounded-xl text-xs font-semibold px-2.5 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
-                            >
-                              <Edit3 className="h-3 w-3 mr-1" />
-                              Review / Dispatch
-                            </Button>
-                            <Link href={`/complaints/${c._id}`}>
+                      complaints.map((c) => {
+                        const hasPhoto = Boolean(c.imageUrl);
+
+                        return (
+                          <tr key={c._id} className="hover:bg-[#F8F9FF] transition-colors">
+                            <td className="py-3.5 px-3.5 font-mono font-bold text-[#0B1C30]">
+                              #CF-{c._id.slice(-6).toUpperCase()}
+                            </td>
+                            <td className="py-3.5 px-3.5">
+                              {hasPhoto ? (
+                                <div
+                                  onClick={() =>
+                                    setActiveLightbox({
+                                      url: c.imageUrl,
+                                      title: c.title,
+                                      subtitle: `Photo Evidence in ${c.area}`,
+                                    })
+                                  }
+                                  className="relative w-10 h-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 cursor-pointer group shadow-2xs flex-shrink-0"
+                                  title="Click to view full photo"
+                                >
+                                  <img
+                                    src={c.imageUrl}
+                                    alt="Evidence"
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                                  />
+                                </div>
+                              ) : (
+                                <span className="text-[11px] text-slate-400 italic">No Photo</span>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-3.5 max-w-xs truncate">
+                              <div className="font-bold text-[#0B1C30] truncate">{c.title}</div>
+                              <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                <MapPin className="h-3 w-3 text-slate-400" />
+                                {c.area}
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-3.5">
+                              <CategoryBadge category={c.category} />
+                            </td>
+                            <td className="py-3.5 px-3.5">
+                              <PriorityBadge priority={c.priority} score={c.priorityScore} showScore={true} />
+                            </td>
+                            <td className="py-3.5 px-3.5">
+                              <StatusBadge status={c.status} />
+                            </td>
+                            <td className="py-3.5 px-3.5 font-bold text-slate-800">
+                              <span className="flex items-center gap-1">
+                                <ThumbsUp className="h-3 w-3 text-slate-400" />
+                                {c.upvotes || 0}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-3.5 text-right space-x-1.5">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleOpenStatusModal(c)}
+                                className="h-8 rounded-xl text-xs font-semibold px-2.5 border-slate-200 hover:bg-[#EFF4FF] hover:text-[#0B1C30]"
+                              >
+                                <Edit3 className="h-3 w-3 mr-1" />
+                                Review
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-8 rounded-xl text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-2"
+                                onClick={() => setDocketComplaint(c)}
+                                className="h-8 rounded-xl text-xs text-slate-600 hover:text-[#0B1C30] px-2"
+                                title="Print Municipal Docket"
                               >
-                                View
+                                <Printer className="h-3.5 w-3.5 text-[#1F6C3A]" />
                               </Button>
-                            </Link>
-                          </td>
-                        </tr>
-                      ))
+                              <Link href={`/complaints/${c._id}`}>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 rounded-xl text-xs text-slate-600 hover:text-[#0B1C30] px-2"
+                                >
+                                  Details
+                                </Button>
+                              </Link>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -513,35 +543,57 @@ export default function OfficerDashboardPage() {
 
           {/* STATUS UPDATE & DISPATCH MODAL */}
           <Dialog open={!!selectedComplaint} onOpenChange={(open) => !open && setSelectedComplaint(null)}>
-            <DialogContent className="bg-white dark:bg-[#111827] border-slate-200 dark:border-slate-800 sm:max-w-lg">
+            <DialogContent className="bg-white border-slate-200 sm:max-w-lg rounded-3xl shadow-[0_12px_32px_rgba(11,28,48,0.1)]">
               <DialogHeader>
-                <DialogTitle className="text-slate-900 dark:text-slate-100 text-lg font-bold">
+                <DialogTitle className="text-[#0B1C30] text-lg font-bold">
                   Review & Update Municipal Ticket
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                  Update lifecycle dispatch state and provide official public remarks for citizens.
+                <DialogDescription className="text-xs sm:text-sm text-slate-500">
+                  Update lifecycle dispatch state, attach resolution proof, and provide official public remarks for citizens.
                 </DialogDescription>
               </DialogHeader>
 
               <form onSubmit={handleUpdateStatusSubmit} className="space-y-4 py-2">
-                <div className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#182235] text-xs space-y-1">
-                  <div className="font-bold text-slate-900 dark:text-slate-100 truncate">{selectedComplaint?.title}</div>
-                  <div className="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                <div className="p-3.5 rounded-2xl border border-slate-200 bg-[#F8F9FF] text-xs space-y-1">
+                  <div className="font-bold text-[#0B1C30] truncate">{selectedComplaint?.title}</div>
+                  <div className="text-slate-500 flex items-center gap-2">
                     <span>{selectedComplaint?.area}</span>
                     <span>•</span>
                     <span className="capitalize">{selectedComplaint?.category}</span>
                   </div>
                 </div>
 
+                {/* Citizen Evidence Preview if available */}
+                {selectedComplaint?.imageUrl && (
+                  <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
+                    <img
+                      src={selectedComplaint.imageUrl}
+                      alt="Citizen Evidence"
+                      className="w-14 h-14 object-cover rounded-xl border border-slate-300 flex-shrink-0"
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold text-[#0B1C30] block">Citizen Photo Attached</span>
+                      <a
+                        href={selectedComplaint.imageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#1F6C3A] font-semibold hover:underline"
+                      >
+                        Inspect full resolution ↗
+                      </a>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
-                  <Label htmlFor="newStatus" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <Label htmlFor="newStatus" className="text-xs font-semibold text-slate-700">
                     Municipal Status
                   </Label>
                   <select
                     id="newStatus"
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                    className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-[#0B1C30] focus:outline-none focus:ring-2 focus:ring-slate-900"
                   >
                     <option value="pending">Pending Review (Awaiting Field Dispatch)</option>
                     <option value="in-progress">In Progress (Field Crew Deployed On Site)</option>
@@ -549,8 +601,24 @@ export default function OfficerDashboardPage() {
                   </select>
                 </div>
 
+                {/* Optional Resolution Proof Image if Resolved */}
+                {newStatus === 'resolved' && (
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <ImageUploader
+                      value={resolutionImageUrl}
+                      onChange={(url, publicId) => {
+                        setResolutionImageUrl(url);
+                        setResolutionImagePublicId(publicId);
+                      }}
+                      type="resolution"
+                      label="Attach Resolution Photo Proof (Optional)"
+                      description="Upload photo showing completed asphalt, cleared dumpster, or repaired wire"
+                    />
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
-                  <Label htmlFor="officerRemark" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <Label htmlFor="officerRemark" className="text-xs font-semibold text-slate-700">
                     Official Officer Remark (Publicly Visible)
                   </Label>
                   <Textarea
@@ -559,7 +627,7 @@ export default function OfficerDashboardPage() {
                     value={officerRemark}
                     onChange={(e) => setOfficerRemark(e.target.value)}
                     rows={3}
-                    className="text-xs sm:text-sm"
+                    className="text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
                   />
                 </div>
 
@@ -570,14 +638,14 @@ export default function OfficerDashboardPage() {
                     size="sm"
                     onClick={() => setSelectedComplaint(null)}
                     disabled={updatingStatus}
-                    className="text-xs h-10 px-4 rounded-xl border-slate-200 dark:border-slate-800"
+                    className="text-xs h-10 px-4 rounded-xl border-slate-200"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     size="sm"
-                    className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 font-bold text-xs h-10 px-5 rounded-xl shadow-sm"
+                    className="bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold text-xs h-10 px-5 rounded-xl shadow-xs"
                     disabled={updatingStatus}
                   >
                     {updatingStatus ? 'Updating Record...' : 'Confirm Update'}
@@ -589,19 +657,19 @@ export default function OfficerDashboardPage() {
 
           {/* PROVISION OFFICER MODAL */}
           <Dialog open={showProvisionModal} onOpenChange={setShowProvisionModal}>
-            <DialogContent className="bg-white dark:bg-[#111827] border-slate-200 dark:border-slate-800 sm:max-w-md">
+            <DialogContent className="bg-white border-slate-200 sm:max-w-md rounded-3xl shadow-[0_12px_32px_rgba(11,28,48,0.1)]">
               <DialogHeader>
-                <DialogTitle className="text-slate-900 dark:text-slate-100 text-lg font-bold">
+                <DialogTitle className="text-[#0B1C30] text-lg font-bold">
                   Provision Government Officer Account
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                <DialogDescription className="text-xs sm:text-sm text-slate-500">
                   Authorized officers can create new officer credentials for municipal staff.
                 </DialogDescription>
               </DialogHeader>
 
               <form onSubmit={handleProvisionSubmit} className="space-y-4 py-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="prov-name" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <Label htmlFor="prov-name" className="text-xs font-semibold text-slate-700">
                     Officer Full Name
                   </Label>
                   <Input
@@ -609,13 +677,13 @@ export default function OfficerDashboardPage() {
                     placeholder="e.g. Inspector Tariq Mahmood"
                     value={provisionData.name}
                     onChange={(e) => setProvisionData((prev) => ({ ...prev, name: e.target.value }))}
-                    className="h-10 text-xs sm:text-sm"
+                    className="h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
                     required
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="prov-email" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <Label htmlFor="prov-email" className="text-xs font-semibold text-slate-700">
                     Official Email Address
                   </Label>
                   <Input
@@ -624,13 +692,13 @@ export default function OfficerDashboardPage() {
                     placeholder="officer@municipal.gov"
                     value={provisionData.email}
                     onChange={(e) => setProvisionData((prev) => ({ ...prev, email: e.target.value }))}
-                    className="h-10 text-xs sm:text-sm"
+                    className="h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
                     required
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="prov-pass" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <Label htmlFor="prov-pass" className="text-xs font-semibold text-slate-700">
                     Initial Password (min 6 chars)
                   </Label>
                   <Input
@@ -639,7 +707,7 @@ export default function OfficerDashboardPage() {
                     placeholder="••••••••"
                     value={provisionData.password}
                     onChange={(e) => setProvisionData((prev) => ({ ...prev, password: e.target.value }))}
-                    className="h-10 text-xs sm:text-sm"
+                    className="h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
                     required
                   />
                 </div>
@@ -651,14 +719,14 @@ export default function OfficerDashboardPage() {
                     size="sm"
                     onClick={() => setShowProvisionModal(false)}
                     disabled={provisioning}
-                    className="text-xs h-10 px-4 rounded-xl border-slate-200 dark:border-slate-800"
+                    className="text-xs h-10 px-4 rounded-xl border-slate-200"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     size="sm"
-                    className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 font-bold text-xs h-10 px-5 rounded-xl shadow-sm"
+                    className="bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold text-xs h-10 px-5 rounded-xl shadow-xs"
                     disabled={provisioning}
                   >
                     {provisioning ? 'Provisioning...' : 'Create Officer Account'}
@@ -667,6 +735,26 @@ export default function OfficerDashboardPage() {
               </form>
             </DialogContent>
           </Dialog>
+
+          {/* DOCKET MODAL */}
+          {docketComplaint && (
+            <WorkOrderModal
+              isOpen={true}
+              onClose={() => setDocketComplaint(null)}
+              complaint={docketComplaint}
+            />
+          )}
+
+          {/* IMAGE LIGHTBOX */}
+          {activeLightbox && (
+            <ImageLightbox
+              isOpen={true}
+              onClose={() => setActiveLightbox(null)}
+              imageUrl={activeLightbox.url}
+              title={activeLightbox.title}
+              subtitle={activeLightbox.subtitle}
+            />
+          )}
         </main>
         <Footer />
       </div>

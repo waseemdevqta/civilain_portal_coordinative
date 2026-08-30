@@ -55,7 +55,7 @@ const seedDatabase = async () => {
     console.log(`  - Officer: waseemahmedbaloch2004@gmail.com / Officer123! (Waseem Ahmed)`);
     console.log(`  - Citizens: ahmed@civicfix.demo, fatima@civicfix.demo, bilal@civicfix.demo / Citizen123!`);
 
-    console.log('[Seed] Creating demo complaints...');
+    console.log('[Seed] Creating demo complaints with visual evidence...');
 
     const daysAgo = (days) => {
       const d = new Date();
@@ -69,6 +69,7 @@ const seedDatabase = async () => {
         description: 'A deep crater has opened up right before the main university intersection, damaging vehicles and causing heavy delays during rush hour.',
         category: 'road',
         area: 'University Road',
+        imageUrl: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80',
         status: 'in-progress',
         createdBy: citizen1._id,
         upvotes: 18,
@@ -82,6 +83,7 @@ const seedDatabase = async () => {
         description: 'Garbage has not been lifted for 5 days near the fruit market. Waste is spilling onto the street attracting stray animals and creating severe odor.',
         category: 'garbage',
         area: 'Jinnah Road',
+        imageUrl: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=800&auto=format&fit=crop&q=80',
         status: 'pending',
         createdBy: citizen2._id,
         upvotes: 16,
@@ -95,6 +97,7 @@ const seedDatabase = async () => {
         description: 'Clean drinking water pipe ruptured 2 days ago. Potable water is going to waste while street #3 is submerged.',
         category: 'water',
         area: 'Satellite Town',
+        imageUrl: 'https://images.unsplash.com/photo-1542010589005-d10adc383ceb?w=800&auto=format&fit=crop&q=80',
         status: 'pending',
         createdBy: citizen3._id,
         upvotes: 12,
@@ -108,6 +111,7 @@ const seedDatabase = async () => {
         description: 'High tension cable broke loose from pole #12 and is hanging within reach of pedestrians right outside the girls high school.',
         category: 'electricity',
         area: 'Sariab Road',
+        imageUrl: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&auto=format&fit=crop&q=80',
         status: 'in-progress',
         createdBy: citizen1._id,
         upvotes: 22,
@@ -121,6 +125,8 @@ const seedDatabase = async () => {
         description: 'Manhole cover was stolen over the weekend. Temporary branches placed by locals are barely visible at night.',
         category: 'road',
         area: 'Brewery Road',
+        imageUrl: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=800&auto=format&fit=crop&q=80',
+        resolutionImageUrl: 'https://images.unsplash.com/photo-1590402494682-cd3fb53b1f70?w=800&auto=format&fit=crop&q=80',
         status: 'resolved',
         createdBy: citizen2._id,
         upvotes: 14,
@@ -139,6 +145,7 @@ const seedDatabase = async () => {
         description: 'The entire block has been in complete darkness for over a week, leading to security concerns.',
         category: 'electricity',
         area: 'Satellite Town',
+        imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&auto=format&fit=crop&q=80',
         status: 'pending',
         createdBy: citizen3._id,
         upvotes: 6,
@@ -152,6 +159,7 @@ const seedDatabase = async () => {
         description: 'Several truckloads of concrete rubble dumped on the median green belt opposite the petrol pump.',
         category: 'garbage',
         area: 'Airport Road',
+        imageUrl: 'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=800&auto=format&fit=crop&q=80',
         status: 'in-progress',
         createdBy: citizen1._id,
         upvotes: 4,
@@ -165,6 +173,7 @@ const seedDatabase = async () => {
         description: 'Tap water coming into homes in sector B has sewage contamination and pungent smell since yesterday morning.',
         category: 'water',
         area: 'Brewery Road',
+        imageUrl: 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=800&auto=format&fit=crop&q=80',
         status: 'pending',
         createdBy: citizen2._id,
         upvotes: 19,
@@ -178,6 +187,8 @@ const seedDatabase = async () => {
         description: 'Traffic lights blinking yellow continuously, creating gridlock during school and office hours.',
         category: 'other',
         area: 'Jinnah Road',
+        imageUrl: 'https://images.unsplash.com/photo-1508873696983-2df57046475a?w=800&auto=format&fit=crop&q=80',
+        resolutionImageUrl: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800&auto=format&fit=crop&q=80',
         status: 'resolved',
         createdBy: citizen1._id,
         upvotes: 8,
@@ -196,6 +207,7 @@ const seedDatabase = async () => {
         description: 'Pack of aggressive stray dogs harassing morning walkers and children visiting the park.',
         category: 'other',
         area: 'Cantt',
+        imageUrl: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=800&auto=format&fit=crop&q=80',
         status: 'pending',
         createdBy: citizen3._id,
         upvotes: 3,
@@ -208,46 +220,48 @@ const seedDatabase = async () => {
         title: 'Garbage container missing after road widening work',
         description: 'The community dumpster was removed during road construction and never replaced, forcing residents to throw garbage in the open.',
         category: 'garbage',
-        area: 'University Road',
+        area: 'Satellite Town',
+        imageUrl: 'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?w=800&auto=format&fit=crop&q=80',
         status: 'pending',
         createdBy: citizen2._id,
         upvotes: 7,
-        upvotedBy: [citizen2._id],
+        upvotedBy: [citizen1._id, citizen2._id],
         officerRemark: '',
-        createdAt: daysAgo(0),
-        updatedAt: daysAgo(0),
+        createdAt: daysAgo(2),
+        updatedAt: daysAgo(2),
       },
       {
-        title: 'Low water pressure in municipal supply line',
-        description: 'Water pressure is too low to fill ground storage tanks. Multiple households affected.',
-        category: 'water',
-        area: 'Sariab Road',
+        title: 'Damaged speed breaker causing vehicle undercarriage scraping',
+        description: 'Asphalt speed hump has disintegrated leaving sharp metal reinforcing rods exposed on the road.',
+        category: 'road',
+        area: 'University Road',
+        imageUrl: 'https://images.unsplash.com/photo-1545158826-646e7f12e75e?w=800&auto=format&fit=crop&q=80',
         status: 'in-progress',
-        createdBy: citizen1._id,
+        createdBy: citizen3._id,
         upvotes: 11,
-        upvotedBy: [citizen1._id, citizen3._id],
-        officerRemark: 'Boosting pump station maintenance in progress.',
+        upvotedBy: [citizen2._id, citizen3._id],
+        officerRemark: 'Road crew scheduled for weekend re-paving.',
         createdAt: daysAgo(3),
         updatedAt: daysAgo(1),
       },
     ];
 
     await Complaint.insertMany(complaintsData);
-
     console.log(`[Seed] Successfully inserted ${complaintsData.length} complaints!`);
     console.log('[Seed] Database seed completed successfully.');
-    return { officer, citizen1, citizen2, citizen3 };
-  } catch (error) {
-    console.error('[Seed Error]:', error);
-    throw error;
+  } catch (err) {
+    console.error('[Seed Error]:', err.message);
+    if (require.main === module) {
+      process.exit(1);
+    }
   }
 };
 
-// If run directly from CLI
 if (require.main === module) {
-  seedDatabase()
-    .then(() => process.exit(0))
-    .catch(() => process.exit(1));
+  seedDatabase().then(() => {
+    mongoose.connection.close();
+    process.exit(0);
+  });
 }
 
 module.exports = seedDatabase;

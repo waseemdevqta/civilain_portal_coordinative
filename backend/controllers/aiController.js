@@ -1,4 +1,4 @@
-const { generateOfficerBriefing } = require('../config/gemini');
+const { generateOfficerBriefing, analyzeComplaintDraft } = require('../config/gemini');
 const { computeComplaintsStats } = require('./complaintController');
 const { successResponse, errorResponse } = require('../utils/apiResponse');
 
@@ -45,6 +45,28 @@ const getOfficerSummary = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Analyze citizen draft complaint to suggest category, hazards, and priority
+ * @route   POST /api/ai/analyze-complaint
+ * @access  Private (Citizen only)
+ */
+const analyzeComplaint = async (req, res, next) => {
+  try {
+    const { title, description, area } = req.body;
+
+    if (!description && !title) {
+      return errorResponse(res, 400, 'Please provide at least a title or description to analyze');
+    }
+
+    const analysis = await analyzeComplaintDraft({ title, description, area });
+
+    return successResponse(res, 200, 'Complaint analyzed successfully', analysis);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getOfficerSummary,
+  analyzeComplaint,
 };

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import ThemeToggle from '@/components/common/ThemeToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +26,7 @@ import {
   ChevronDown,
   Megaphone,
   Home,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,24 +41,24 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#090E1A]/95 backdrop-blur-md transition-colors">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/90 bg-white/95 backdrop-blur-md transition-all shadow-[0_2px_12px_rgba(11,28,48,0.03)]">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand / Logo */}
         <Link href="/" className="flex items-center space-x-3 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 shadow-sm transition-transform group-hover:scale-105">
-            <Megaphone className="h-4.5 w-4.5" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0F172A] text-white shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_4px_16px_rgba(15,23,42,0.25)]">
+            <Megaphone className="h-5 w-5" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-slate-50">
+              <span className="font-black text-xl tracking-tight text-[#0B1C30]">
                 AWAZ
               </span>
-              <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[9px] font-bold text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 tracking-wider">
-                CIVIC
+              <span className="rounded-full bg-[#EFF4FF] px-2.5 py-0.5 text-[9px] font-extrabold text-[#1F6C3A] border border-[#A4F1B2] tracking-wider uppercase">
+                Civic Excellence
               </span>
             </div>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-none">
-              Your voice. Your city.
+            <span className="text-[10px] text-slate-500 font-medium leading-none">
+              Your voice. Your city. Your change.
             </span>
           </div>
         </Link>
@@ -68,26 +68,26 @@ export function Navbar() {
           <Link
             href="/"
             className={cn(
-              'px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5',
+              'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
               isActive('/') && pathname === '/'
-                ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800/90 font-bold shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/50'
+                ? 'text-[#0B1C30] bg-[#EFF4FF] font-bold shadow-xs'
+                : 'text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF]'
             )}
           >
-            <Home className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+            <Home className="h-3.5 w-3.5 text-slate-500" />
             Home
           </Link>
 
           <Link
             href="/complaints"
             className={cn(
-              'px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5',
+              'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
               isActive('/complaints') && pathname !== '/complaints/new' && pathname !== '/complaints/mine'
-                ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800/90 font-bold shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/50'
+                ? 'text-[#0B1C30] bg-[#EFF4FF] font-bold shadow-xs'
+                : 'text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF]'
             )}
           >
-            <Layers className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+            <Layers className="h-3.5 w-3.5 text-slate-500" />
             Explore Issues
           </Link>
 
@@ -96,25 +96,25 @@ export function Navbar() {
               <Link
                 href="/dashboard"
                 className={cn(
-                  'px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5',
+                  'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
                   isActive('/dashboard')
-                    ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800/90 font-bold shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/50'
+                    ? 'text-[#0B1C30] bg-[#EFF4FF] font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF]'
                 )}
               >
-                <LayoutDashboard className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                <LayoutDashboard className="h-3.5 w-3.5 text-slate-500" />
                 Dashboard
               </Link>
               <Link
                 href="/complaints/mine"
                 className={cn(
-                  'px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5',
+                  'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
                   isActive('/complaints/mine')
-                    ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800/90 font-bold shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/50'
+                    ? 'text-[#0B1C30] bg-[#EFF4FF] font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF]'
                 )}
               >
-                <FileText className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                <FileText className="h-3.5 w-3.5 text-slate-500" />
                 My Reports
               </Link>
             </>
@@ -124,13 +124,13 @@ export function Navbar() {
             <Link
               href="/officer/dashboard"
               className={cn(
-                'px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5',
+                'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
                 isActive('/officer/dashboard')
-                  ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800/90 font-bold shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/50'
+                  ? 'text-[#0B1C30] bg-[#EFF4FF] font-bold shadow-xs'
+                  : 'text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF]'
               )}
             >
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <ShieldCheck className="h-3.5 w-3.5 text-[#1F6C3A]" />
               Operations Center
             </Link>
           )}
@@ -138,16 +138,13 @@ export function Navbar() {
 
         {/* Right Actions */}
         <div className="hidden md:flex items-center space-x-2.5">
-          {/* Theme Switcher */}
-          <ThemeToggle />
-
           {!isAuthenticated ? (
             <>
               <Link href="/login">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs h-9 rounded-xl font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="text-xs h-9 rounded-xl font-semibold text-slate-700 hover:text-[#0B1C30] hover:bg-[#EFF4FF] transition-all"
                 >
                   Sign In
                 </Button>
@@ -155,7 +152,7 @@ export function Navbar() {
               <Link href="/complaints/new">
                 <Button
                   size="sm"
-                  className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 font-semibold text-xs h-9 px-4 rounded-xl gap-1.5 shadow-[0_2px_8px_rgba(15,23,42,0.08)]"
+                  className="bg-[#0F172A] hover:bg-[#1E293B] text-white font-semibold text-xs h-9 px-4 rounded-xl gap-1.5 shadow-[0_2px_10px_rgba(15,23,42,0.12)] hover:-translate-y-0.5 transition-all duration-200"
                 >
                   <PlusCircle className="h-3.5 w-3.5" />
                   Report an Issue
@@ -168,7 +165,7 @@ export function Navbar() {
                 <Link href="/complaints/new">
                   <Button
                     size="sm"
-                    className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 font-semibold text-xs h-9 px-3.5 rounded-xl gap-1.5 shadow-[0_2px_8px_rgba(15,23,42,0.08)]"
+                    className="bg-[#0F172A] hover:bg-[#1E293B] text-white font-semibold text-xs h-9 px-4 rounded-xl gap-1.5 shadow-[0_2px_10px_rgba(15,23,42,0.12)] hover:-translate-y-0.5 transition-all duration-200"
                   >
                     <PlusCircle className="h-3.5 w-3.5" />
                     Report Issue
@@ -177,8 +174,8 @@ export function Navbar() {
               )}
 
               {isOfficer && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 text-[11px] font-bold text-emerald-800 dark:text-emerald-300">
-                  <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#A4F1B2] bg-[#E8F9ED] px-3 py-1 text-[11px] font-bold text-[#1F6C3A] shadow-xs">
+                  <span className="h-2 w-2 rounded-full bg-[#1F6C3A] animate-pulse" />
                   Officer Active
                 </span>
               )}
@@ -188,30 +185,30 @@ export function Navbar() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-1.5 h-9 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold px-3"
+                    className="gap-1.5 h-9 rounded-xl border-slate-200 bg-white text-slate-800 hover:bg-[#F8F9FF] text-xs font-semibold px-3 shadow-xs hover:border-slate-300 transition-all"
                   >
-                    <User className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
-                    <span className="max-w-[110px] truncate">{user?.name || 'Account'}</span>
+                    <User className="h-3.5 w-3.5 text-slate-500" />
+                    <span className="max-w-[120px] truncate">{user?.name || 'Account'}</span>
                     <ChevronDown className="h-3 w-3 text-slate-400" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-56 bg-white dark:bg-[#111827] border-slate-200 dark:border-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.08)] rounded-2xl p-1.5 text-xs"
+                  className="w-56 bg-white border-slate-200 shadow-[0_12px_32px_rgba(11,28,48,0.08)] rounded-2xl p-1.5 text-xs animate-in fade-in-50 zoom-in-95 duration-100"
                 >
                   <DropdownMenuLabel className="font-normal py-2 px-3">
                     <div className="flex flex-col space-y-0.5">
-                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{user?.name}</p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
+                      <p className="text-xs font-bold text-[#0B1C30]">{user?.name}</p>
+                      <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+                  <DropdownMenuSeparator className="bg-slate-100" />
                   {isCitizen && (
                     <>
                       <DropdownMenuItem asChild>
                         <Link
                           href="/dashboard"
-                          className="cursor-pointer text-slate-700 dark:text-slate-300 rounded-xl px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-[#EFF4FF] hover:text-[#0B1C30]"
                         >
                           <LayoutDashboard className="mr-2 h-3.5 w-3.5 text-slate-500" />
                           Dashboard
@@ -220,7 +217,7 @@ export function Navbar() {
                       <DropdownMenuItem asChild>
                         <Link
                           href="/complaints/mine"
-                          className="cursor-pointer text-slate-700 dark:text-slate-300 rounded-xl px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-[#EFF4FF] hover:text-[#0B1C30]"
                         >
                           <FileText className="mr-2 h-3.5 w-3.5 text-slate-500" />
                           My Reports
@@ -229,7 +226,7 @@ export function Navbar() {
                       <DropdownMenuItem asChild>
                         <Link
                           href="/dashboard/profile"
-                          className="cursor-pointer text-slate-700 dark:text-slate-300 rounded-xl px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-[#EFF4FF] hover:text-[#0B1C30]"
                         >
                           <User className="mr-2 h-3.5 w-3.5 text-slate-500" />
                           My Profile
@@ -242,16 +239,16 @@ export function Navbar() {
                       <DropdownMenuItem asChild>
                         <Link
                           href="/officer/dashboard"
-                          className="cursor-pointer text-slate-700 dark:text-slate-300 rounded-xl px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-[#EFF4FF] hover:text-[#0B1C30]"
                         >
-                          <ShieldCheck className="mr-2 h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <ShieldCheck className="mr-2 h-3.5 w-3.5 text-[#1F6C3A]" />
                           Operations Center
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link
                           href="/dashboard/profile"
-                          className="cursor-pointer text-slate-700 dark:text-slate-300 rounded-xl px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-[#EFF4FF] hover:text-[#0B1C30]"
                         >
                           <User className="mr-2 h-3.5 w-3.5 text-slate-500" />
                           Officer Profile
@@ -259,10 +256,10 @@ export function Navbar() {
                       </DropdownMenuItem>
                     </>
                   )}
-                  <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+                  <DropdownMenuSeparator className="bg-slate-100" />
                   <DropdownMenuItem
                     onClick={logout}
-                    className="cursor-pointer text-red-600 dark:text-red-400 rounded-xl px-2.5 py-2 hover:bg-red-50 dark:hover:bg-red-950/40"
+                    className="cursor-pointer text-[#BA1A1A] rounded-xl px-2.5 py-2 hover:bg-red-50"
                   >
                     <LogOut className="mr-2 h-3.5 w-3.5" />
                     Sign Out
@@ -273,12 +270,11 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Mobile Actions: Theme + Menu */}
-        <div className="flex md:hidden items-center space-x-1.5">
-          <ThemeToggle />
+        {/* Mobile Menu Button */}
+        <div className="flex md:hidden items-center">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-700 hover:bg-[#EFF4FF] transition-colors"
             aria-label="Toggle Menu"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -288,11 +284,11 @@ export function Navbar() {
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090E1A] px-4 py-4 space-y-2 text-xs">
+        <div className="md:hidden border-b border-slate-200 bg-white px-4 py-4 space-y-2 text-xs animate-in slide-in-from-top-2 duration-150">
           <Link
             href="/"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+            className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-[#EFF4FF]"
           >
             <Home className="h-4 w-4 text-slate-500" />
             Home
@@ -301,7 +297,7 @@ export function Navbar() {
           <Link
             href="/complaints"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+            className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-[#EFF4FF]"
           >
             <Layers className="h-4 w-4 text-slate-500" />
             Explore Issues
@@ -312,7 +308,7 @@ export function Navbar() {
               <Link
                 href="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-[#EFF4FF]"
               >
                 <LayoutDashboard className="h-4 w-4 text-slate-500" />
                 Dashboard
@@ -320,7 +316,7 @@ export function Navbar() {
               <Link
                 href="/complaints/mine"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-[#EFF4FF]"
               >
                 <FileText className="h-4 w-4 text-slate-500" />
                 My Reports
@@ -328,7 +324,7 @@ export function Navbar() {
               <Link
                 href="/dashboard/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-[#EFF4FF]"
               >
                 <User className="h-4 w-4 text-slate-500" />
                 My Profile
@@ -336,7 +332,7 @@ export function Navbar() {
               <Link
                 href="/complaints/new"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-semibold bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 shadow-sm"
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-semibold bg-[#0F172A] text-white shadow-sm"
               >
                 <PlusCircle className="h-4 w-4" />
                 Report an Issue
@@ -349,15 +345,15 @@ export function Navbar() {
               <Link
                 href="/officer/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-semibold bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 shadow-sm"
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-semibold bg-[#0F172A] text-white shadow-sm"
               >
-                <ShieldCheck className="h-4 w-4 text-emerald-400 dark:text-emerald-600" />
+                <ShieldCheck className="h-4 w-4 text-[#A4F1B2]" />
                 Operations Center
               </Link>
               <Link
                 href="/dashboard/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-[#EFF4FF]"
               >
                 <User className="h-4 w-4 text-slate-500" />
                 Officer Profile
@@ -365,11 +361,11 @@ export function Navbar() {
             </>
           )}
 
-          <div className="border-t border-slate-200 dark:border-slate-800 pt-3 mt-2">
+          <div className="border-t border-slate-100 pt-3 mt-2">
             {isAuthenticated ? (
               <div className="flex flex-col gap-2">
-                <div className="px-3.5 text-[11px] text-slate-500 dark:text-slate-400">
-                  Signed in as <strong className="text-slate-900 dark:text-slate-100">{user?.email}</strong>
+                <div className="px-3.5 text-[11px] text-slate-500">
+                  Signed in as <strong className="text-[#0B1C30]">{user?.email}</strong>
                 </div>
                 <Button
                   variant="outline"
@@ -378,7 +374,7 @@ export function Navbar() {
                     setMobileMenuOpen(false);
                     logout();
                   }}
-                  className="w-full rounded-xl text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs"
+                  className="w-full rounded-xl text-[#BA1A1A] border-red-200 hover:bg-red-50 text-xs"
                 >
                   <LogOut className="mr-2 h-3.5 w-3.5" />
                   Sign Out
@@ -392,7 +388,7 @@ export function Navbar() {
                   </Button>
                 </Link>
                 <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
-                  <Button size="sm" className="w-full rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 text-xs">
+                  <Button size="sm" className="w-full rounded-xl bg-[#0F172A] text-white text-xs">
                     Register Citizen Account
                   </Button>
                 </Link>
