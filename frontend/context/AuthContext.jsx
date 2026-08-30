@@ -120,6 +120,25 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Update Profile handler
+  const updateProfile = async (profileData) => {
+    setLoading(true);
+    try {
+      const response = await authApi.updateProfile(profileData);
+      const updatedUser = response.data;
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      return { success: true, user: updatedUser };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message || 'Failed to update profile. Please try again.',
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Logout handler
   const logout = () => {
     setUser(null);
@@ -145,6 +164,7 @@ export function AuthProvider({ children }) {
     isCitizen: user?.role === 'citizen',
     login,
     signup,
+    updateProfile,
     logout,
     setUser,
   };

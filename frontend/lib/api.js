@@ -129,12 +129,13 @@ export const authApi = {
   signup: (userData) => api.post('/auth/signup', userData),
   login: (credentials) => api.post('/auth/login', credentials),
   addOfficer: (officerData) => api.post('/auth/add-officer', officerData),
+  updateProfile: (profileData) => api.put('/auth/profile', profileData),
   refresh: (refreshToken) => api.post('/auth/refresh', { refreshToken }),
   getMe: () => api.get('/auth/me'),
 };
 
 /* ============================================================
-   COMPLAINTS API SERVICES (CIVICFIX)
+   COMPLAINTS API SERVICES (AWAZ)
    ============================================================ */
 export const complaintApi = {
   getAll: (params) => api.get('/complaints', { params }),

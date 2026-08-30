@@ -110,7 +110,7 @@ const runAggressiveSuite = async () => {
     console.log('\n--- Section 1: System & Health ---');
     const healthRes = await makeRequest('GET', '/api/health');
     assert(
-      healthRes.status === 200 && healthRes.data.success === true && healthRes.data.message === 'CivicFix API is running',
+      healthRes.status === 200 && healthRes.data.success === true && (healthRes.data.message.includes('API is running')),
       'GET /api/health returns 200 OK and running status',
       healthRes.data
     );

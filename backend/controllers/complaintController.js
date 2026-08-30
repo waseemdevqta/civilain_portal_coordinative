@@ -80,11 +80,13 @@ const computeComplaintsStats = async () => {
     inProgress,
     resolved,
     critical,
+    criticalPriority: critical,
     high,
     complaintsToday,
     topCategories,
     topAreas,
     averageFeedbackRating,
+    averageRating: averageFeedbackRating,
   };
 };
 

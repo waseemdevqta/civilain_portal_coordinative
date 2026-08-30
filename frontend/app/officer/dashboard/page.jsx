@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { complaintApi, aiApi } from '@/lib/api';
+import { complaintApi, aiApi, authApi } from '@/lib/api';
 import { Navbar } from '@/components/common/Navbar';
 import { Footer } from '@/components/common/Footer';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
@@ -167,7 +167,7 @@ export default function OfficerDashboardPage() {
     }
   };
 
-  // Handle Provisioning New Officer
+  // Handle Provisioning New Officer via authApi.addOfficer
   const handleProvisionSubmit = async (e) => {
     e.preventDefault();
     if (!provisionData.name.trim() || !provisionData.email.trim() || !provisionData.password) {
@@ -177,26 +177,14 @@ export default function OfficerDashboardPage() {
 
     setProvisioning(true);
     try {
-      const token = localStorage.getItem('civicfix_token');
-      const response = await fetch('/api/officer/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: provisionData.name.trim(),
-          email: provisionData.email.trim(),
-          password: provisionData.password,
-        }),
+      const res = await authApi.addOfficer({
+        name: provisionData.name.trim(),
+        email: provisionData.email.trim(),
+        password: provisionData.password,
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to provision officer');
-      }
-
-      toast.success(`Officer account created for ${data.user?.name || provisionData.name}`);
+      const officerUser = res.data?.user || res.data;
+      toast.success(`Officer account created for ${officerUser?.name || provisionData.name}`);
       setShowProvisionModal(false);
       setProvisionData({ name: '', email: '', password: '' });
     } catch (err) {
@@ -206,27 +194,17 @@ export default function OfficerDashboardPage() {
     }
   };
 
-  // Section 5.14: CSV Export Trigger
+  // Section 5.14: CSV Export Trigger via complaintApi.exportCSV
   const handleExportCsv = async () => {
     setExportingCsv(true);
     try {
-      const token = localStorage.getItem('civicfix_token');
-      const queryParams = new URLSearchParams();
-      if (filterCategory) queryParams.set('category', filterCategory);
-      if (filterStatus) queryParams.set('status', filterStatus);
+      const params = {};
+      if (filterCategory) params.category = filterCategory;
+      if (filterStatus) params.status = filterStatus;
 
-      const url = `/api/complaints/export?${queryParams.toString()}`;
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await complaintApi.exportCSV(params);
 
-      if (!response.ok) {
-        throw new Error('Failed to generate CSV export file');
-      }
-
-      const blob = await response.blob();
+      const blob = new Blob([res], { type: 'text/csv;charset=utf-8;' });
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
@@ -336,7 +314,7 @@ export default function OfficerDashboardPage() {
                 <Flame className="h-3 w-3" /> Critical
               </div>
               <div className="text-xl sm:text-2xl font-extrabold text-red-900 dark:text-red-200 mt-1">
-                {stats ? stats.criticalPriority : <Skeleton className="h-7 w-10" />}
+                {stats ? (stats.critical ?? stats.criticalPriority ?? 0) : <Skeleton className="h-7 w-10" />}
               </div>
             </div>
 
@@ -346,8 +324,8 @@ export default function OfficerDashboardPage() {
                 <Star className="h-3 w-3 text-amber-500 fill-amber-500" /> Satisfaction
               </div>
               <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-50 mt-1">
-                {stats && typeof stats.averageRating === 'number' ? (
-                  `${stats.averageRating.toFixed(1)} / 5.0`
+                {stats && (typeof stats.averageRating === 'number' || typeof stats.averageFeedbackRating === 'number') ? (
+                  `${(stats.averageRating ?? stats.averageFeedbackRating).toFixed(1)} / 5.0`
                 ) : (
                   <Skeleton className="h-7 w-10" />
                 )}

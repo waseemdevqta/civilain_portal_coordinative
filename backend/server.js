@@ -59,7 +59,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'CivicFix API is running',
+    message: 'AWAZ Civic API is running',
     timestamp: new Date().toISOString(),
   });
 });

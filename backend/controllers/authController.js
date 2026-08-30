@@ -231,10 +231,65 @@ const getMe = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Update user profile (Name, Email, Password)
+ * @route   PUT /api/auth/profile or PUT /api/auth/me
+ * @access  Private
+ */
+const updateProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return errorResponse(res, 404, 'User not found');
+    }
+
+    const { name, email, password } = req.body;
+
+    if (name && typeof name === 'string' && name.trim() !== '') {
+      user.name = name.trim();
+    }
+
+    if (email && typeof email === 'string' && email.trim() !== '') {
+      const trimmedEmail = email.trim().toLowerCase();
+      if (!EMAIL_REGEX.test(trimmedEmail)) {
+        return errorResponse(res, 400, 'Please provide a valid email format');
+      }
+
+      if (trimmedEmail !== user.email) {
+        const existing = await User.findOne({ email: trimmedEmail });
+        if (existing) {
+          return errorResponse(res, 400, 'A user with this email address already exists');
+        }
+        user.email = trimmedEmail;
+      }
+    }
+
+    if (password && typeof password === 'string') {
+      if (password.length < 6) {
+        return errorResponse(res, 400, 'New password must be at least 6 characters long');
+      }
+      user.password = password;
+    }
+
+    await user.save();
+
+    return successResponse(res, 200, 'Profile updated successfully', {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   signup,
   login,
   addOfficer,
   refreshTokenHandler,
   getMe,
+  updateProfile,
 };

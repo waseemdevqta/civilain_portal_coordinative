@@ -14,6 +14,16 @@ import { CategoryBadge } from '@/components/common/CategoryBadge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/toaster';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
   ArrowLeft,
   MapPin,
   Calendar,
@@ -32,6 +42,7 @@ import {
   Trash2,
   Droplets,
   Zap,
+  Loader2,
 } from 'lucide-react';
 
 export default function ComplaintDetailPage({ params }) {
@@ -45,6 +56,12 @@ export default function ComplaintDetailPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [upvoting, setUpvoting] = useState(false);
+
+  // Feedback modal state
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -87,6 +104,30 @@ export default function ComplaintDetailPage({ params }) {
     }
   };
 
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    if (!rating || rating < 1 || rating > 5) {
+      toast.error('Please select a rating between 1 and 5 stars');
+      return;
+    }
+
+    setSubmittingFeedback(true);
+    try {
+      const res = await complaintApi.submitFeedback(id, {
+        rating,
+        comment: feedbackComment.trim(),
+      });
+
+      toast.success('Thank you! Your resolution rating has been submitted.');
+      setComplaint(res.data);
+      setShowFeedbackModal(false);
+    } catch (err) {
+      toast.error(err.message || 'Failed to submit feedback');
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
+
   const userIdStr = user?.id || user?._id;
   const hasUserUpvoted =
     userIdStr &&
@@ -94,6 +135,12 @@ export default function ComplaintDetailPage({ params }) {
     complaint.upvotedBy.some(
       (uid) => (typeof uid === 'object' ? uid._id || uid : uid).toString() === userIdStr.toString()
     );
+
+  const creatorIdStr =
+    typeof complaint?.createdBy === 'object'
+      ? complaint?.createdBy?._id || complaint?.createdBy?.id
+      : complaint?.createdBy;
+  const isOwner = userIdStr && creatorIdStr && userIdStr.toString() === creatorIdStr.toString();
 
   const getCategoryIconDetails = (cat) => {
     switch ((cat || '').toLowerCase()) {
@@ -344,9 +391,125 @@ export default function ComplaintDetailPage({ params }) {
                   )}
                 </div>
               )}
+
+              {/* OWNER RESOLUTION FEEDBACK TRIGGER (IF RESOLVED AND NOT YET GIVEN) */}
+              {complaint.status === 'resolved' && !complaint.feedbackGiven && isOwner && (
+                <div className="rounded-2xl border border-emerald-200/90 dark:border-emerald-900/60 bg-emerald-50/80 dark:bg-emerald-950/40 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <div className="text-sm font-bold text-emerald-950 dark:text-emerald-100 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      Your reported issue has been marked resolved.
+                    </div>
+                    <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5">
+                      Please rate the quality of the municipal resolution to verify completion.
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowFeedbackModal(true)}
+                    className="bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white gap-1.5 text-xs h-10 px-5 rounded-xl shrink-0 font-bold shadow-sm"
+                  >
+                    <Star className="h-3.5 w-3.5" />
+                    Rate Resolution Quality
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
+
+        {/* FEEDBACK DIALOG */}
+        <Dialog open={showFeedbackModal} onOpenChange={setShowFeedbackModal}>
+          <DialogContent className="bg-white dark:bg-[#111827] border-slate-200 dark:border-slate-800 sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100 text-lg font-bold">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                Rate Resolution Quality
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                Your rating confirms work completion and helps evaluate municipal service standards.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleFeedbackSubmit} className="space-y-4 py-2">
+              <div className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#182235] text-xs">
+                <div className="font-bold text-slate-900 dark:text-slate-100 truncate">{complaint?.title}</div>
+                <div className="text-slate-500 dark:text-slate-400 mt-0.5">{complaint?.area}</div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Service Rating (1–5 Stars)</Label>
+                <div className="flex items-center gap-2.5 justify-center py-3 bg-[#F7F8FC] dark:bg-[#182235] rounded-2xl border border-slate-200 dark:border-slate-800">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRating(star)}
+                      className="p-1 transition-transform hover:scale-110 focus:outline-none"
+                    >
+                      <Star
+                        className={`h-7 w-7 ${
+                          star <= rating
+                            ? 'fill-amber-400 text-amber-500'
+                            : 'text-slate-300 dark:text-slate-700 hover:text-amber-300'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <div className="text-center text-xs font-bold text-slate-800 dark:text-slate-200">
+                  {rating === 5 && '5 Stars — Excellent Resolution'}
+                  {rating === 4 && '4 Stars — Good Work'}
+                  {rating === 3 && '3 Stars — Acceptable'}
+                  {rating === 2 && '2 Stars — Below Standard'}
+                  {rating === 1 && '1 Star — Unsatisfactory'}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="detail-comment" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Feedback Remarks (Optional)
+                </Label>
+                <Textarea
+                  id="detail-comment"
+                  placeholder="Share any comments regarding work quality, timeliness, or cleanup..."
+                  value={feedbackComment}
+                  onChange={(e) => setFeedbackComment(e.target.value)}
+                  rows={3}
+                  className="text-xs sm:text-sm"
+                />
+              </div>
+
+              <DialogFooter className="pt-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFeedbackModal(false)}
+                  disabled={submittingFeedback}
+                  className="text-xs h-10 px-4 rounded-xl border-slate-200 dark:border-slate-800"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 font-bold text-xs h-10 px-5 rounded-xl shadow-sm"
+                  disabled={submittingFeedback}
+                >
+                  {submittingFeedback ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                      Submitting...
+                    </>
+                  ) : (
+                    'Submit Rating'
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </main>
 
       <Footer />
