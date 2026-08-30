@@ -146,6 +146,11 @@ export const complaintApi = {
   submitFeedback: (id, data) => api.patch(`/complaints/${id}/feedback`, data),
   getDuplicates: (params) => api.get('/complaints/duplicates', { params }),
   getStats: () => api.get('/complaints/stats'),
+  exportCSV: (params) =>
+    api.get('/complaints/export', {
+      params,
+      responseType: 'blob',
+    }),
 };
 
 /* ============================================================

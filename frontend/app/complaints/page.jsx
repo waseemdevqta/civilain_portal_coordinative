@@ -11,12 +11,12 @@ import { Input } from '@/components/ui/input';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { PriorityBadge } from '@/components/common/PriorityBadge';
 import { CategoryBadge } from '@/components/common/CategoryBadge';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/toaster';
 import {
   Search,
   Filter,
-  ArrowUpDown,
   ThumbsUp,
   MapPin,
   Calendar,
@@ -26,15 +26,20 @@ import {
   AlertCircle,
   X,
   Check,
-  Building2,
+  Layers,
+  Route,
+  Trash2,
+  Droplets,
+  Zap,
+  FileText,
 } from 'lucide-react';
 
 const CATEGORIES = [
   { label: 'All Categories', value: '' },
-  { label: 'Road', value: 'road' },
+  { label: 'Roads', value: 'road' },
   { label: 'Garbage', value: 'garbage' },
   { label: 'Water', value: 'water' },
-  { label: 'Electricity', value: 'electricity' },
+  { label: 'Power', value: 'electricity' },
   { label: 'Other', value: 'other' },
 ];
 
@@ -90,12 +95,12 @@ export default function ComplaintsFeedPage() {
 
   const handleUpvote = async (complaintId) => {
     if (!isAuthenticated) {
-      toast.error('Please sign in as a citizen to upvote complaints.');
+      toast.error('Please sign in as a citizen to support complaints.');
       return;
     }
 
     if (!isCitizen) {
-      toast.error('Only citizens can upvote community complaints.');
+      toast.error('Only citizens can support community complaints.');
       return;
     }
 
@@ -108,9 +113,9 @@ export default function ComplaintsFeedPage() {
       setComplaints((prev) =>
         prev.map((c) => (c._id === complaintId ? updated : c))
       );
-      toast.success('Upvote registered! Urgency updated.');
+      toast.success('Support registered! Issue priority updated.');
     } catch (err) {
-      toast.error(err.message || 'Failed to upvote complaint');
+      toast.error(err.message || 'Failed to support complaint');
     } finally {
       setUpvotingIds((prev) => {
         const next = new Set(prev);
@@ -130,28 +135,44 @@ export default function ComplaintsFeedPage() {
 
   const hasActiveFilters = search || category || status || area || sort !== 'recent';
 
+  const getCategoryIconDetails = (cat) => {
+    switch ((cat || '').toLowerCase()) {
+      case 'road':
+        return { icon: Route, color: 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' };
+      case 'garbage':
+        return { icon: Trash2, color: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' };
+      case 'water':
+        return { icon: Droplets, color: 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300' };
+      case 'electricity':
+        return { icon: Zap, color: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' };
+      default:
+        return { icon: FileText, color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' };
+    }
+  };
+
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8f9ff] text-slate-900">
+    <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors">
       <Navbar />
 
-      <main className="flex-1 container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-7">
         {/* HEADER */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
-          <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-              Public Ledger
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-6">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+              <span className="h-2 w-2 rounded-full bg-blue-500" />
+              <span>COMMUNITY LEDGER</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-              Civic Complaints Feed
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+              Community Issues
             </h1>
-            <p className="mt-0.5 text-xs text-slate-600">
-              Public record of community infrastructure issues. Upvote reported problems to indicate civic urgency.
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              See what your city is talking about. Upvote reported problems to indicate civic urgency.
             </p>
           </div>
 
           {isAuthenticated && isCitizen && (
             <Link href="/complaints/new">
-              <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white gap-1.5 shadow-sm shrink-0">
+              <Button size="lg" className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 gap-2 font-bold text-xs sm:text-sm h-11 px-5 rounded-xl shadow-[0_2px_10px_rgba(15,23,42,0.1)] shrink-0">
                 <FilePlus className="h-4 w-4" />
                 Report an Issue
               </Button>
@@ -160,21 +181,21 @@ export default function ComplaintsFeedPage() {
         </div>
 
         {/* SEARCH & FILTERS TOOLBAR */}
-        <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+        <div className="space-y-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 sm:p-6 shadow-[0_4px_20px_rgba(15,23,42,0.03)]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Search Bar */}
             <div className="relative md:col-span-2">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 pointer-events-none" />
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
               <Input
-                placeholder="Search by keywords, problem title, description..."
+                placeholder="Search community issues, keywords, locations..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-9 text-xs"
+                className="pl-10 h-10 text-xs sm:text-sm"
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700"
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -183,17 +204,17 @@ export default function ComplaintsFeedPage() {
 
             {/* Area Filter */}
             <div className="relative">
-              <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 pointer-events-none" />
+              <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
               <Input
                 placeholder="Filter by neighborhood area..."
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
-                className="pl-9 h-9 text-xs"
+                className="pl-10 h-10 text-xs sm:text-sm"
               />
               {area && (
                 <button
                   onClick={() => setArea('')}
-                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700"
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -201,18 +222,18 @@ export default function ComplaintsFeedPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             {/* Category Chips */}
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-semibold text-slate-600 mr-1">Category:</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-1">Category:</span>
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat.value}
                   onClick={() => setCategory(cat.value)}
-                  className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
                     category === cat.value
-                      ? 'bg-slate-900 text-white font-semibold'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 shadow-sm'
+                      : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
                   }`}
                 >
                   {cat.label}
@@ -224,11 +245,11 @@ export default function ComplaintsFeedPage() {
             <div className="flex flex-wrap items-center gap-3">
               {/* Status */}
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-slate-600">Status:</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Status:</span>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  className="h-8 rounded border border-slate-300 bg-white px-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900"
+                  className="h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] px-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-400"
                 >
                   {STATUSES.map((s) => (
                     <option key={s.value} value={s.value}>
@@ -240,14 +261,14 @@ export default function ComplaintsFeedPage() {
 
               {/* Sort */}
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-slate-600">Sort:</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Sort:</span>
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
-                  className="h-8 rounded border border-slate-300 bg-white px-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900"
+                  className="h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] px-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-blue-400"
                 >
-                  <option value="recent">Newest First</option>
-                  <option value="upvotes">Most Upvoted</option>
+                  <option value="recent">Recent</option>
+                  <option value="upvotes">Most Supported</option>
                 </select>
               </div>
 
@@ -256,7 +277,7 @@ export default function ComplaintsFeedPage() {
                   variant="ghost"
                   size="sm"
                   onClick={clearFilters}
-                  className="h-8 text-xs text-slate-600 hover:text-red-700 gap-1 px-2"
+                  className="h-9 text-xs text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 gap-1 px-2.5 rounded-xl"
                 >
                   <X className="h-3.5 w-3.5" />
                   Reset
@@ -268,50 +289,45 @@ export default function ComplaintsFeedPage() {
 
         {/* ERROR STATE */}
         {error && (
-          <div className="flex items-center gap-2 rounded border border-red-200 bg-red-50 p-3.5 text-xs text-red-700">
+          <div className="flex items-center gap-2 rounded-2xl border border-red-200/90 dark:border-red-900/60 bg-red-50/90 dark:bg-red-950/40 p-4 text-xs text-red-700 dark:text-red-300">
             <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>{error}</span>
+            <span>We couldn&apos;t load community issues. {error}</span>
           </div>
         )}
 
         {/* COMPLAINTS LIST */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs text-slate-500 px-1">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
             <span>
-              Showing <strong className="text-slate-900">{complaints.length}</strong> complaints
+              Showing <strong className="text-slate-900 dark:text-slate-100">{complaints.length}</strong> community reports
             </span>
-            {hasActiveFilters && <span className="font-medium text-slate-700">Filtered view active</span>}
+            {hasActiveFilters && <span className="font-semibold text-slate-700 dark:text-slate-300">Filtered view active</span>}
           </div>
 
           {loading ? (
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="rounded-lg border border-slate-200 bg-white p-5 space-y-3">
+                <div key={i} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 space-y-3">
                   <div className="flex gap-2">
-                    <Skeleton className="h-5 w-16" />
-                    <Skeleton className="h-5 w-20" />
-                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                    <Skeleton className="h-5 w-20 rounded-full" />
                   </div>
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-6 w-3/4 rounded-lg" />
+                  <Skeleton className="h-4 w-full rounded-md" />
                 </div>
               ))}
             </div>
           ) : complaints.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
-              <Filter className="mx-auto h-8 w-8 text-slate-400 mb-2" />
-              <h3 className="text-sm font-bold text-slate-900">No complaints match your selection</h3>
-              <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
-                Try modifying your search keywords or resetting filters.
-              </p>
-              <div className="mt-4 flex justify-center gap-2">
-                <Button size="sm" variant="outline" onClick={clearFilters} className="text-xs">
-                  Clear Filters
-                </Button>
-              </div>
-            </div>
+            <EmptyState
+              icon={Filter}
+              title="No community reports found"
+              description="Try adjusting your search terms or clearing category and neighborhood filters."
+              actionText="Reset Filters"
+              onAction={clearFilters}
+            />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {complaints.map((complaint) => {
                 const userIdStr = user?.id || user?._id;
                 const hasUserUpvoted =
@@ -321,85 +337,96 @@ export default function ComplaintsFeedPage() {
                     (uid) => (typeof uid === 'object' ? uid._id || uid : uid).toString() === userIdStr.toString()
                   );
                 const isUpvoting = upvotingIds.has(complaint._id);
+                const { icon: CatIcon, color: iconContainerClass } = getCategoryIconDetails(complaint.category);
 
                 return (
                   <div
                     key={complaint._id}
-                    className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm hover:border-slate-300 transition-colors"
+                    className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 sm:p-6 shadow-[0_2px_12px_rgba(15,23,42,0.02)] hover:border-slate-300 dark:hover:border-slate-700 transition-all hover:-translate-y-0.5"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                      {/* Left Details */}
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono text-[11px] font-medium text-slate-500">
-                            #CF-{complaint._id.slice(-4).toUpperCase()}
-                          </span>
-                          <CategoryBadge category={complaint.category} />
-                          <StatusBadge status={complaint.status} />
-                          <PriorityBadge
-                            priority={complaint.priority}
-                            score={complaint.priorityScore}
-                            showScore={true}
-                          />
+                      {/* Left icon + Details */}
+                      <div className="flex items-start gap-3.5 flex-1 min-w-0">
+                        <div className={`h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 ${iconContainerClass}`}>
+                          <CatIcon className="h-5 w-5" />
                         </div>
 
-                        <Link
-                          href={`/complaints/${complaint._id}`}
-                          className="text-base font-bold text-slate-900 hover:text-slate-700 block leading-snug"
-                        >
-                          {complaint.title}
-                        </Link>
+                        <div className="space-y-1.5 flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-mono text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                              #CF-{complaint._id.slice(-6).toUpperCase()}
+                            </span>
+                            <CategoryBadge category={complaint.category} />
+                            <StatusBadge status={complaint.status} />
+                            <PriorityBadge
+                              priority={complaint.priority}
+                              score={complaint.priorityScore}
+                              showScore={true}
+                            />
+                          </div>
 
-                        <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                          {complaint.description}
-                        </p>
+                          <Link
+                            href={`/complaints/${complaint._id}`}
+                            className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 hover:text-slate-700 dark:hover:text-slate-300 block leading-snug"
+                          >
+                            {complaint.title}
+                          </Link>
 
-                        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
-                          <span className="flex items-center gap-1 font-medium text-slate-800">
-                            <MapPin className="h-3.5 w-3.5 text-slate-500" />
-                            {complaint.area}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                            {new Date(complaint.createdAt).toLocaleDateString()}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <User className="h-3.5 w-3.5 text-slate-400" />
-                            {complaint.createdBy?.name || 'Citizen'}
-                          </span>
+                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                            {complaint.description}
+                          </p>
+
+                          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400 pt-1">
+                            <span className="flex items-center gap-1 font-semibold text-slate-800 dark:text-slate-200">
+                              <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                              {complaint.area}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                              {new Date(complaint.createdAt).toLocaleDateString()}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <User className="h-3.5 w-3.5 text-slate-400" />
+                              {complaint.createdBy?.name || 'Citizen'}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
                       {/* Right Actions */}
-                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
                         <Button
                           variant={hasUserUpvoted ? 'secondary' : 'outline'}
                           size="sm"
                           onClick={() => handleUpvote(complaint._id)}
                           disabled={isUpvoting || hasUserUpvoted}
-                          className={`gap-1.5 h-8 text-xs font-semibold ${
+                          className={`gap-1.5 h-9 rounded-xl text-xs font-bold px-3.5 transition-all ${
                             hasUserUpvoted
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
                           }`}
                         >
                           {hasUserUpvoted ? (
                             <>
-                              <Check className="h-3.5 w-3.5 text-emerald-700" />
-                              <span>Upvoted ({complaint.upvotes || 0})</span>
+                              <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                              <span>Supported ({complaint.upvotes || 0})</span>
                             </>
                           ) : (
                             <>
-                              <ThumbsUp className="h-3.5 w-3.5 text-slate-600" />
-                              <span>Upvote ({complaint.upvotes || 0})</span>
+                              <ThumbsUp className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                              <span>Support ({complaint.upvotes || 0})</span>
                             </>
                           )}
                         </Button>
 
                         <Link href={`/complaints/${complaint._id}`}>
-                          <Button variant="ghost" size="sm" className="h-8 text-xs text-slate-600 hover:text-slate-900 gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-9 rounded-xl text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white gap-1 font-semibold px-3"
+                          >
                             View Record
-                            <ArrowRight className="h-3 w-3" />
+                            <ArrowRight className="h-3.5 w-3.5" />
                           </Button>
                         </Link>
                       </div>
@@ -407,9 +434,9 @@ export default function ComplaintsFeedPage() {
 
                     {/* Officer Remark */}
                     {complaint.officerRemark && (
-                      <div className="mt-3 pt-2.5 border-t border-slate-100 text-xs bg-slate-50 p-2.5 rounded text-slate-700 flex items-start gap-2">
-                        <span className="font-semibold text-slate-900 shrink-0">Officer Remark:</span>
-                        <span className="text-slate-600">{complaint.officerRemark}</span>
+                      <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs bg-[#F7F8FC] dark:bg-[#182235] p-3 rounded-xl text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                        <span className="font-bold text-slate-900 dark:text-slate-100 shrink-0">Official Remark:</span>
+                        <span className="text-slate-600 dark:text-slate-400">{complaint.officerRemark}</span>
                       </div>
                     )}
                   </div>

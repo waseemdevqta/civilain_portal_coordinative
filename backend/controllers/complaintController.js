@@ -486,6 +486,105 @@ const getOfficerStats = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Export complaints to CSV with active filters (Officer only)
+ * @route   GET /api/complaints/export
+ * @access  Private (Officer only)
+ */
+const exportComplaintsCSV = async (req, res, next) => {
+  try {
+    const { search, category, status, area } = req.query;
+
+    const query = {};
+
+    if (category && VALID_CATEGORIES.includes(category)) {
+      query.category = category;
+    }
+
+    if (status && VALID_STATUSES.includes(status)) {
+      query.status = status;
+    }
+
+    if (area && typeof area === 'string' && area.trim() !== '') {
+      query.area = { $regex: area.trim(), $options: 'i' };
+    }
+
+    if (search && typeof search === 'string' && search.trim() !== '') {
+      const searchRegex = { $regex: search.trim(), $options: 'i' };
+      query.$or = [
+        { title: searchRegex },
+        { description: searchRegex },
+        { area: searchRegex },
+      ];
+    }
+
+    const complaints = await Complaint.find(query)
+      .sort({ createdAt: -1 })
+      .populate('createdBy', 'name email');
+
+    // CSV header row
+    const headers = [
+      'Ticket ID',
+      'Full ID',
+      'Title',
+      'Category',
+      'Area',
+      'Status',
+      'Priority',
+      'Priority Score',
+      'Upvotes',
+      'Filed By',
+      'Citizen Email',
+      'Filed On',
+      'Last Updated',
+      'Officer Remark',
+      'Citizen Rating',
+      'Citizen Feedback',
+    ];
+
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = complaints.map((c) => {
+      const { priority, priorityScore } = calculatePriority(c);
+      return [
+        escapeCsv(`CF-${c._id.toString().slice(-6).toUpperCase()}`),
+        escapeCsv(c._id.toString()),
+        escapeCsv(c.title),
+        escapeCsv(c.category),
+        escapeCsv(c.area),
+        escapeCsv(c.status),
+        escapeCsv(priority),
+        escapeCsv(priorityScore),
+        escapeCsv(c.upvotes || 0),
+        escapeCsv(c.createdBy?.name || 'Citizen'),
+        escapeCsv(c.createdBy?.email || ''),
+        escapeCsv(c.createdAt ? new Date(c.createdAt).toISOString() : ''),
+        escapeCsv(c.updatedAt ? new Date(c.updatedAt).toISOString() : ''),
+        escapeCsv(c.officerRemark || ''),
+        escapeCsv(c.feedbackRating || ''),
+        escapeCsv(c.feedbackComment || ''),
+      ].join(',');
+    });
+
+    const csvContent = [headers.map((h) => `"${h}"`).join(','), ...rows].join('\r\n');
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="complaints_export_${todayStr}.csv"`
+    );
+
+    return res.status(200).send(csvContent);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createComplaint,
   getComplaints,
@@ -496,5 +595,6 @@ module.exports = {
   submitFeedback,
   detectDuplicates,
   getOfficerStats,
+  exportComplaintsCSV,
   computeComplaintsStats,
 };

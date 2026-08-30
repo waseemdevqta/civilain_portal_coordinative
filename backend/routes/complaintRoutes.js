@@ -10,6 +10,7 @@ const {
   submitFeedback,
   detectDuplicates,
   getOfficerStats,
+  exportComplaintsCSV,
 } = require('../controllers/complaintController');
 const { protect } = require('../middleware/authMiddleware');
 const { requireOfficer, requireCitizen } = require('../middleware/roleMiddleware');
@@ -21,6 +22,9 @@ router.post('/', protect, requireCitizen, createComplaint);
 
 // Get all complaints with filters/sorting (Public)
 router.get('/', getComplaints);
+
+// Export complaints as CSV (Officer only)
+router.get('/export', protect, requireOfficer, exportComplaintsCSV);
 
 // Get logged-in citizen's complaints (Citizen only)
 router.get('/mine', protect, requireCitizen, getMyComplaints);

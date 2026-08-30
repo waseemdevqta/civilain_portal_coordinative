@@ -28,49 +28,87 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
 
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: var(--radius);
+  --radius-lg: calc(var(--radius) - 2px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 6px);
 }
 
 :root {
-  /* Warm off-white foundation from Civic Excellence */
-  --background: 220 33% 98%;
-  --foreground: 222 47% 11%;
+  /* LIGHT MODE: Warm, soft, welcoming civic foundation */
+  --background: 230 40% 98%;      /* #F7F8FC */
+  --foreground: 220 38% 15%;      /* #172033 */
 
-  /* Pure white cards */
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
+  /* Pure white cards with soft depth */
+  --card: 0 0% 100%;             /* #FFFFFF */
+  --card-foreground: 220 38% 15%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
+  --popover-foreground: 220 38% 15%;
 
   /* Deep Navy primary */
-  --primary: 222 47% 11%;
+  --primary: 222 57% 21%;         /* #172554 */
   --primary-foreground: 210 40% 98%;
 
-  /* Forest Green secondary */
-  --secondary: 142 64% 24%;
+  /* Forest Green */
+  --secondary: 142 72% 29%;       /* #15803D */
   --secondary-foreground: 0 0% 100%;
 
-  /* Muted soft gray */
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
+  /* Soft inner surface */
+  --muted: 210 40% 96.1%;         /* #F1F5F9 */
+  --muted-foreground: 215 16% 47%;/* #64748B */
 
-  --accent: 210 40% 96%;
-  --accent-foreground: 222 47% 11%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222 57% 21%;
 
   /* Crimson Destructive */
   --destructive: 0 84% 41%;
   --destructive-foreground: 210 40% 98%;
 
-  /* Slate borders and inputs */
-  --border: 214 32% 91%;
+  /* Subtle slate borders and inputs */
+  --border: 214 32% 91%;          /* #E2E8F0 */
   --input: 214 32% 91%;
-  --ring: 222 47% 11%;
+  --ring: 222 57% 21%;
 
-  /* 4px-6px architectural radius */
-  --radius: 0.375rem;
+  /* Soft friendly radius default (12px) */
+  --radius: 0.75rem;
+}
+
+.dark {
+  /* DARK MODE: Deep warm navy, calm and soft */
+  --background: 222 48% 7%;       /* #090E1A */
+  --foreground: 210 40% 98%;      /* #F8FAFC */
+
+  /* Surface navy cards */
+  --card: 222 38% 11%;           /* #111827 */
+  --card-foreground: 210 40% 98%;
+
+  --popover: 222 38% 11%;
+  --popover-foreground: 210 40% 98%;
+
+  /* Soft primary blue */
+  --primary: 213 94% 78%;         /* #93C5FD */
+  --primary-foreground: 222 48% 7%;
+
+  /* Soft emerald green */
+  --secondary: 142 71% 58%;       /* #4ADE80 */
+  --secondary-foreground: 222 48% 7%;
+
+  /* Elevated surface */
+  --muted: 220 37% 15%;          /* #182235 */
+  --muted-foreground: 215 20% 65%;/* #94A3B8 */
+
+  --accent: 220 37% 15%;
+  --accent-foreground: 210 40% 98%;
+
+  /* Destructive Dark */
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 210 40% 98%;
+
+  /* Soft navy borders */
+  --border: 216 31% 22%;          /* #263449 */
+  --input: 218 35% 16%;           /* #1B2638 */
+  --ring: 213 94% 78%;
 }
 
 * {
@@ -82,9 +120,10 @@ body {
   color: hsl(var(--foreground));
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Subtle civic scrollbars */
+/* Civic scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -96,9 +135,17 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 4px;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }

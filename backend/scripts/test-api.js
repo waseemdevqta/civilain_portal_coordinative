@@ -241,7 +241,7 @@ const runAggressiveSuite = async () => {
 
     // 3.2 Valid officer login (seeded credentials)
     const officerLoginRes = await makeRequest('POST', '/api/auth/login', {
-      email: 'officer@civicfix.demo',
+      email: 'waseemahmedbaloch2004@gmail.com',
       password: 'Officer123!',
     });
     assert(
@@ -852,6 +852,30 @@ const runAggressiveSuite = async () => {
       officerStatsRes.data.data.pending === dbPending &&
       officerStatsRes.data.data.resolved === dbResolved,
       'Statistics metrics match exact MongoDB collection document counts'
+    );
+
+    // ----------------------------------------------------
+    // Section 16b: CSV Export (Section 5.14)
+    // ----------------------------------------------------
+    console.log('\n--- Section 16b: CSV Export (Section 5.14) & Role Security ---');
+    const csvExportRes = await makeRequest('GET', '/api/complaints/export?category=road', null, officerToken);
+    const csvText = typeof csvExportRes.data === 'string' ? csvExportRes.data : csvExportRes.data?.raw;
+    assert(
+      csvExportRes.status === 200 &&
+      csvExportRes.headers['content-type'] &&
+      csvExportRes.headers['content-type'].includes('text/csv') &&
+      typeof csvText === 'string' &&
+      csvText.includes('Ticket ID') &&
+      csvText.includes('Category'),
+      'GET /api/complaints/export streams formatted CSV file with Content-Type text/csv',
+      csvExportRes.data
+    );
+
+    const citizenCsvRes = await makeRequest('GET', '/api/complaints/export', null, citizenToken);
+    assert(
+      citizenCsvRes.status === 403,
+      'Citizen attempting CSV export rejected with 403 Forbidden',
+      citizenCsvRes.data
     );
 
     // ----------------------------------------------------

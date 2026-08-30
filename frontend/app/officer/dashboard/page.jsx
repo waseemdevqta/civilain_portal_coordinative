@@ -3,15 +3,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { complaintApi, aiApi, authApi } from '@/lib/api';
+import { complaintApi, aiApi } from '@/lib/api';
 import { Navbar } from '@/components/common/Navbar';
 import { Footer } from '@/components/common/Footer';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { PriorityBadge } from '@/components/common/PriorityBadge';
 import { CategoryBadge } from '@/components/common/CategoryBadge';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
@@ -21,752 +24,565 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/toaster';
 import {
   ShieldCheck,
   Sparkles,
   RefreshCw,
-  Clock,
-  CheckCircle2,
-  Flame,
-  AlertTriangle,
-  FileText,
   Search,
   Filter,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+  Flame,
+  UserPlus,
+  Edit3,
+  ThumbsUp,
   MapPin,
   Calendar,
-  ThumbsUp,
-  MessageSquare,
+  User,
   Star,
-  Edit3,
-  Loader2,
+  Download,
   AlertCircle,
-  BarChart3,
+  FileSpreadsheet,
   Layers,
   ArrowRight,
-  UserPlus,
-  Lock,
-  Mail,
-  User,
+  Route,
+  Trash2,
+  Droplets,
+  Zap,
 } from 'lucide-react';
-
-const CATEGORIES = [
-  { label: 'All Categories', value: '' },
-  { label: 'Road', value: 'road' },
-  { label: 'Garbage', value: 'garbage' },
-  { label: 'Water', value: 'water' },
-  { label: 'Electricity', value: 'electricity' },
-  { label: 'Other', value: 'other' },
-];
-
-const STATUSES = [
-  { label: 'All Statuses', value: '' },
-  { label: 'Pending', value: 'pending' },
-  { label: 'In Progress', value: 'in-progress' },
-  { label: 'Resolved', value: 'resolved' },
-];
 
 export default function OfficerDashboardPage() {
   const { user } = useAuth();
 
-  // Stats state
+  // Primary states
   const [stats, setStats] = useState(null);
-  const [loadingStats, setLoadingStats] = useState(true);
-
-  // Gemini AI state
-  const [aiBriefing, setAiBriefing] = useState('');
-  const [generatingAi, setGeneratingAi] = useState(false);
-  const [aiError, setAiError] = useState('');
-  const [briefingTimestamp, setBriefingTimestamp] = useState(null);
-
-  // Complaints state & filters
   const [complaints, setComplaints] = useState([]);
-  const [loadingComplaints, setLoadingComplaints] = useState(true);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('');
-  const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Review & Update Dialog state (Screen 10)
+  // AI Briefing State
+  const [aiSummary, setAiSummary] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+
+  // Filters
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterSearch, setFilterSearch] = useState('');
+
+  // Status Update Modal State
   const [selectedComplaint, setSelectedComplaint] = useState(null);
-  const [updateStatus, setUpdateStatus] = useState('in-progress');
+  const [newStatus, setNewStatus] = useState('');
   const [officerRemark, setOfficerRemark] = useState('');
-  const [submittingStatus, setSubmittingStatus] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
-  // Add Officer Account Modal state
-  const [addOfficerOpen, setAddOfficerOpen] = useState(false);
-  const [newOfficer, setNewOfficer] = useState({
+  // New Officer Provisioning Modal State
+  const [showProvisionModal, setShowProvisionModal] = useState(false);
+  const [provisionData, setProvisionData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
   });
-  const [addingOfficer, setAddingOfficer] = useState(false);
-  const [addOfficerError, setAddOfficerError] = useState('');
+  const [provisioning, setProvisioning] = useState(false);
 
-  // Fetch stats from GET /api/complaints/stats
-  const fetchStats = async () => {
-    setLoadingStats(true);
-    try {
-      const res = await complaintApi.getStats();
-      setStats(res.data);
-    } catch (err) {
-      console.error('Stats fetch error:', err.message);
-    } finally {
-      setLoadingStats(false);
-    }
-  };
+  // CSV Export State
+  const [exportingCsv, setExportingCsv] = useState(false);
 
-  // Fetch complaints from GET /api/complaints
-  const fetchComplaints = useCallback(async () => {
-    setLoadingComplaints(true);
+  const fetchDashboardData = useCallback(async () => {
+    setLoading(true);
+    setError('');
     try {
       const params = {};
-      if (search.trim()) params.search = search.trim();
-      if (category) params.category = category;
-      if (status) params.status = status;
+      if (filterCategory) params.category = filterCategory;
+      if (filterStatus) params.status = filterStatus;
+      if (filterSearch.trim()) params.search = filterSearch.trim();
 
-      const res = await complaintApi.getAll(params);
-      setComplaints(res.data || []);
+      const [statsRes, complaintsRes] = await Promise.all([
+        complaintApi.getStats(),
+        complaintApi.getAll(params),
+      ]);
+
+      setStats(statsRes.data);
+      setComplaints(complaintsRes.data || []);
     } catch (err) {
-      console.error('Complaints fetch error:', err.message);
+      setError(err.message || 'Failed to load officer operations data');
     } finally {
-      setLoadingComplaints(false);
+      setLoading(false);
     }
-  }, [search, category, status]);
+  }, [filterCategory, filterStatus, filterSearch]);
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchComplaints();
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [fetchComplaints]);
-
-  // Generate AI briefing from POST /api/ai/officer-summary
-  const generateAiBriefing = async () => {
-    setGeneratingAi(true);
+  // Generate Gemini AI Operational Briefing
+  const fetchAiSummary = async () => {
+    setAiLoading(true);
     setAiError('');
     try {
       const res = await aiApi.getOfficerSummary();
-      setAiBriefing(res.data?.summary || '');
-      setBriefingTimestamp(new Date());
-      toast.success('Gemini AI operations briefing generated.');
+      setAiSummary(res.data.summary);
     } catch (err) {
-      setAiError(err.message || 'Failed to generate AI briefing');
-      toast.error(err.message || 'AI generation failed');
+      setAiError(err.message || 'Gemini AI briefing currently unavailable');
     } finally {
-      setGeneratingAi(false);
+      setAiLoading(false);
     }
   };
 
-  // Open Review Dialog (Screen 10)
-  const openReviewModal = (complaint) => {
+  useEffect(() => {
+    fetchAiSummary();
+  }, []);
+
+  // Handle status update
+  const handleOpenStatusModal = (complaint) => {
     setSelectedComplaint(complaint);
-    setUpdateStatus(complaint.status || 'in-progress');
+    setNewStatus(complaint.status);
     setOfficerRemark(complaint.officerRemark || '');
   };
 
-  // Handle status update submission PATCH /api/complaints/:id/status
-  const handleStatusSubmit = async (e) => {
+  const handleUpdateStatusSubmit = async (e) => {
     e.preventDefault();
     if (!selectedComplaint) return;
 
-    setSubmittingStatus(true);
+    setUpdatingStatus(true);
     try {
       const res = await complaintApi.updateStatus(selectedComplaint._id, {
-        status: updateStatus,
-        remark: officerRemark.trim(),
+        status: newStatus,
+        officerRemark: officerRemark.trim(),
       });
 
-      const updated = res.data;
-      toast.success(`Complaint status updated to "${updateStatus}"`);
-
-      // Update in table state
+      toast.success(`Complaint status updated to ${newStatus}`);
       setComplaints((prev) =>
-        prev.map((c) => (c._id === selectedComplaint._id ? updated : c))
+        prev.map((c) => (c._id === selectedComplaint._id ? res.data : c))
       );
-
-      // Refresh overall stats
-      fetchStats();
       setSelectedComplaint(null);
+      // Refresh stats
+      complaintApi.getStats().then((res) => setStats(res.data));
     } catch (err) {
       toast.error(err.message || 'Failed to update complaint status');
     } finally {
-      setSubmittingStatus(false);
+      setUpdatingStatus(false);
     }
   };
 
-  // Handle Add Officer Account
-  const handleAddOfficerSubmit = async (e) => {
+  // Handle Provisioning New Officer
+  const handleProvisionSubmit = async (e) => {
     e.preventDefault();
-
-    if (!newOfficer.name.trim() || !newOfficer.email.trim() || !newOfficer.password) {
-      setAddOfficerError('Please fill in all fields.');
+    if (!provisionData.name.trim() || !provisionData.email.trim() || !provisionData.password) {
+      toast.error('All fields are required');
       return;
     }
 
-    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,})+$/;
-    if (!emailRegex.test(newOfficer.email.trim())) {
-      setAddOfficerError('Please enter a valid email format.');
-      return;
-    }
-
-    if (newOfficer.password.length < 6) {
-      setAddOfficerError('Password must be at least 6 characters.');
-      return;
-    }
-
-    if (newOfficer.password !== newOfficer.confirmPassword) {
-      setAddOfficerError('Passwords do not match.');
-      return;
-    }
-
-    setAddingOfficer(true);
-    setAddOfficerError('');
-
+    setProvisioning(true);
     try {
-      await authApi.addOfficer({
-        name: newOfficer.name.trim(),
-        email: newOfficer.email.trim(),
-        password: newOfficer.password,
+      const token = localStorage.getItem('civicfix_token');
+      const response = await fetch('/api/officer/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: provisionData.name.trim(),
+          email: provisionData.email.trim(),
+          password: provisionData.password,
+        }),
       });
 
-      toast.success(`Officer account for "${newOfficer.name.trim()}" created successfully!`);
-      setAddOfficerOpen(false);
-      setNewOfficer({ name: '', email: '', password: '', confirmPassword: '' });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to provision officer');
+      }
+
+      toast.success(`Officer account created for ${data.user?.name || provisionData.name}`);
+      setShowProvisionModal(false);
+      setProvisionData({ name: '', email: '', password: '' });
     } catch (err) {
-      setAddOfficerError(err.message || 'Failed to provision officer account.');
-      toast.error(err.message || 'Failed to provision officer account.');
+      toast.error(err.message || 'Officer provisioning failed');
     } finally {
-      setAddingOfficer(false);
+      setProvisioning(false);
+    }
+  };
+
+  // Section 5.14: CSV Export Trigger
+  const handleExportCsv = async () => {
+    setExportingCsv(true);
+    try {
+      const token = localStorage.getItem('civicfix_token');
+      const queryParams = new URLSearchParams();
+      if (filterCategory) queryParams.set('category', filterCategory);
+      if (filterStatus) queryParams.set('status', filterStatus);
+
+      const url = `/api/complaints/export?${queryParams.toString()}`;
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate CSV export file');
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', `awaz-complaints-${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      toast.success('Municipal CSV export downloaded successfully');
+    } catch (err) {
+      toast.error(err.message || 'CSV Export failed');
+    } finally {
+      setExportingCsv(false);
     }
   };
 
   return (
     <ProtectedRoute officerOnly={true}>
-      <div className="flex min-h-screen flex-col bg-[#f8f9ff] text-slate-900">
+      <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors">
         <Navbar />
 
-        <main className="flex-1 container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-          {/* TOP OPERATIONS HEADER */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded bg-slate-900 text-white">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                </span>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Municipal Operations Console
-                </span>
+        <main className="flex-1 container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
+          {/* HEADER BAR */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-6">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>MUNICIPAL OPERATIONS COMMAND</span>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-1">
-                Operations Overview
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+                Operations Console
               </h1>
-              <p className="text-xs text-slate-600 mt-0.5">
-                Logged in as <strong>{user?.name || 'Officer'}</strong> • Municipal Dispatch & Case Triage
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                Municipal Officer: <strong className="text-slate-800 dark:text-slate-200">{user?.name}</strong> • Dispatch queue, priority escalation & feedback audit.
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
               <Button
-                onClick={() => setAddOfficerOpen(true)}
                 variant="outline"
                 size="sm"
-                className="border-slate-300 bg-white text-slate-800 hover:bg-slate-50 gap-1.5 font-semibold text-xs h-9 shadow-sm shrink-0"
+                onClick={handleExportCsv}
+                disabled={exportingCsv}
+                className="gap-1.5 h-10 px-4 text-xs font-bold rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
               >
-                <UserPlus className="h-3.5 w-3.5 text-slate-700" />
-                Add Officer Account
+                <Download className="h-3.5 w-3.5 text-slate-500" />
+                {exportingCsv ? 'Exporting...' : 'Export CSV'}
               </Button>
 
               <Button
-                onClick={generateAiBriefing}
-                disabled={generatingAi}
                 size="sm"
-                className="bg-slate-900 hover:bg-slate-800 text-white gap-2 font-medium text-xs h-9 shadow-sm shrink-0"
+                onClick={() => setShowProvisionModal(true)}
+                className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 gap-1.5 h-10 px-4 text-xs font-bold rounded-xl shadow-sm"
               >
-                {generatingAi ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Generating Operations Briefing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-3.5 w-3.5 text-slate-300" />
-                    Generate AI Briefing
-                  </>
-                )}
+                <UserPlus className="h-3.5 w-3.5" />
+                Provision Officer
               </Button>
             </div>
           </div>
 
-          {/* GEMINI AI DAILY OPERATIONS BRIEFING CARD */}
-          {(aiBriefing || generatingAi || aiError) && (
-            <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
-                    AI-ASSISTED BRIEFING
-                  </span>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Daily Operations Briefing
-                  </h3>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  {briefingTimestamp && (
-                    <span className="text-[11px] text-slate-500">
-                      Generated at {briefingTimestamp.toLocaleTimeString()}
-                    </span>
-                  )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={generateAiBriefing}
-                    disabled={generatingAi}
-                    className="h-7 text-xs border-slate-300 gap-1 text-slate-700 hover:bg-slate-50"
-                  >
-                    <RefreshCw className={`h-3 w-3 ${generatingAi ? 'animate-spin' : ''}`} />
-                    Refresh
-                  </Button>
-                </div>
-              </div>
-
-              {generatingAi ? (
-                <div className="space-y-2 py-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-5/6" />
-                  <Skeleton className="h-4 w-2/3" />
-                </div>
-              ) : aiError ? (
-                <div className="text-xs text-red-700 bg-red-50 p-3 rounded border border-red-200 flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span>{aiError}</span>
-                </div>
-              ) : (
-                <p className="text-xs text-slate-800 leading-relaxed font-normal bg-slate-50 p-3.5 rounded border border-slate-200">
-                  {aiBriefing}
-                </p>
-              )}
+          {/* ERROR ALERT */}
+          {error && (
+            <div className="flex items-center gap-2 rounded-2xl border border-red-200/90 dark:border-red-900/60 bg-red-50/90 dark:bg-red-950/40 p-4 text-xs text-red-700 dark:text-red-300">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
-          {/* COMPACT STAT BLOCKS */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {/* 6 OPERATIONAL METRIC BLOCKS */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
             {/* Total */}
-            <div className="rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm">
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                Total Tickets
+            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#111827] p-4 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Docket</div>
+              <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-50 mt-1">
+                {stats ? stats.total : <Skeleton className="h-7 w-10" />}
               </div>
-              <div className="text-xl font-bold text-slate-900 mt-1">
-                {loadingStats ? <Skeleton className="h-6 w-10" /> : stats?.total ?? 0}
-              </div>
-              <div className="text-[10px] text-slate-500 mt-0.5">Cumulative filed</div>
             </div>
 
             {/* Pending */}
-            <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3.5 shadow-sm">
-              <div className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">
-                Pending Action
+            <div className="rounded-2xl border border-amber-200/80 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/20 p-4 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">Pending Review</div>
+              <div className="text-xl sm:text-2xl font-extrabold text-amber-900 dark:text-amber-200 mt-1">
+                {stats ? stats.pending : <Skeleton className="h-7 w-10" />}
               </div>
-              <div className="text-xl font-bold text-amber-900 mt-1">
-                {loadingStats ? <Skeleton className="h-6 w-10" /> : stats?.pending ?? 0}
-              </div>
-              <div className="text-[10px] text-amber-700/80 mt-1">Awaiting dispatch</div>
             </div>
 
             {/* In Progress */}
-            <div className="rounded-lg border border-blue-200 bg-blue-50/60 p-3.5 shadow-sm">
-              <div className="text-[10px] font-bold text-blue-800 uppercase tracking-wider">
-                In Progress
+            <div className="rounded-2xl border border-blue-200/80 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-950/20 p-4 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-blue-800 dark:text-blue-300">Field Dispatched</div>
+              <div className="text-xl sm:text-2xl font-extrabold text-blue-900 dark:text-blue-200 mt-1">
+                {stats ? stats.inProgress : <Skeleton className="h-7 w-10" />}
               </div>
-              <div className="text-xl font-bold text-blue-900 mt-1">
-                {loadingStats ? <Skeleton className="h-6 w-10" /> : stats?.inProgress ?? 0}
-              </div>
-              <div className="text-[10px] text-blue-700/80 mt-1">Crews deployed</div>
             </div>
 
             {/* Resolved */}
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-3.5 shadow-sm">
-              <div className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
-                Resolved
+            <div className="rounded-2xl border border-emerald-200/80 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Resolved</div>
+              <div className="text-xl sm:text-2xl font-extrabold text-emerald-900 dark:text-emerald-200 mt-1">
+                {stats ? stats.resolved : <Skeleton className="h-7 w-10" />}
               </div>
-              <div className="text-xl font-bold text-emerald-900 mt-1">
-                {loadingStats ? <Skeleton className="h-6 w-10" /> : stats?.resolved ?? 0}
-              </div>
-              <div className="text-[10px] text-emerald-700/80 mt-1">Completed & sealed</div>
             </div>
 
             {/* Critical Priority */}
-            <div className="rounded-lg border border-red-200 bg-red-50/60 p-3.5 shadow-sm">
-              <div className="text-[10px] font-bold text-red-800 uppercase tracking-wider flex items-center gap-1">
-                <Flame className="h-3 w-3 text-red-600" />
-                Critical Priority
+            <div className="rounded-2xl border border-red-200/80 dark:border-red-900/40 bg-red-50/50 dark:bg-red-950/20 p-4 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-red-800 dark:text-red-300 flex items-center gap-1">
+                <Flame className="h-3 w-3" /> Critical
               </div>
-              <div className="text-xl font-bold text-red-900 mt-1">
-                {loadingStats ? <Skeleton className="h-6 w-10" /> : stats?.critical ?? 0}
+              <div className="text-xl sm:text-2xl font-extrabold text-red-900 dark:text-red-200 mt-1">
+                {stats ? stats.criticalPriority : <Skeleton className="h-7 w-10" />}
               </div>
-              <div className="text-[10px] text-red-700/80 mt-1">Urgent triage needed</div>
             </div>
 
-            {/* Citizen Satisfaction */}
-            <div className="rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm">
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                <Star className="h-3 w-3 text-amber-500" />
-                Citizen Rating
+            {/* Avg Rating */}
+            <div className="rounded-2xl border border-amber-200/80 dark:border-amber-900/40 bg-white dark:bg-[#111827] p-4 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                <Star className="h-3 w-3 text-amber-500 fill-amber-500" /> Satisfaction
               </div>
-              <div className="text-xl font-bold text-slate-900 mt-1">
-                {loadingStats ? <Skeleton className="h-6 w-10" /> : `${stats?.averageFeedbackRating ?? 0} / 5`}
+              <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-50 mt-1">
+                {stats && typeof stats.averageRating === 'number' ? (
+                  `${stats.averageRating.toFixed(1)} / 5.0`
+                ) : (
+                  <Skeleton className="h-7 w-10" />
+                )}
               </div>
-              <div className="text-[10px] text-slate-500 mt-0.5">Average satisfaction</div>
             </div>
           </div>
 
-          {/* COMPLAINTS QUEUE TABLE */}
-          <div className="space-y-3">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div>
-                <h2 className="text-base font-bold text-slate-900">Complaints Queue & Dispatch</h2>
-                <p className="text-xs text-slate-500">
-                  Review incoming tickets, evaluate priority scores, and update municipal dispatch status.
-                </p>
-              </div>
-
-              {/* SEARCH & FILTERS */}
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
-                  <Input
-                    placeholder="Search tickets..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-8 h-8 text-xs w-40"
-                  />
+          {/* GEMINI AI OPERATIONS BRIEFING (SOFT TINTED CONTAINER, NOT FLASHY GRADIENTS) */}
+          <div className="rounded-3xl border border-blue-200/80 dark:border-blue-950/80 bg-blue-50/50 dark:bg-[#111c30] p-6 sm:p-7 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-blue-600 dark:bg-blue-500 text-white shadow-sm">
+                  <Sparkles className="h-4 w-4" />
+                </span>
+                <div>
+                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-blue-950 dark:text-blue-200">
+                    AI OPERATIONS BRIEFING
+                  </h3>
+                  <p className="text-[11px] text-blue-800/80 dark:text-blue-300/80">
+                    Generated from live municipal complaint dataset (Zero Citizen PII Exposed)
+                  </p>
                 </div>
-
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="h-8 rounded border border-slate-300 bg-white px-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900"
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="h-8 rounded border border-slate-300 bg-white px-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900"
-                >
-                  {STATUSES.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
               </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchAiSummary}
+                disabled={aiLoading}
+                className="h-8 rounded-xl border-blue-200 dark:border-blue-900/60 bg-white dark:bg-[#182235] text-xs font-semibold text-blue-950 dark:text-blue-200 hover:bg-blue-50 gap-1 px-3 shadow-sm"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${aiLoading ? 'animate-spin' : ''}`} />
+                <span>{aiLoading ? 'Analyzing...' : 'Regenerate Briefing'}</span>
+              </Button>
             </div>
 
-            {/* TABLE */}
-            <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
-              {loadingComplaints ? (
-                <div className="p-5 space-y-2.5">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="h-10 w-full" />
-                  ))}
+            <div className="rounded-2xl border border-blue-200/60 dark:border-blue-900/40 bg-white/90 dark:bg-[#0c1424] p-5">
+              {aiLoading ? (
+                <div className="space-y-2 py-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                  <Skeleton className="h-4 w-4/6" />
                 </div>
-              ) : complaints.length === 0 ? (
-                <div className="p-10 text-center text-slate-500">
-                  <Layers className="mx-auto h-8 w-8 text-slate-400 mb-2" />
-                  <p className="font-semibold text-sm text-slate-800">No tickets found</p>
-                  <p className="text-xs">No complaint records match the current filter selection.</p>
-                </div>
+              ) : aiError ? (
+                <div className="text-xs text-red-600 dark:text-red-400">{aiError}</div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase border-b border-slate-200">
+                <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
+                  {aiSummary || 'Loading live operational briefing...'}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* DISPATCH QUEUE & COMPLAINTS LEDGER */}
+          <div className="space-y-4">
+            <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111827] shadow-[0_4px_20px_rgba(15,23,42,0.03)] p-6 space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
+                  Municipal Dispatch Queue ({complaints.length})
+                </h2>
+
+                {/* Filters */}
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                    <Input
+                      placeholder="Search tickets..."
+                      value={filterSearch}
+                      onChange={(e) => setFilterSearch(e.target.value)}
+                      className="pl-8.5 h-9 text-xs w-44 rounded-xl"
+                    />
+                  </div>
+
+                  <select
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    className="h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] px-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    <option value="">All Categories</option>
+                    <option value="road">Roads</option>
+                    <option value="garbage">Garbage</option>
+                    <option value="water">Water</option>
+                    <option value="electricity">Electricity</option>
+                    <option value="other">Other</option>
+                  </select>
+
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] px-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none"
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* TABLE */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#182235]/60 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                      <th className="py-3 px-3.5 rounded-l-xl">Ticket ID</th>
+                      <th className="py-3 px-3.5">Title & Area</th>
+                      <th className="py-3 px-3.5">Category</th>
+                      <th className="py-3 px-3.5">Priority Score</th>
+                      <th className="py-3 px-3.5">Status</th>
+                      <th className="py-3 px-3.5">Support</th>
+                      <th className="py-3 px-3.5 rounded-r-xl text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+                    {loading ? (
+                      [1, 2, 3, 4, 5].map((i) => (
+                        <tr key={i}>
+                          <td colSpan={7} className="py-3.5 px-3.5">
+                            <Skeleton className="h-4 w-full rounded-md" />
+                          </td>
+                        </tr>
+                      ))
+                    ) : complaints.length === 0 ? (
                       <tr>
-                        <th className="px-4 py-3">Ticket / Title</th>
-                        <th className="px-4 py-3">Area / Category</th>
-                        <th className="px-4 py-3">Status</th>
-                        <th className="px-4 py-3">Priority</th>
-                        <th className="px-4 py-3">Upvotes</th>
-                        <th className="px-4 py-3">Filed Date</th>
-                        <th className="px-4 py-3 text-right">Action</th>
+                        <td colSpan={7} className="py-8 text-center text-slate-500 dark:text-slate-400">
+                          No complaints match the current filter criteria.
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {complaints.map((c, index) => (
-                        <tr
-                          key={c._id}
-                          className={`transition-colors ${
-                            index % 2 === 1 ? 'bg-slate-50/50' : 'bg-white'
-                          } hover:bg-slate-100/70`}
-                        >
-                          {/* Ticket & Title */}
-                          <td className="px-4 py-3 max-w-xs">
-                            <div className="font-mono text-[10px] font-medium text-slate-500">
-                              #CF-{c._id.slice(-6).toUpperCase()}
-                            </div>
-                            <Link
-                              href={`/complaints/${c._id}`}
-                              className="font-bold text-slate-900 hover:text-slate-700 block truncate"
-                            >
-                              {c.title}
-                            </Link>
+                    ) : (
+                      complaints.map((c) => (
+                        <tr key={c._id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="py-3.5 px-3.5 font-mono font-bold text-slate-900 dark:text-slate-100">
+                            #CF-{c._id.slice(-6).toUpperCase()}
                           </td>
-
-                          {/* Area & Category */}
-                          <td className="px-4 py-3">
-                            <div className="flex flex-col gap-1">
-                              <span className="font-medium text-slate-800 flex items-center gap-1">
-                                <MapPin className="h-3 w-3 text-slate-400" />
-                                {c.area}
-                              </span>
-                              <CategoryBadge category={c.category} />
+                          <td className="py-3.5 px-3.5 max-w-xs truncate">
+                            <div className="font-bold text-slate-900 dark:text-slate-100 truncate">{c.title}</div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+                              <MapPin className="h-3 w-3" />
+                              {c.area}
                             </div>
                           </td>
-
-                          {/* Status */}
-                          <td className="px-4 py-3">
-                            <StatusBadge status={c.status} />
+                          <td className="py-3.5 px-3.5">
+                            <CategoryBadge category={c.category} />
                           </td>
-
-                          {/* Priority */}
-                          <td className="px-4 py-3">
+                          <td className="py-3.5 px-3.5">
                             <PriorityBadge priority={c.priority} score={c.priorityScore} showScore={true} />
                           </td>
-
-                          {/* Upvotes */}
-                          <td className="px-4 py-3">
-                            <span className="font-bold text-slate-900 flex items-center gap-1">
-                              <ThumbsUp className="h-3 w-3 text-slate-500" />
+                          <td className="py-3.5 px-3.5">
+                            <StatusBadge status={c.status} />
+                          </td>
+                          <td className="py-3.5 px-3.5 font-bold text-slate-800 dark:text-slate-200">
+                            <span className="flex items-center gap-1">
+                              <ThumbsUp className="h-3 w-3 text-slate-400" />
                               {c.upvotes || 0}
                             </span>
                           </td>
-
-                          {/* Date */}
-                          <td className="px-4 py-3 text-slate-500">
-                            {new Date(c.createdAt).toLocaleDateString()}
-                          </td>
-
-                          {/* Action */}
-                          <td className="px-4 py-3 text-right">
+                          <td className="py-3.5 px-3.5 text-right space-x-2">
                             <Button
                               size="sm"
-                              onClick={() => openReviewModal(c)}
-                              className="h-7 px-2.5 bg-slate-900 hover:bg-slate-800 text-white gap-1 text-[11px]"
+                              variant="outline"
+                              onClick={() => handleOpenStatusModal(c)}
+                              className="h-8 rounded-xl text-xs font-semibold px-2.5 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
                             >
-                              <Edit3 className="h-3 w-3" />
-                              Review
+                              <Edit3 className="h-3 w-3 mr-1" />
+                              Review / Dispatch
                             </Button>
+                            <Link href={`/complaints/${c._id}`}>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 rounded-xl text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-2"
+                              >
+                                View
+                              </Button>
+                            </Link>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
-          {/* SCREEN 10: OFFICER STATUS UPDATE & REVIEW DIALOG */}
+          {/* STATUS UPDATE & DISPATCH MODAL */}
           <Dialog open={!!selectedComplaint} onOpenChange={(open) => !open && setSelectedComplaint(null)}>
-            <DialogContent className="bg-white border-slate-200 sm:max-w-lg">
+            <DialogContent className="bg-white dark:bg-[#111827] border-slate-200 dark:border-slate-800 sm:max-w-lg">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-slate-900 text-base">
-                  <ShieldCheck className="h-5 w-5 text-slate-900" />
-                  Review Complaint & Update Dispatch
+                <DialogTitle className="text-slate-900 dark:text-slate-100 text-lg font-bold">
+                  Review & Update Municipal Ticket
                 </DialogTitle>
-                <DialogDescription className="text-xs text-slate-600">
-                  Update lifecycle status and record official resolution remarks visible to the reporting citizen.
+                <DialogDescription className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                  Update lifecycle dispatch state and provide official public remarks for citizens.
                 </DialogDescription>
               </DialogHeader>
 
-              {selectedComplaint && (
-                <form onSubmit={handleStatusSubmit} className="space-y-4 py-2">
-                  {/* Complaint Snapshot */}
-                  <div className="p-3.5 rounded border border-slate-200 bg-slate-50 space-y-2 text-xs">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-[10px] font-medium text-slate-500">
-                        #CF-{selectedComplaint._id.slice(-6).toUpperCase()}
-                      </span>
-                      <CategoryBadge category={selectedComplaint.category} />
-                      <PriorityBadge priority={selectedComplaint.priority} score={selectedComplaint.priorityScore} showScore={true} />
-                      <span className="text-slate-500">• {selectedComplaint.upvotes || 0} upvotes</span>
-                    </div>
-                    <div className="font-bold text-sm text-slate-900">{selectedComplaint.title}</div>
-                    <p className="text-slate-600">{selectedComplaint.description}</p>
-                    <div className="text-[11px] text-slate-500 flex items-center gap-2 pt-1.5 border-t border-slate-200">
-                      <span>Location: <strong>{selectedComplaint.area}</strong></span>
-                      <span>• Author: <strong>{selectedComplaint.createdBy?.name || 'Citizen'}</strong></span>
-                    </div>
-                  </div>
-
-                  {/* Status Picker */}
-                  <div className="space-y-1">
-                    <Label htmlFor="statusSelect" className="text-xs font-semibold text-slate-700">
-                      Lifecycle Status
-                    </Label>
-                    <select
-                      id="statusSelect"
-                      value={updateStatus}
-                      onChange={(e) => setUpdateStatus(e.target.value)}
-                      className="w-full h-9 rounded border border-slate-300 bg-white px-3 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    >
-                      <option value="pending">Pending (Awaiting Field Team)</option>
-                      <option value="in-progress">In Progress (Field Team Dispatched)</option>
-                      <option value="resolved">Resolved (Work Completed & Sealed)</option>
-                    </select>
-                  </div>
-
-                  {/* Officer Remark */}
-                  <div className="space-y-1">
-                    <Label htmlFor="remark" className="text-xs font-semibold text-slate-700">
-                      Official Officer Remark / Instructions
-                    </Label>
-                    <Textarea
-                      id="remark"
-                      placeholder="e.g. Municipal asphalt team deployed on site. Heavy bitumen roller leveling the crater..."
-                      value={officerRemark}
-                      onChange={(e) => setOfficerRemark(e.target.value)}
-                      rows={3}
-                      className="text-xs"
-                    />
-                    <p className="text-[10px] text-slate-500">
-                      This note will be recorded publicly into the citizen&apos;s ticket progress record.
-                    </p>
-                  </div>
-
-                  <DialogFooter className="pt-2 gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedComplaint(null)}
-                      disabled={submittingStatus}
-                      className="text-xs h-9"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      size="sm"
-                      className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs h-9"
-                      disabled={submittingStatus}
-                    >
-                      {submittingStatus ? (
-                        <>
-                          <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
-                          Saving...
-                        </>
-                      ) : (
-                        'Save & Dispatch'
-                      )}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              )}
-            </DialogContent>
-          </Dialog>
-
-          {/* PROVISION NEW OFFICER ACCOUNT DIALOG */}
-          <Dialog open={addOfficerOpen} onOpenChange={setAddOfficerOpen}>
-            <DialogContent className="bg-white border-slate-200 sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-slate-900 text-base">
-                  <UserPlus className="h-5 w-5 text-slate-900" />
-                  Provision Officer Account
-                </DialogTitle>
-                <DialogDescription className="text-xs text-slate-600">
-                  Create an authorized municipal officer account. Only existing officers can authorize team members.
-                </DialogDescription>
-              </DialogHeader>
-
-              {addOfficerError && (
-                <div className="flex items-center gap-2 rounded border border-red-200 bg-red-50 p-2.5 text-xs text-red-700">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span>{addOfficerError}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleAddOfficerSubmit} className="space-y-3.5 py-1">
-                <div className="space-y-1">
-                  <Label htmlFor="officerName" className="text-xs font-semibold text-slate-700">
-                    Officer Full Name
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 pointer-events-none" />
-                    <Input
-                      id="officerName"
-                      placeholder="e.g. Engr. Tariq Mehmood"
-                      value={newOfficer.name}
-                      onChange={(e) => setNewOfficer({ ...newOfficer, name: e.target.value })}
-                      className="pl-9 h-9 text-xs"
-                      required
-                    />
+              <form onSubmit={handleUpdateStatusSubmit} className="space-y-4 py-2">
+                <div className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#182235] text-xs space-y-1">
+                  <div className="font-bold text-slate-900 dark:text-slate-100 truncate">{selectedComplaint?.title}</div>
+                  <div className="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                    <span>{selectedComplaint?.area}</span>
+                    <span>•</span>
+                    <span className="capitalize">{selectedComplaint?.category}</span>
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <Label htmlFor="officerEmail" className="text-xs font-semibold text-slate-700">
-                    Official Municipal Email
+                <div className="space-y-1.5">
+                  <Label htmlFor="newStatus" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Municipal Status
                   </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 pointer-events-none" />
-                    <Input
-                      id="officerEmail"
-                      type="email"
-                      placeholder="tariq@civicfix.gov / tariq@dept.org"
-                      value={newOfficer.email}
-                      onChange={(e) => setNewOfficer({ ...newOfficer, email: e.target.value })}
-                      className="pl-9 h-9 text-xs"
-                      required
-                    />
-                  </div>
+                  <select
+                    id="newStatus"
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#182235] px-3 text-xs font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  >
+                    <option value="pending">Pending Review (Awaiting Field Dispatch)</option>
+                    <option value="in-progress">In Progress (Field Crew Deployed On Site)</option>
+                    <option value="resolved">Resolved (Work Inspected & Completed)</option>
+                  </select>
                 </div>
 
-                <div className="space-y-1">
-                  <Label htmlFor="officerPass" className="text-xs font-semibold text-slate-700">
-                    Temporary Password (min 6 characters)
+                <div className="space-y-1.5">
+                  <Label htmlFor="officerRemark" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Official Officer Remark (Publicly Visible)
                   </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 pointer-events-none" />
-                    <Input
-                      id="officerPass"
-                      type="password"
-                      placeholder="••••••••"
-                      value={newOfficer.password}
-                      onChange={(e) => setNewOfficer({ ...newOfficer, password: e.target.value })}
-                      className="pl-9 h-9 text-xs"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="officerConfirm" className="text-xs font-semibold text-slate-700">
-                    Confirm Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 pointer-events-none" />
-                    <Input
-                      id="officerConfirm"
-                      type="password"
-                      placeholder="••••••••"
-                      value={newOfficer.confirmPassword}
-                      onChange={(e) => setNewOfficer({ ...newOfficer, confirmPassword: e.target.value })}
-                      className="pl-9 h-9 text-xs"
-                      required
-                    />
-                  </div>
+                  <Textarea
+                    id="officerRemark"
+                    placeholder="Enter dispatch notes, repair timeline, contractor details, or resolution summary..."
+                    value={officerRemark}
+                    onChange={(e) => setOfficerRemark(e.target.value)}
+                    rows={3}
+                    className="text-xs sm:text-sm"
+                  />
                 </div>
 
                 <DialogFooter className="pt-2 gap-2">
@@ -774,26 +590,100 @@ export default function OfficerDashboardPage() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setAddOfficerOpen(false)}
-                    disabled={addingOfficer}
-                    className="text-xs h-9"
+                    onClick={() => setSelectedComplaint(null)}
+                    disabled={updatingStatus}
+                    className="text-xs h-10 px-4 rounded-xl border-slate-200 dark:border-slate-800"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     size="sm"
-                    className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs h-9"
-                    disabled={addingOfficer}
+                    className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 font-bold text-xs h-10 px-5 rounded-xl shadow-sm"
+                    disabled={updatingStatus}
                   >
-                    {addingOfficer ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
-                        Provisioning...
-                      </>
-                    ) : (
-                      'Provision Officer Account'
-                    )}
+                    {updatingStatus ? 'Updating Record...' : 'Confirm Update'}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          {/* PROVISION OFFICER MODAL */}
+          <Dialog open={showProvisionModal} onOpenChange={setShowProvisionModal}>
+            <DialogContent className="bg-white dark:bg-[#111827] border-slate-200 dark:border-slate-800 sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-slate-900 dark:text-slate-100 text-lg font-bold">
+                  Provision Government Officer Account
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                  Authorized officers can create new officer credentials for municipal staff.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={handleProvisionSubmit} className="space-y-4 py-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="prov-name" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Officer Full Name
+                  </Label>
+                  <Input
+                    id="prov-name"
+                    placeholder="e.g. Inspector Tariq Mahmood"
+                    value={provisionData.name}
+                    onChange={(e) => setProvisionData((prev) => ({ ...prev, name: e.target.value }))}
+                    className="h-10 text-xs sm:text-sm"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="prov-email" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Official Email Address
+                  </Label>
+                  <Input
+                    id="prov-email"
+                    type="email"
+                    placeholder="officer@municipal.gov"
+                    value={provisionData.email}
+                    onChange={(e) => setProvisionData((prev) => ({ ...prev, email: e.target.value }))}
+                    className="h-10 text-xs sm:text-sm"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="prov-pass" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Initial Password (min 6 chars)
+                  </Label>
+                  <Input
+                    id="prov-pass"
+                    type="password"
+                    placeholder="••••••••"
+                    value={provisionData.password}
+                    onChange={(e) => setProvisionData((prev) => ({ ...prev, password: e.target.value }))}
+                    className="h-10 text-xs sm:text-sm"
+                    required
+                  />
+                </div>
+
+                <DialogFooter className="pt-2 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowProvisionModal(false)}
+                    disabled={provisioning}
+                    className="text-xs h-10 px-4 rounded-xl border-slate-200 dark:border-slate-800"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 font-bold text-xs h-10 px-5 rounded-xl shadow-sm"
+                    disabled={provisioning}
+                  >
+                    {provisioning ? 'Provisioning...' : 'Create Officer Account'}
                   </Button>
                 </DialogFooter>
               </form>

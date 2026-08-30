@@ -1,309 +1,474 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/common/Navbar';
 import { Footer } from '@/components/common/Footer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { complaintApi } from '@/lib/api';
 import {
-  Building2,
   FilePlus,
-  ListFilter,
+  Layers,
   CheckCircle2,
-  Clock,
-  ThumbsUp,
-  ArrowRight,
-  Truck,
+  Route,
   Trash2,
   Droplets,
   Zap,
-  HelpCircle,
   ShieldCheck,
-  Search,
-  MessageSquare,
-  Lock,
   LayoutDashboard,
-  FileText,
+  ThumbsUp,
+  Flame,
+  ArrowRight,
+  Sparkles,
+  MapPin,
+  Clock,
+  Heart,
+  TrendingUp,
 } from 'lucide-react';
 
 export default function LandingPage() {
-  const { user, isAuthenticated, isOfficer, isCitizen } = useAuth();
+  const { isAuthenticated, isOfficer, isCitizen } = useAuth();
+  const [pulseData, setPulseData] = useState({
+    total: 14,
+    pending: 7,
+    inProgress: 4,
+    resolved: 3,
+    critical: 5,
+  });
+
+  const [topComplaints, setTopComplaints] = useState([
+    {
+      _id: '1',
+      category: 'road',
+      area: 'University Road',
+      title: 'Road damage & potholes near Campus Gate 3',
+      upvotes: 42,
+      status: 'in-progress',
+    },
+    {
+      _id: '2',
+      category: 'water',
+      area: 'Satellite Town',
+      title: 'Main pipeline leak causing low pressure in Block B',
+      upvotes: 28,
+      status: 'pending',
+    },
+    {
+      _id: '3',
+      category: 'garbage',
+      area: 'Jinnah Road',
+      title: 'Overflowing public dumpsters outside central market',
+      upvotes: 19,
+      status: 'in-progress',
+    },
+  ]);
+
+  useEffect(() => {
+    const fetchLiveStats = async () => {
+      try {
+        const allRes = await complaintApi.getAll({ sort: 'upvotes' });
+        if (Array.isArray(allRes.data) && allRes.data.length > 0) {
+          const list = allRes.data;
+          const total = list.length;
+          const pending = list.filter((c) => c.status === 'pending').length;
+          const inProgress = list.filter((c) => c.status === 'in-progress').length;
+          const resolved = list.filter((c) => c.status === 'resolved').length;
+          const critical = list.filter((c) => c.priority === 'critical').length;
+          setPulseData({ total, pending, inProgress, resolved, critical });
+
+          // Take top 3 for live pulse card preview
+          setTopComplaints(list.slice(0, 3));
+        }
+      } catch {
+        // Fallback to default community pulse
+      }
+    };
+    fetchLiveStats();
+  }, []);
+
+  const getCategoryIcon = (cat) => {
+    switch ((cat || '').toLowerCase()) {
+      case 'road':
+        return {
+          icon: Route,
+          container: 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300',
+          label: 'Roads',
+        };
+      case 'garbage':
+        return {
+          icon: Trash2,
+          container: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300',
+          label: 'Garbage',
+        };
+      case 'water':
+        return {
+          icon: Droplets,
+          container: 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300',
+          label: 'Water',
+        };
+      case 'electricity':
+        return {
+          icon: Zap,
+          container: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300',
+          label: 'Power',
+        };
+      default:
+        return {
+          icon: Route,
+          container: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+          label: 'Civic',
+        };
+    }
+  };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8f9ff] text-slate-900">
+    <div className="flex min-h-screen flex-col bg-background text-foreground transition-colors">
       <Navbar />
 
       <main className="flex-1">
-        {/* HERO SECTION */}
-        <section className="border-b border-slate-200 bg-white py-16 md:py-24">
-          <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
-            {/* Institutional Seal / Badge */}
-            <div className="inline-flex items-center gap-2 rounded border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 mb-6">
-              <ShieldCheck className="h-3.5 w-3.5 text-slate-900" />
-              <span>Official Municipal Civic Issue Portal</span>
-            </div>
+        {/* HERO SECTION — WARM, INVITING & BALANCED */}
+        <section className="py-16 md:py-24 border-b border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-b from-white via-[#F7F8FC] to-white dark:from-[#090E1A] dark:via-[#0D1424] dark:to-[#090E1A]">
+          <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+              {/* LEFT COLUMN: HERO HEADLINE & CTAS */}
+              <div className="lg:col-span-7 space-y-6 text-left">
+                {/* Small Eyebrow */}
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-[#111827] px-3.5 py-1 text-xs font-bold text-slate-700 dark:text-slate-300 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>COMMUNITY • ACTION • TRANSPARENCY</span>
+                </div>
 
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl md:text-6xl max-w-4xl mx-auto leading-tight">
-              Report it. Track it.{' '}
-              <span className="text-slate-900 underline decoration-emerald-600 decoration-4 underline-offset-4">
-                Get it resolved.
-              </span>
-            </h1>
+                <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-[1.12]">
+                  Make your city{' '}
+                  <span className="text-slate-900 dark:text-slate-50 underline decoration-emerald-500 decoration-4 underline-offset-8">
+                    heard.
+                  </span>
+                </h1>
 
-            <p className="mx-auto mt-5 max-w-2xl text-base text-slate-600 sm:text-lg leading-relaxed">
-              CivicFix is a transparent public complaint platform connecting citizens directly with municipal authorities. Report neighborhood infrastructure issues, upvote community priorities, and verify resolution quality.
-            </p>
+                <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed">
+                  AWAZ gives citizens a simple way to report problems, rally community support, and follow issues through to resolution.
+                </p>
 
-            {/* CTAs */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-              {isAuthenticated ? (
-                isOfficer ? (
-                  <>
-                    <Link href="/officer/dashboard" className="w-full sm:w-auto">
-                      <Button size="lg" className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white gap-2 px-6 h-11 shadow-sm">
-                        <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                        Go to Operations Center
-                      </Button>
-                    </Link>
-                    <Link href="/complaints" className="w-full sm:w-auto">
-                      <Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 px-6 h-11 border-slate-300 bg-white text-slate-800 hover:bg-slate-50">
-                        <ListFilter className="h-4 w-4 text-slate-600" />
-                        Browse Issues
-                      </Button>
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/dashboard" className="w-full sm:w-auto">
-                      <Button size="lg" className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white gap-2 px-6 h-11 shadow-sm">
-                        <LayoutDashboard className="h-4 w-4" />
-                        Go to Citizen Dashboard
-                      </Button>
-                    </Link>
-                    <Link href="/complaints/new" className="w-full sm:w-auto">
-                      <Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 px-6 h-11 border-slate-300 bg-white text-slate-800 hover:bg-slate-50">
-                        <FilePlus className="h-4 w-4 text-slate-600" />
-                        Report an Issue
-                      </Button>
-                    </Link>
-                  </>
-                )
-              ) : (
-                <>
-                  <Link href="/complaints/new" className="w-full sm:w-auto">
-                    <Button size="lg" className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white gap-2 px-6 h-11 shadow-sm">
-                      <FilePlus className="h-4 w-4" />
-                      Report an Issue
-                    </Button>
+                {/* CTAs */}
+                <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  {isAuthenticated ? (
+                    isOfficer ? (
+                      <>
+                        <Link href="/officer/dashboard">
+                          <Button size="lg" className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 gap-2 px-6 h-12 text-sm font-semibold rounded-xl shadow-[0_2px_12px_rgba(15,23,42,0.1)]">
+                            <ShieldCheck className="h-4 w-4 text-emerald-400 dark:text-emerald-600" />
+                            Operations Command
+                          </Button>
+                        </Link>
+                        <Link href="/complaints">
+                          <Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 px-6 h-12 border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold rounded-xl">
+                            <Layers className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                            Explore Issues
+                          </Button>
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link href="/complaints/new">
+                          <Button size="lg" className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 gap-2 px-6 h-12 text-sm font-semibold rounded-xl shadow-[0_2px_12px_rgba(15,23,42,0.1)]">
+                            <FilePlus className="h-4 w-4" />
+                            Report an Issue
+                          </Button>
+                        </Link>
+                        <Link href="/dashboard">
+                          <Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 px-6 h-12 border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold rounded-xl">
+                            <LayoutDashboard className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                            My Dashboard
+                          </Button>
+                        </Link>
+                      </>
+                    )
+                  ) : (
+                    <>
+                      <Link href="/complaints/new">
+                        <Button size="lg" className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 gap-2 px-6 h-12 text-sm font-semibold rounded-xl shadow-[0_2px_12px_rgba(15,23,42,0.1)]">
+                          <FilePlus className="h-4 w-4" />
+                          Report an Issue
+                        </Button>
+                      </Link>
+                      <Link href="/complaints">
+                        <Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 px-6 h-12 border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold rounded-xl">
+                          <Layers className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                          Explore Issues
+                        </Button>
+                      </Link>
+                    </>
+                  )}
+                </div>
+
+                {/* Reassurance pills */}
+                <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    Public tracking ID
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    Democratic priority scores
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    Verified resolution remarks
+                  </span>
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: INTERACTIVE CIVIC ACTIVITY PANEL (COMMUNITY PULSE) */}
+              <div className="lg:col-span-5">
+                <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 sm:p-7 shadow-[0_8px_30px_rgba(15,23,42,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] space-y-5">
+                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                        COMMUNITY PULSE
+                      </span>
+                    </div>
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      {pulseData.total} total cases
+                    </span>
+                  </div>
+
+                  {/* Summary Metric Strip */}
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#182235] p-3">
+                      <div className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Active</div>
+                      <div className="text-xl font-extrabold text-slate-900 dark:text-slate-50 mt-0.5">
+                        {pulseData.pending + pulseData.inProgress}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-red-200/80 dark:border-red-900/40 bg-red-50/70 dark:bg-red-950/30 p-3">
+                      <div className="text-[10px] font-bold uppercase text-red-700 dark:text-red-300 flex items-center justify-center gap-1">
+                        <Flame className="h-3 w-3" />
+                        Critical
+                      </div>
+                      <div className="text-xl font-extrabold text-red-900 dark:text-red-200 mt-0.5">
+                        {pulseData.critical}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-emerald-200/80 dark:border-emerald-900/40 bg-emerald-50/70 dark:bg-emerald-950/30 p-3">
+                      <div className="text-[10px] font-bold uppercase text-emerald-700 dark:text-emerald-300">Resolved</div>
+                      <div className="text-xl font-extrabold text-emerald-900 dark:text-emerald-200 mt-0.5">
+                        {pulseData.resolved}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Live Complaint Items */}
+                  <div className="space-y-2.5">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      High-Priority Neighborhood Issues
+                    </div>
+                    {topComplaints.map((item) => {
+                      const { icon: CatIcon, container } = getCategoryIcon(item.category);
+                      return (
+                        <Link
+                          key={item._id}
+                          href={`/complaints/${item._id}`}
+                          className="flex items-center justify-between p-3 rounded-2xl border border-slate-200/70 dark:border-slate-800/80 bg-[#F7F8FC]/60 dark:bg-[#182235]/60 hover:bg-slate-100/80 dark:hover:bg-[#182235] transition-all group"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 ${container}`}>
+                              <CatIcon className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-slate-700 dark:group-hover:text-slate-300">
+                                {item.title}
+                              </div>
+                              <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
+                                <span>{item.area}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 pl-3 shrink-0">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-xs font-bold text-slate-800 dark:text-slate-200">
+                              <ThumbsUp className="h-3 w-3 text-slate-500" />
+                              {item.upvotes || 0}
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+
+                  {/* Explore Link */}
+                  <Link
+                    href="/complaints"
+                    className="block text-center text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white pt-1 transition-colors"
+                  >
+                    View all {pulseData.total} community complaints &rarr;
                   </Link>
-                  <Link href="/complaints" className="w-full sm:w-auto">
-                    <Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 px-6 h-11 border-slate-300 bg-white text-slate-800 hover:bg-slate-50">
-                      <ListFilter className="h-4 w-4 text-slate-600" />
-                      Browse Reported Issues
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </div>
-
-            {/* Trust Highlights Strip */}
-            <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-3 text-left max-w-4xl mx-auto pt-8 border-t border-slate-100">
-              <div className="p-3.5 rounded border border-slate-200 bg-slate-50/60">
-                <div className="text-xs font-bold text-slate-900">Direct Dispatch</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">Routed to municipal teams</div>
-              </div>
-              <div className="p-3.5 rounded border border-slate-200 bg-slate-50/60">
-                <div className="text-xs font-bold text-slate-900">Community Upvotes</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">Surface urgent local needs</div>
-              </div>
-              <div className="p-3.5 rounded border border-slate-200 bg-slate-50/60">
-                <div className="text-xs font-bold text-slate-900">Verified Progress</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">Status & officer remarks</div>
-              </div>
-              <div className="p-3.5 rounded border border-slate-200 bg-slate-50/60">
-                <div className="text-xs font-bold text-slate-900">Citizen Feedback</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">1–5 star resolution rating</div>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* HOW IT WORKS - 3 SUBTLE NUMBERED BLOCKS */}
-        <section className="py-16 border-b border-slate-200 bg-[#f8f9ff]">
+        {/* HOW AWAZ WORKS — 3 SOFT NUMBERED CARDS */}
+        <section className="py-16 sm:py-20 border-b border-slate-200/80 dark:border-slate-800/80 bg-[#F7F8FC] dark:bg-[#0D1424]">
           <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-12">
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                Resolution Workflow
+            <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
+              <div className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                RESOLUTION PROCESS
               </div>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                How CivicFix Works
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+                How AWAZ Works
               </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                A structured three-step process built for civic accountability.
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                A simple, democratic framework transforming citizen reports into municipal action.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Step 01 */}
-              <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="text-xs font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded w-fit mb-4">
-                  01 REPORT
+              <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#111827] p-7 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-3.5 transition-all hover:-translate-y-1">
+                <div className="text-xs font-mono font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 px-3 py-1 rounded-full w-fit">
+                  01 — REPORT
                 </div>
-                <h3 className="text-base font-bold text-slate-900">Submit or Upvote</h3>
-                <p className="mt-2 text-xs text-slate-600 leading-relaxed">
-                  Submit a complaint with location and category. If an identical problem exists, duplicate detection prompts you to upvote the existing ticket.
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  Tell Us What Happened
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Submit your report with location and category. Built-in duplicate detection alerts you if neighbors already filed the issue, letting you rally support instantly.
                 </p>
               </div>
 
               {/* Step 02 */}
-              <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="text-xs font-mono font-bold text-blue-800 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded w-fit mb-4">
-                  02 TRACK
+              <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#111827] p-7 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-3.5 transition-all hover:-translate-y-1">
+                <div className="text-xs font-mono font-bold text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 px-3 py-1 rounded-full w-fit">
+                  02 — RALLY
                 </div>
-                <h3 className="text-base font-bold text-slate-900">Officer Operations</h3>
-                <p className="mt-2 text-xs text-slate-600 leading-relaxed">
-                  Municipal officers inspect queues prioritized by community upvotes, generate AI operational summaries, and record resolution remarks.
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  Community Upvotes
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Neighbors upvote high-impact problems. The priority algorithm dynamically escalates issues from Medium to High and Critical as community urgency grows.
                 </p>
               </div>
 
               {/* Step 03 */}
-              <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="text-xs font-mono font-bold text-slate-800 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded w-fit mb-4">
-                  03 RESOLVE
+              <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#111827] p-7 shadow-[0_4px_20px_rgba(15,23,42,0.03)] space-y-3.5 transition-all hover:-translate-y-1">
+                <div className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full w-fit">
+                  03 — RESOLVE
                 </div>
-                <h3 className="text-base font-bold text-slate-900">Verify & Feedback</h3>
-                <p className="mt-2 text-xs text-slate-600 leading-relaxed">
-                  Upon completion, the ticket is marked resolved. The author evaluates resolution quality with a 1–5 star rating and service comment.
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  Inspect & Verify
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Municipal officers dispatch field crews and record official remarks. Once marked resolved, reporting citizens evaluate the work with a 1–5 star rating.
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ISSUE CATEGORIES */}
-        <section className="py-16 border-b border-slate-200 bg-white">
+        {/* ISSUE DIVISIONS WITH SOFT ICON CONTAINERS */}
+        <section className="py-16 sm:py-20 border-b border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-[#090E1A]">
           <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-12">
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                Municipal Services
+            <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
+              <div className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                MUNICIPAL DIVISIONS
               </div>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                Civic Issue Categories
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+                What Can You Report?
               </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Issues are categorized to reach the correct municipal maintenance division without delay.
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                Issues are categorized to reach specialized city maintenance units without bureaucratic delays.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-5 hover:border-slate-300 transition-colors">
-                <div className="h-9 w-9 rounded bg-slate-900 text-white flex items-center justify-center mb-3">
-                  <Truck className="h-4 w-4" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              <Link
+                href="/complaints?category=road"
+                className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#111827] p-6 hover:border-slate-300 dark:hover:border-slate-700 transition-all hover:-translate-y-1 block group shadow-[0_2px_10px_rgba(15,23,42,0.02)]"
+              >
+                <div className="h-10 w-10 rounded-2xl bg-blue-100/90 text-blue-700 dark:bg-blue-950 dark:text-blue-300 flex items-center justify-center mb-4 transition-transform group-hover:scale-105">
+                  <Route className="h-5 w-5" />
                 </div>
-                <h3 className="text-sm font-bold text-slate-900">Road & Transport</h3>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Potholes, broken asphalt, damaged walkways, missing manhole covers, and faulty traffic signals.
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Roads & Transport</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+                  Potholes, broken asphalt, damaged footpaths, open manholes, and malfunctioning signals.
                 </p>
-              </div>
+              </Link>
 
-              <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-5 hover:border-slate-300 transition-colors">
-                <div className="h-9 w-9 rounded bg-emerald-700 text-white flex items-center justify-center mb-3">
-                  <Trash2 className="h-4 w-4" />
+              <Link
+                href="/complaints?category=garbage"
+                className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#111827] p-6 hover:border-slate-300 dark:hover:border-slate-700 transition-all hover:-translate-y-1 block group shadow-[0_2px_10px_rgba(15,23,42,0.02)]"
+              >
+                <div className="h-10 w-10 rounded-2xl bg-emerald-100/90 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 flex items-center justify-center mb-4 transition-transform group-hover:scale-105">
+                  <Trash2 className="h-5 w-5" />
                 </div>
-                <h3 className="text-sm font-bold text-slate-900">Garbage & Sanitation</h3>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Uncollected waste heaps, overflowing public dumpsters, clogged drains, and illegal dumping sites.
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Garbage & Sanitation</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+                  Uncollected waste heaps, overflowing dumpsters, clogged sewers, and illegal dumping.
                 </p>
-              </div>
+              </Link>
 
-              <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-5 hover:border-slate-300 transition-colors">
-                <div className="h-9 w-9 rounded bg-blue-700 text-white flex items-center justify-center mb-3">
-                  <Droplets className="h-4 w-4" />
+              <Link
+                href="/complaints?category=water"
+                className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#111827] p-6 hover:border-slate-300 dark:hover:border-slate-700 transition-all hover:-translate-y-1 block group shadow-[0_2px_10px_rgba(15,23,42,0.02)]"
+              >
+                <div className="h-10 w-10 rounded-2xl bg-sky-100/90 text-sky-700 dark:bg-sky-950 dark:text-sky-300 flex items-center justify-center mb-4 transition-transform group-hover:scale-105">
+                  <Droplets className="h-5 w-5" />
                 </div>
-                <h3 className="text-sm font-bold text-slate-900">Water Supply</h3>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Burst pipeline mains, low supply pressure, contaminated tap water, and open sewer overflows.
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Water Supply</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+                  Burst pipeline mains, contaminated tap water, low pressure, and standing street wastewater.
                 </p>
-              </div>
+              </Link>
 
-              <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-5 hover:border-slate-300 transition-colors">
-                <div className="h-9 w-9 rounded bg-amber-600 text-white flex items-center justify-center mb-3">
-                  <Zap className="h-4 w-4" />
+              <Link
+                href="/complaints?category=electricity"
+                className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-[#F7F8FC] dark:bg-[#111827] p-6 hover:border-slate-300 dark:hover:border-slate-700 transition-all hover:-translate-y-1 block group shadow-[0_2px_10px_rgba(15,23,42,0.02)]"
+              >
+                <div className="h-10 w-10 rounded-2xl bg-amber-100/90 text-amber-700 dark:bg-amber-950 dark:text-amber-300 flex items-center justify-center mb-4 transition-transform group-hover:scale-105">
+                  <Zap className="h-5 w-5" />
                 </div>
-                <h3 className="text-sm font-bold text-slate-900">Electricity & Power</h3>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Exposed transformer cables, broken streetlights, hanging power wires, and local phase failures.
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Electricity & Power</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+                  Exposed transformer cables, broken street lighting, dangling power lines, and blackouts.
                 </p>
-              </div>
+              </Link>
             </div>
           </div>
         </section>
 
-        {/* TRUST & ACCOUNTABILITY (AUTH-AWARE) */}
-        <section className="py-16 bg-[#f8f9ff]">
-          <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+        {/* FINAL CALL TO ACTION */}
+        <section className="py-20 bg-gradient-to-b from-[#F7F8FC] to-white dark:from-[#0D1424] dark:to-[#090E1A]">
+          <div className="container mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center space-y-6">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] px-3.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm">
+              <ShieldCheck className="h-3.5 w-3.5 text-slate-900 dark:text-slate-100" />
               Public Accountability by Design
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-slate-600 leading-relaxed">
-              Every complaint is logged with a persistent public tracking ID, transparent timestamp, dynamic community priority score, and official resolution record.
-            </p>
+            </div>
 
-            <div className="mt-8 flex flex-col sm:flex-row justify-center gap-3">
-              {isAuthenticated ? (
-                isOfficer ? (
-                  <>
-                    <Link href="/officer/dashboard" className="w-full sm:w-auto">
-                      <Button size="lg" className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white px-6 h-11 shadow-sm gap-2">
-                        <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                        Go to Operations Center
-                      </Button>
-                    </Link>
-                    <Link href="/complaints" className="w-full sm:w-auto">
-                      <Button size="lg" variant="outline" className="w-full sm:w-auto px-6 h-11 border-slate-300 bg-white text-slate-800 hover:bg-slate-50 gap-2">
-                        <ListFilter className="h-4 w-4 text-slate-600" />
-                        Browse Issues
-                      </Button>
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/dashboard" className="w-full sm:w-auto">
-                      <Button size="lg" className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white px-6 h-11 shadow-sm gap-2">
-                        <LayoutDashboard className="h-4 w-4" />
-                        Go to Citizen Dashboard
-                      </Button>
-                    </Link>
-                    <Link href="/complaints/mine" className="w-full sm:w-auto">
-                      <Button size="lg" variant="outline" className="w-full sm:w-auto px-6 h-11 border-slate-300 bg-white text-slate-800 hover:bg-slate-50 gap-2">
-                        <FileText className="h-4 w-4 text-slate-600" />
-                        My Complaints
-                      </Button>
-                    </Link>
-                  </>
-                )
-              ) : (
-                <>
-                  <Link href="/signup" className="w-full sm:w-auto">
-                    <Button size="lg" className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white px-6 h-11 shadow-sm">
-                      Register Citizen Account
-                    </Button>
-                  </Link>
-                  <Link href="/login" className="w-full sm:w-auto">
-                    <Button size="lg" variant="outline" className="w-full sm:w-auto px-6 h-11 border-slate-300 bg-white text-slate-800 hover:bg-slate-50">
-                      Sign In to Portal
-                    </Button>
-                  </Link>
-                </>
-              )}
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
+              Have something your city needs to hear?
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
+              Join your neighbors in creating cleaner, safer, and better-maintained communities with AWAZ.
+            </p>
+            <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
+              <Link href="/complaints/new">
+                <Button size="lg" className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-950 px-8 h-12 text-sm font-bold rounded-xl shadow-[0_4px_16px_rgba(15,23,42,0.12)]">
+                  Report an Issue Now
+                </Button>
+              </Link>
+              <Link href="/complaints">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto px-6 h-12 border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold rounded-xl">
+                  Browse Community Issues
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
       </main>
 
-      {/* REUSABLE INSTITUTIONAL FOOTER */}
       <Footer />
     </div>
   );
