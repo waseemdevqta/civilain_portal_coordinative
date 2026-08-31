@@ -108,12 +108,13 @@ export default function StaffManagementPage() {
     }
     setProvisioning(true);
     try {
+      const targetRole = isSuperOfficer ? provisionRole : 'technician';
       await staffApi.provision({
         ...provisionForm,
-        role: provisionRole,
-        assignedOfficerId: provisionForm.assignedOfficerId || undefined,
+        role: targetRole,
+        assignedOfficerId: provisionForm.assignedOfficerId || (!isSuperOfficer ? (user?.id || user?._id) : undefined),
       });
-      toast.success(`${provisionRole === 'officer' ? 'Officer' : 'Technician'} account created!`);
+      toast.success(`${targetRole === 'officer' ? 'Officer' : 'Technician'} account created!`);
       setShowProvisionForm(false);
       setProvisionForm({ name: '', email: '', password: '', designation: '', phone: '', assignedOfficerId: '' });
       fetchStaff();
@@ -181,52 +182,62 @@ export default function StaffManagementPage() {
               </p>
             </div>
           </div>
-          {isSuperOfficer && (
-            <Button
-              onClick={() => setShowProvisionForm(!showProvisionForm)}
-              className="gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-[0_4px_12px_rgba(5,150,105,0.25)]"
-            >
-              <UserPlus className="h-4 w-4" />
-              Add Staff Member
-            </Button>
-          )}
+          <Button
+            onClick={() => {
+              setShowProvisionForm(!showProvisionForm);
+              if (!isSuperOfficer) setProvisionRole('technician');
+            }}
+            className="gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-[0_4px_12px_rgba(5,150,105,0.25)]"
+          >
+            <UserPlus className="h-4 w-4" />
+            {isSuperOfficer ? 'Add Staff Member' : 'Add Field Technician'}
+          </Button>
         </div>
 
-        {/* Provision Form (Super Officer only) */}
-        {showProvisionForm && isSuperOfficer && (
+        {/* Provision Form */}
+        {showProvisionForm && (
           <div className="rounded-3xl border border-emerald-200 bg-white shadow-[0_8px_24px_rgba(5,150,105,0.08)] p-6 space-y-5">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 text-white flex items-center justify-center">
                 <UserPlus className="h-4 w-4" />
               </div>
-              <h2 className="text-base font-bold text-[#0B1C30]">Provision New Staff Account</h2>
+              <h2 className="text-base font-bold text-[#0B1C30]">
+                {isSuperOfficer ? 'Provision New Staff Account' : 'Add New Field Technician'}
+              </h2>
             </div>
 
-            {/* Role selector */}
-            <div className="flex gap-2.5">
-              <button
-                type="button"
-                onClick={() => setProvisionRole('technician')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-bold transition-all ${
-                  provisionRole === 'technician'
-                    ? 'border-blue-500 bg-blue-50 text-blue-800'
-                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
-                }`}
-              >
-                <Wrench className="h-3.5 w-3.5" /> Technician
-              </button>
-              <button
-                type="button"
-                onClick={() => setProvisionRole('officer')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-bold transition-all ${
-                  provisionRole === 'officer'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
-                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
-                }`}
-              >
-                <ShieldCheck className="h-3.5 w-3.5" /> Officer
-              </button>
-            </div>
+            {/* Role selector (Super Officer can choose, regular officer creates technician) */}
+            {isSuperOfficer ? (
+              <div className="flex gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setProvisionRole('technician')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-bold transition-all ${
+                    provisionRole === 'technician'
+                      ? 'border-blue-500 bg-blue-50 text-blue-800'
+                      : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  <Wrench className="h-3.5 w-3.5" /> Technician
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProvisionRole('officer')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-bold transition-all ${
+                    provisionRole === 'officer'
+                      ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
+                      : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" /> Officer
+                </button>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-2 rounded-xl bg-blue-50 border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-800">
+                <Wrench className="h-4 w-4" />
+                <span>Field Technician for your operations crew</span>
+              </div>
+            )}
 
             {provisionError && (
               <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
@@ -276,7 +287,7 @@ export default function StaffManagementPage() {
                     onChange={(e) => setProvisionForm((p) => ({ ...p, designation: e.target.value }))} />
                 </div>
               </div>
-              {provisionRole === 'technician' && (
+              {provisionRole === 'technician' && isSuperOfficer && (
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-slate-700">Assign to Officer</Label>
                   <div className="relative">
@@ -307,64 +318,64 @@ export default function StaffManagementPage() {
           </div>
         )}
 
-        {/* Officers section (Super Officer only) */}
-        {isSuperOfficer && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-emerald-600" />
-              <h2 className="text-sm font-bold text-[#0B1C30] uppercase tracking-wider">Officers ({officersList.length})</h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {officersList.map((member) => (
-                <div key={member._id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200 flex items-center justify-center text-emerald-800 font-black text-sm">
-                        {member.name?.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-[#0B1C30]">{member.name}</div>
-                        <div className="text-[10px] text-slate-500 truncate max-w-[140px]">{member.email}</div>
-                      </div>
-                    </div>
-                    <RoleBadge role={member.role} isSuperOfficer={member.isSuperOfficer} />
-                  </div>
-                  {member.designation && <div className="text-[10px] text-slate-500 flex items-center gap-1"><Briefcase className="h-3 w-3" />{member.designation}</div>}
-                  {member.phone && <div className="text-[10px] text-slate-500 flex items-center gap-1"><Phone className="h-3 w-3" />{member.phone}</div>}
-                  <div className="text-[10px] text-slate-400">
-                    Technicians: {techniciansList.filter((t) => t.assignedOfficer?._id === member._id || t.assignedOfficer === member._id).length}
-                  </div>
-                  {!member.isSuperOfficer && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="w-full text-[11px] h-8 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700 border border-red-100 gap-1.5"
-                      disabled={removing === member._id}
-                      onClick={() => handleRemove(member._id, member.name)}
-                    >
-                      {removing === member._id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              ))}
-              {officersList.length === 0 && (
-                <div className="col-span-3 text-center py-8 text-xs text-slate-400">No officers yet. Provision one above.</div>
-              )}
-            </div>
+        {/* Officers section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-emerald-600" />
+            <h2 className="text-sm font-bold text-[#0B1C30] uppercase tracking-wider">
+              {isSuperOfficer ? `Officers (${officersList.length})` : 'Supervising Officers'}
+            </h2>
           </div>
-        )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {officersList.map((member) => (
+              <div key={member._id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200 flex items-center justify-center text-emerald-800 font-black text-sm">
+                      {member.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-[#0B1C30]">{member.name}</div>
+                      <div className="text-[10px] text-slate-500 truncate max-w-[140px]">{member.email}</div>
+                    </div>
+                  </div>
+                  <RoleBadge role={member.role} isSuperOfficer={member.isSuperOfficer || member.email?.toLowerCase() === 'waseemahmedbaloch2004@gmail.com'} />
+                </div>
+                {member.designation && <div className="text-[10px] text-slate-500 flex items-center gap-1"><Briefcase className="h-3 w-3" />{member.designation}</div>}
+                {member.phone && <div className="text-[10px] text-slate-500 flex items-center gap-1"><Phone className="h-3 w-3" />{member.phone}</div>}
+                <div className="text-[10px] text-slate-400">
+                  Assigned Technicians: {techniciansList.filter((t) => (t.assignedOfficer?._id || t.assignedOfficer) === member._id).length}
+                </div>
+                {isSuperOfficer && !member.isSuperOfficer && member.email?.toLowerCase() !== 'waseemahmedbaloch2004@gmail.com' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="w-full text-[11px] h-8 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700 border border-red-100 gap-1.5"
+                    disabled={removing === member._id}
+                    onClick={() => handleRemove(member._id, member.name)}
+                  >
+                    {removing === member._id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    Remove
+                  </Button>
+                )}
+              </div>
+            ))}
+            {officersList.length === 0 && (
+              <div className="col-span-3 text-center py-6 text-xs text-slate-400">No officers found.</div>
+            )}
+          </div>
+        </div>
 
         {/* Technicians section */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Wrench className="h-5 w-5 text-blue-600" />
             <h2 className="text-sm font-bold text-[#0B1C30] uppercase tracking-wider">
-              {isSuperOfficer ? `Field Technicians (${techniciansList.length})` : `Your Technicians (${staff.length})`}
+              Field Technicians & Crews ({techniciansList.length})
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {(isSuperOfficer ? techniciansList : staff).map((member) => (
+            {techniciansList.map((member) => (
               <div key={member._id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
@@ -421,14 +432,15 @@ export default function StaffManagementPage() {
                 )}
               </div>
             ))}
-            {(isSuperOfficer ? techniciansList : staff).length === 0 && (
+            {techniciansList.length === 0 && (
               <div className="col-span-3 rounded-2xl border border-dashed border-slate-300 py-10 text-center text-xs text-slate-400">
                 <Users className="h-8 w-8 mx-auto mb-2 text-slate-300" />
-                {isSuperOfficer ? 'No technicians provisioned yet.' : 'No technicians assigned to you yet.'}
+                {isSuperOfficer ? 'No technicians provisioned yet. Click "Add Staff Member" above to create one.' : 'No technicians assigned to your crew yet.'}
               </div>
             )}
           </div>
         </div>
+
       </div>
     </div>
   );

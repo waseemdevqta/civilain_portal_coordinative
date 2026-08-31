@@ -59,6 +59,9 @@ const signup = async (req, res, next) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isSuperOfficer: user.isSuperOfficer || false,
+        designation: user.designation || '',
+        phone: user.phone || '',
       },
     });
   } catch (error) {
@@ -99,6 +102,9 @@ const login = async (req, res, next) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isSuperOfficer: user.isSuperOfficer || (process.env.SEED_OFFICER_EMAIL && user.email.toLowerCase() === process.env.SEED_OFFICER_EMAIL.toLowerCase()) || false,
+        designation: user.designation || '',
+        phone: user.phone || '',
       },
     });
   } catch (error) {
@@ -200,6 +206,9 @@ const refreshTokenHandler = async (req, res, next) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isSuperOfficer: user.isSuperOfficer || (process.env.SEED_OFFICER_EMAIL && user.email.toLowerCase() === process.env.SEED_OFFICER_EMAIL.toLowerCase()) || false,
+        designation: user.designation || '',
+        phone: user.phone || '',
       },
     });
   } catch (error) {
@@ -224,6 +233,9 @@ const getMe = async (req, res, next) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      isSuperOfficer: user.isSuperOfficer || (process.env.SEED_OFFICER_EMAIL && user.email.toLowerCase() === process.env.SEED_OFFICER_EMAIL.toLowerCase()) || false,
+      designation: user.designation || '',
+      phone: user.phone || '',
       createdAt: user.createdAt,
     });
   } catch (error) {

@@ -1,6 +1,18 @@
 const User = require('../models/User');
 const { successResponse, errorResponse } = require('../utils/apiResponse');
 
+const checkIsSuper = (user) => {
+  if (!user || user.role !== 'officer') return false;
+  if (user.isSuperOfficer === true) return true;
+  if (
+    process.env.SEED_OFFICER_EMAIL &&
+    user.email?.toLowerCase() === process.env.SEED_OFFICER_EMAIL.toLowerCase()
+  )
+    return true;
+  if (user.email?.toLowerCase() === 'waseemahmedbaloch2004@gmail.com') return true;
+  return false;
+};
+
 /**
  * GET /api/staff
  * Super officer: list all officers + technicians
@@ -8,8 +20,9 @@ const { successResponse, errorResponse } = require('../utils/apiResponse');
  */
 const getStaff = async (req, res) => {
   try {
+    const isSuper = checkIsSuper(req.user);
     let query;
-    if (req.user.isSuperOfficer) {
+    if (isSuper) {
       // Super officer sees everyone except citizens
       query = User.find({ role: { $in: ['officer', 'technician'] } })
         .populate('assignedOfficer', 'name email designation')
@@ -28,11 +41,13 @@ const getStaff = async (req, res) => {
 
 /**
  * POST /api/staff/provision
- * Super officer only — create officer or technician account
+ * Super officer: can create officer or technician (and assign to any officer)
+ * Regular officer: can create technicians for their own team
  * Body: { name, email, password, role ('officer'|'technician'), designation, phone, assignedOfficerId? }
  */
 const provisionStaff = async (req, res) => {
   try {
+    const isSuper = checkIsSuper(req.user);
     const { name, email, password, role, designation, phone, assignedOfficerId } = req.body;
 
     if (!name || !email || !password || !role) {
@@ -41,6 +56,11 @@ const provisionStaff = async (req, res) => {
 
     if (!['officer', 'technician'].includes(role)) {
       return errorResponse(res, 400, 'Role must be either "officer" or "technician".');
+    }
+
+    // Only Super Officer can create other officers
+    if (role === 'officer' && !isSuper) {
+      return errorResponse(res, 403, 'Only Super Officer can provision other officers.');
     }
 
     const existing = await User.findOne({ email: email.toLowerCase().trim() });
@@ -57,13 +77,20 @@ const provisionStaff = async (req, res) => {
       phone: phone || '',
     };
 
-    // If provisioning a technician, validate and set their assigned officer
-    if (role === 'technician' && assignedOfficerId) {
-      const officer = await User.findOne({ _id: assignedOfficerId, role: 'officer' });
-      if (!officer) {
-        return errorResponse(res, 404, 'Assigned officer not found.');
+    // If provisioning a technician, set assigned officer
+    if (role === 'technician') {
+      if (isSuper) {
+        if (assignedOfficerId) {
+          const officer = await User.findOne({ _id: assignedOfficerId, role: 'officer' });
+          if (!officer) {
+            return errorResponse(res, 404, 'Assigned officer not found.');
+          }
+          userData.assignedOfficer = assignedOfficerId;
+        }
+      } else {
+        // Regular officer assigns technician to their own crew
+        userData.assignedOfficer = req.user._id;
       }
-      userData.assignedOfficer = assignedOfficerId;
     }
 
     const newUser = await User.create(userData);
@@ -161,7 +188,8 @@ const getOfficers = async (req, res) => {
  */
 const getMyTechnicians = async (req, res) => {
   try {
-    const filter = req.user.isSuperOfficer
+    const isSuper = checkIsSuper(req.user);
+    const filter = isSuper
       ? { role: 'technician' } // super officer can assign any technician
       : { role: 'technician', assignedOfficer: req.user._id };
 

@@ -23,8 +23,8 @@ router.get('/officers', requireSuperOfficer, getOfficers);
 // GET /api/staff/technicians — list technicians under the requesting officer
 router.get('/technicians', getMyTechnicians);
 
-// POST /api/staff/provision — create officer or technician (super officer only)
-router.post('/provision', requireSuperOfficer, provisionStaff);
+// POST /api/staff/provision — create officer (super officer only) or technician
+router.post('/provision', provisionStaff);
 
 // PATCH /api/staff/:id/assign-officer — assign technician to officer (super officer only)
 router.patch('/:id/assign-officer', requireSuperOfficer, assignOfficerToTechnician);
