@@ -32,6 +32,7 @@ import {
   Flame,
   Check,
   Camera,
+  ShieldCheck,
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -51,7 +52,7 @@ const STATUSES = [
 ];
 
 export default function ComplaintsPage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isOfficer } = useAuth();
 
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -153,12 +154,21 @@ export default function ComplaintsPage() {
           </div>
 
           <div className="shrink-0">
-            <Link href="/complaints/new">
-              <Button size="lg" variant="default" className="w-full sm:w-auto gap-2 font-bold text-xs sm:text-sm h-11 px-5 rounded-xl">
-                <FilePlus className="h-4 w-4" />
-                Report an Issue
-              </Button>
-            </Link>
+            {isOfficer ? (
+              <Link href="/officer/dashboard">
+                <Button size="lg" variant="default" className="w-full sm:w-auto gap-2 font-bold text-xs sm:text-sm h-11 px-5 rounded-xl">
+                  <ShieldCheck className="h-4 w-4" />
+                  Operations Console
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/complaints/new">
+                <Button size="lg" variant="default" className="w-full sm:w-auto gap-2 font-bold text-xs sm:text-sm h-11 px-5 rounded-xl">
+                  <FilePlus className="h-4 w-4" />
+                  Report an Issue
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 
