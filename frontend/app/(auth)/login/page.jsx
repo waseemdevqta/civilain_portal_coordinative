@@ -127,7 +127,7 @@ function LoginForm() {
               name="email"
               type="email"
               placeholder="name@example.com"
-              className="pl-10 h-10 text-xs bg-[#F8F9FF] border-slate-200"
+              className="pl-10 h-10 text-xs bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
               value={formData.email}
               onChange={handleChange}
               required
@@ -149,7 +149,7 @@ function LoginForm() {
               name="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
-              className="pl-10 pr-10 h-10 text-xs bg-[#F8F9FF] border-slate-200"
+              className="pl-10 pr-10 h-10 text-xs bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
               value={formData.password}
               onChange={handleChange}
               required
@@ -167,7 +167,9 @@ function LoginForm() {
 
         <Button
           type="submit"
-          className="w-full h-11 bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold shadow-[0_4px_14px_rgba(15,23,42,0.15)] mt-2 text-xs sm:text-sm rounded-xl hover:-translate-y-0.5 transition-all"
+          size="lg"
+          variant="default"
+          className="w-full h-11 font-bold mt-2 text-xs sm:text-sm rounded-xl"
           disabled={loading}
         >
           {loading ? (
@@ -184,31 +186,31 @@ function LoginForm() {
       {/* Demo Fast-Fill Section */}
       <div className="pt-4 border-t border-slate-100 space-y-2.5">
         <div className="flex items-center justify-between text-xs text-slate-500">
-          <span className="flex items-center gap-1.5 font-semibold">
-            <KeyRound className="h-3.5 w-3.5 text-slate-400" />
-            Evaluation Fast-Fill
+          <span className="flex items-center gap-1.5 font-semibold text-emerald-800">
+            <KeyRound className="h-3.5 w-3.5 text-emerald-600" />
+            Evaluation 1-Click Fast Fill
           </span>
-          <span className="text-[10px]">Auto server-verified role</span>
+          <span className="text-[10px] text-slate-400">Direct server verified</span>
         </div>
         <div className="grid grid-cols-2 gap-2.5">
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="text-xs border-slate-200 bg-[#F8F9FF] text-slate-800 hover:bg-[#EFF4FF] hover:border-slate-300 gap-1.5 h-9 font-semibold rounded-xl transition-all"
+            className="text-xs border-emerald-200/80 bg-emerald-50/50 text-emerald-900 hover:bg-emerald-100 hover:border-emerald-300 gap-1.5 h-9 font-semibold rounded-xl transition-all"
             onClick={() => fillDemoAccount('officer')}
           >
-            <ShieldCheck className="h-3.5 w-3.5 text-[#1F6C3A]" />
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-700" />
             Officer Waseem
           </Button>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="text-xs border-slate-200 bg-[#F8F9FF] text-slate-800 hover:bg-[#EFF4FF] hover:border-slate-300 gap-1.5 h-9 font-semibold rounded-xl transition-all"
+            className="text-xs border-blue-200/80 bg-blue-50/50 text-blue-900 hover:bg-blue-100 hover:border-blue-300 gap-1.5 h-9 font-semibold rounded-xl transition-all"
             onClick={() => fillDemoAccount('citizen')}
           >
-            <UserCheck className="h-3.5 w-3.5 text-[#1E40AF]" />
+            <UserCheck className="h-3.5 w-3.5 text-blue-700" />
             Citizen Ahmed
           </Button>
         </div>
@@ -216,7 +218,7 @@ function LoginForm() {
 
       <div className="pt-3 border-t border-slate-100 text-center text-xs text-slate-500">
         Need a citizen account?{' '}
-        <Link href="/signup" className="font-bold text-[#0B1C30] hover:underline">
+        <Link href="/signup" className="font-bold text-emerald-700 hover:text-emerald-900 hover:underline">
           Register Here
         </Link>
       </div>
@@ -230,14 +232,14 @@ export default function LoginPage() {
       {/* Top Header */}
       <header className="container mx-auto max-w-6xl px-4 py-6 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0F172A] text-white shadow-sm transition-transform group-hover:scale-105">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-[0_4px_12px_rgba(5,150,105,0.28)] transition-transform group-hover:scale-105">
             <Megaphone className="h-5 w-5" />
           </div>
           <div className="flex items-center gap-1.5">
             <span className="font-black text-xl tracking-tight text-[#0B1C30]">
               AWAZ
             </span>
-            <span className="rounded-full bg-[#EFF4FF] px-2.5 py-0.5 text-[9px] font-extrabold text-[#1F6C3A] border border-[#A4F1B2]">
+            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[9px] font-extrabold text-emerald-800 border border-emerald-200">
               CIVIC
             </span>
           </div>
@@ -250,36 +252,36 @@ export default function LoginPage() {
           {/* Left Context Side */}
           <div className="hidden md:block md:col-span-6 space-y-6 text-left pr-4">
             <div className="space-y-2">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#1F6C3A] bg-[#E8F9ED] border border-[#A4F1B2] px-2.5 py-1 rounded-full">
-                SECURE PORTAL ACCESS
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                CIVIC PLATFORM ACCESS
               </span>
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#0B1C30] leading-tight">
-                Civic accountability starts with your voice.
+                Transparent civic action for every citizen and officer.
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                Log in to file neighborhood reports, monitor official municipal dispatch responses, and participate in community priority decisions.
+                Log in to file neighborhood reports, rally community support, and manage municipal resolution lifecycles with verified photo evidence.
               </p>
             </div>
 
             <div className="space-y-3 pt-2">
               <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-                <CheckCircle2 className="h-4 w-4 text-[#1F6C3A] shrink-0 mt-0.5" />
-                <span>Track real-time resolution remarks and field crew deployments.</span>
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                <span>Real-time complaint tracking with public ticket numbers.</span>
               </div>
               <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-                <CheckCircle2 className="h-4 w-4 text-[#1F6C3A] shrink-0 mt-0.5" />
-                <span>Rate municipal work quality with official 1–5 star reviews.</span>
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                <span>Verified Before & After resolution photo proof inspection.</span>
               </div>
               <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-                <CheckCircle2 className="h-4 w-4 text-[#1F6C3A] shrink-0 mt-0.5" />
-                <span>Full end-to-end token security and citizen privacy preservation.</span>
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                <span>1-Click municipal field dispatch docket generator.</span>
               </div>
             </div>
           </div>
 
           {/* Right Form Card */}
           <div className="md:col-span-6 max-w-md mx-auto w-full">
-            <Suspense fallback={<div className="h-96 w-full animate-pulse rounded-3xl bg-slate-200" />}>
+            <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Loading form...</div>}>
               <LoginForm />
             </Suspense>
           </div>

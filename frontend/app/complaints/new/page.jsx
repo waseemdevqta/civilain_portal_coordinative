@@ -10,8 +10,8 @@ import { Footer } from '@/components/common/Footer';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import ImageUploader from '@/components/common/ImageUploader';
 import { toast } from '@/components/ui/toaster';
@@ -21,59 +21,52 @@ import {
   Trash2,
   Droplets,
   Zap,
-  FileText,
+  HelpCircle,
   MapPin,
+  Camera,
+  Sparkles,
   AlertTriangle,
-  ArrowRight,
+  CheckCircle2,
+  ExternalLink,
+  ArrowLeft,
   Loader2,
   AlertCircle,
-  ThumbsUp,
-  ExternalLink,
-  ShieldCheck,
-  CheckCircle2,
-  Sparkles,
-  Camera,
 } from 'lucide-react';
 
 const CATEGORIES = [
   {
     value: 'road',
     label: 'Roads & Transport',
+    desc: 'Potholes, broken pavement, open manholes',
     icon: Route,
-    desc: 'Potholes, broken asphalt, traffic signals',
-    activeContainer: 'bg-[#EFF4FF] text-[#1E40AF] border-[#BFDBFE]',
-    inactiveContainer: 'bg-[#EFF4FF] text-[#1E40AF]',
+    inactiveContainer: 'bg-blue-50 text-blue-700',
   },
   {
     value: 'garbage',
     label: 'Garbage & Sanitation',
+    desc: 'Overflowing dumpsters, uncollected waste',
     icon: Trash2,
-    desc: 'Trash heaps, overflowing dumpsters',
-    activeContainer: 'bg-[#E8F9ED] text-[#1F6C3A] border-[#A4F1B2]',
-    inactiveContainer: 'bg-[#E8F9ED] text-[#1F6C3A]',
+    inactiveContainer: 'bg-emerald-50 text-emerald-700',
   },
   {
     value: 'water',
     label: 'Water Supply',
+    desc: 'Pipeline leaks, low pressure, contamination',
     icon: Droplets,
-    desc: 'Burst mains, dirty tap water, low pressure',
-    activeContainer: 'bg-[#F0F9FF] text-[#0369A1] border-[#BAE6FD]',
-    inactiveContainer: 'bg-[#F0F9FF] text-[#0369A1]',
+    inactiveContainer: 'bg-sky-50 text-sky-700',
   },
   {
     value: 'electricity',
     label: 'Electricity & Power',
+    desc: 'Broken street lights, dangling wires, outages',
     icon: Zap,
-    desc: 'Exposed wires, broken streetlights',
-    activeContainer: 'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]',
-    inactiveContainer: 'bg-[#FEFCE8] text-[#A16207]',
+    inactiveContainer: 'bg-amber-50 text-amber-700',
   },
   {
     value: 'other',
-    label: 'General Civic',
-    icon: FileText,
-    desc: 'Public spaces, park maintenance, hazards',
-    activeContainer: 'bg-slate-100 text-slate-800 border-slate-300',
+    label: 'Other Issues',
+    desc: 'Parks, public property, noise, animal control',
+    icon: HelpCircle,
     inactiveContainer: 'bg-slate-100 text-slate-700',
   },
 ];
@@ -152,7 +145,6 @@ export default function ReportComplaintPage() {
 
     setAnalyzingAi(true);
     setError('');
-
     try {
       const res = await aiApi.analyzeComplaint({
         title: formData.title,
@@ -162,10 +154,10 @@ export default function ReportComplaintPage() {
 
       if (res?.data) {
         setAiSuggestions(res.data);
-        toast.success('AI Triage complete! Insights and category recommendations ready.');
+        toast.success('Gemini AI analyzed your issue and provided smart triage recommendations!');
       }
     } catch (err) {
-      toast.error('AI assistant temporarily unavailable. You can still submit manually.');
+      toast.error(err.message || 'AI Triage currently unavailable');
     } finally {
       setAnalyzingAi(false);
     }
@@ -220,11 +212,10 @@ export default function ReportComplaintPage() {
         imagePublicId: formData.imagePublicId.trim(),
       });
 
-      toast.success('Issue reported successfully! Municipal tracking ticket generated.');
+      toast.success('Complaint submitted successfully! Your case is now live in the community ledger.');
       router.push('/complaints/mine');
     } catch (err) {
-      setError(err.message || 'Failed to submit report. Please try again.');
-      toast.error(err.message || 'Submission failed');
+      setError(err.message || 'Failed to submit complaint');
     } finally {
       setLoading(false);
     }
@@ -236,37 +227,47 @@ export default function ReportComplaintPage() {
         <Navbar />
 
         <main className="flex-1 container mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-7">
-          {/* HEADER */}
-          <div className="border-b border-slate-200/80 pb-6">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-3 py-0.5 text-xs font-bold text-[#1E40AF] mb-2">
-              <FilePlus className="h-3.5 w-3.5 text-[#1E40AF]" />
-              <span>CIVIC REPORT DISPATCH</span>
+          {/* TOP BREADCRUMB */}
+          <div className="flex items-center justify-between">
+            <Link href="/complaints">
+              <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-slate-600 hover:text-emerald-900 hover:bg-emerald-50/60 rounded-xl h-9 px-3 font-semibold">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Issues Feed
+              </Button>
+            </Link>
+          </div>
+
+          {/* PAGE HEADER */}
+          <div className="space-y-1 border-b border-slate-200/80 pb-5">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-0.5 text-xs font-bold text-emerald-800 border border-emerald-200">
+              <FilePlus className="h-3.5 w-3.5 text-emerald-600" />
+              <span>NEW CIVIC REPORT</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0B1C30]">
-              Report an Issue
+              Report a Neighborhood Issue
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Give your community and local authorities clear information and photo evidence to investigate and act quickly.
+            <p className="text-xs sm:text-sm text-slate-500">
+              Fill in the details below. Real-time duplicate detection alerts you if neighbors have already filed this issue.
             </p>
           </div>
 
-          {/* DUPLICATE WARNING ALERT */}
+          {/* DUPLICATE WARNING CARD */}
           {duplicates.length > 0 && (
-            <div className="rounded-3xl border border-amber-300 bg-amber-50 p-5 space-y-3 shadow-xs">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-amber-700 shrink-0 mt-0.5" />
+            <div className="rounded-3xl border border-amber-300 bg-amber-50/80 p-5 space-y-3 shadow-xs animate-in fade-in-50 duration-200">
+              <div className="flex items-center gap-2 text-amber-900">
+                <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
                 <div>
-                  <h4 className="text-sm font-bold text-amber-900">
-                    A similar issue may already be reported in {formData.area}
+                  <h4 className="text-xs font-bold uppercase tracking-wider">
+                    Similar Active Reports Detected in {formData.area}
                   </h4>
-                  <p className="text-xs text-amber-800 mt-0.5 leading-relaxed">
-                    Found {duplicates.length} active ticket(s) in this area. You can support the existing report to boost municipal urgency or continue with your new report:
+                  <p className="text-xs text-amber-800 mt-0.5">
+                    Your neighbors may have already filed this issue. Supporting an existing report raises its democratic priority score faster:
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-2 pl-8">
-                {duplicates.slice(0, 3).map((dup) => (
+              <div className="space-y-2 pt-1">
+                {duplicates.slice(0, 2).map((dup) => (
                   <div
                     key={dup._id}
                     className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-amber-200 bg-white text-xs shadow-2xs"
@@ -281,7 +282,7 @@ export default function ReportComplaintPage() {
                     <Link
                       href={`/complaints/${dup._id}`}
                       target="_blank"
-                      className="text-[#0B1C30] font-bold shrink-0 flex items-center gap-1 text-xs hover:text-[#1E40AF] hover:underline"
+                      className="text-emerald-700 font-bold shrink-0 flex items-center gap-1 text-xs hover:text-emerald-900 hover:underline"
                     >
                       Support Issue
                       <ExternalLink className="h-3 w-3" />
@@ -294,39 +295,40 @@ export default function ReportComplaintPage() {
 
           {/* AI TRIAGE SUGGESTIONS CARD */}
           {aiSuggestions && (
-            <div className="rounded-3xl border border-[#1F6C3A]/30 bg-[#E8F9ED]/50 p-5 space-y-3 shadow-xs animate-scale-up">
+            <div className="rounded-3xl border border-emerald-300 bg-emerald-50/70 p-5 space-y-3 shadow-xs animate-scale-up">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-[#1F6C3A] text-white flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-xs">
                     <Sparkles className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-[#0B1C30]">Gemini AI Triage Assessment</h4>
-                    <p className="text-xs text-[#526071]">Recommended Sector & Risk Level</p>
+                    <h4 className="text-sm font-bold text-emerald-950">Gemini AI Triage Assessment</h4>
+                    <p className="text-xs text-emerald-700">Recommended Sector & Risk Level</p>
                   </div>
                 </div>
                 <Button
                   type="button"
                   size="sm"
+                  variant="default"
                   onClick={applyAiSuggestions}
-                  className="bg-[#1F6C3A] hover:bg-[#18552E] text-white text-xs font-bold rounded-xl h-8 px-3"
+                  className="text-xs font-bold rounded-xl h-8 px-3"
                 >
                   Apply Suggestions
                 </Button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
-                <div className="p-3 rounded-2xl bg-white border border-[#A4F1B2]">
-                  <span className="text-[10px] uppercase font-bold text-[#526071] block">Suggested Category</span>
-                  <span className="text-sm font-bold text-[#1F6C3A] capitalize">
+                <div className="p-3 rounded-2xl bg-white border border-emerald-200 shadow-2xs">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Suggested Category</span>
+                  <span className="text-sm font-bold text-emerald-800 capitalize">
                     {aiSuggestions.suggestedCategory}
                   </span>
-                  <span className="text-[11px] text-[#526071] block mt-0.5">
-                    Severity: <strong>{aiSuggestions.severityLevel}</strong>
+                  <span className="text-[11px] text-slate-500 block mt-0.5">
+                    Severity: <strong className="text-slate-800">{aiSuggestions.severityLevel}</strong>
                   </span>
                 </div>
-                <div className="p-3 rounded-2xl bg-white border border-[#A4F1B2]">
-                  <span className="text-[10px] uppercase font-bold text-[#526071] block">Refined Headline</span>
+                <div className="p-3 rounded-2xl bg-white border border-emerald-200 shadow-2xs">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Refined Headline</span>
                   <p className="text-xs font-semibold text-[#0B1C30] mt-0.5 leading-snug">
                     {aiSuggestions.refinedTitle}
                   </p>
@@ -335,10 +337,10 @@ export default function ReportComplaintPage() {
 
               {aiSuggestions.keyHazards && aiSuggestions.keyHazards.length > 0 && (
                 <div className="pt-2">
-                  <span className="text-[11px] font-bold text-[#0B1C30] block mb-1">Identified Safety Hazards:</span>
+                  <span className="text-[11px] font-bold text-emerald-950 block mb-1">Identified Safety Hazards:</span>
                   <div className="flex flex-wrap gap-1.5">
                     {aiSuggestions.keyHazards.map((hazard, i) => (
-                      <span key={i} className="text-[11px] px-2.5 py-0.5 rounded-full bg-white border border-[#CBD5E1] text-[#334155]">
+                      <span key={i} className="text-[11px] px-2.5 py-0.5 rounded-full bg-white border border-emerald-200 text-emerald-900 font-medium">
                         ⚠️ {hazard}
                       </span>
                     ))}
@@ -369,16 +371,16 @@ export default function ReportComplaintPage() {
                     type="button"
                     onClick={handleAiSmartTriage}
                     disabled={analyzingAi}
-                    className="text-xs font-bold text-[#1F6C3A] hover:text-[#18552E] flex items-center gap-1.5 hover:underline disabled:opacity-50"
+                    className="text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/80 px-3 py-1 rounded-full flex items-center gap-1.5 transition-all disabled:opacity-50"
                   >
                     {analyzingAi ? (
                       <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
                         AI Analyzing...
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-3.5 h-3.5" />
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                         AI Smart Triage
                       </>
                     )}
@@ -397,14 +399,14 @@ export default function ReportComplaintPage() {
                         onClick={() => setFormData((prev) => ({ ...prev, category: cat.value }))}
                         className={`flex items-start gap-3 p-3.5 rounded-2xl border text-left transition-all ${
                           isSelected
-                            ? 'border-slate-900 bg-[#0F172A] text-white shadow-[0_4px_14px_rgba(15,23,42,0.18)]'
-                            : 'border-slate-200 bg-[#F8F9FF] hover:bg-[#EFF4FF] text-slate-800'
+                            ? 'border-emerald-500 bg-emerald-50/80 text-emerald-950 ring-2 ring-emerald-500/20 shadow-xs'
+                            : 'border-slate-200 bg-[#F8F9FF] hover:bg-emerald-50/30 hover:border-emerald-200 text-slate-800'
                         }`}
                       >
                         <div
                           className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
                             isSelected
-                              ? 'bg-white/20 text-white'
+                              ? 'bg-emerald-600 text-white shadow-2xs'
                               : cat.inactiveContainer
                           }`}
                         >
@@ -414,7 +416,7 @@ export default function ReportComplaintPage() {
                           <div className="text-xs font-bold leading-tight">{cat.label}</div>
                           <div
                             className={`text-[11px] mt-0.5 leading-snug ${
-                              isSelected ? 'text-slate-300' : 'text-slate-500'
+                              isSelected ? 'text-emerald-800' : 'text-slate-500'
                             }`}
                           >
                             {cat.desc}
@@ -440,12 +442,12 @@ export default function ReportComplaintPage() {
                   )}
                 </div>
                 <div className="relative">
-                  <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
+                  <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-emerald-600 pointer-events-none" />
                   <Input
                     id="area"
                     name="area"
                     placeholder="e.g. University Road, Satellite Town, Jinnah Avenue"
-                    className="pl-10 h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
+                    className="pl-10 h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
                     value={formData.area}
                     onChange={handleChange}
                     required
@@ -473,7 +475,7 @@ export default function ReportComplaintPage() {
                     placeholder="e.g. Deep pothole damaging vehicle suspension near gate 3"
                     value={formData.title}
                     onChange={handleChange}
-                    className="h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
+                    className="h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
                     required
                   />
                 </div>
@@ -490,7 +492,7 @@ export default function ReportComplaintPage() {
                     placeholder="Provide specific details about issue severity, duration, and safety hazards to guide municipal crews..."
                     value={formData.description}
                     onChange={handleChange}
-                    className="text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
+                    className="text-xs sm:text-sm bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
                     required
                   />
                 </div>
@@ -509,14 +511,15 @@ export default function ReportComplaintPage() {
 
               <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end gap-3">
                 <Link href="/dashboard" className="w-full sm:w-auto">
-                  <Button type="button" variant="outline" size="sm" className="w-full sm:w-auto h-10 px-4 text-xs font-semibold rounded-xl border-slate-200 bg-white hover:bg-[#F8F9FF]">
+                  <Button type="button" variant="outline" size="sm" className="w-full sm:w-auto h-10 px-4 text-xs font-semibold rounded-xl border-slate-200 bg-white hover:bg-emerald-50/40">
                     Cancel
                   </Button>
                 </Link>
                 <Button
                   type="submit"
                   size="sm"
-                  className="w-full sm:w-auto bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold px-6 h-10 text-xs sm:text-sm rounded-xl shadow-[0_4px_14px_rgba(15,23,42,0.15)] hover:-translate-y-0.5 transition-all"
+                  variant="default"
+                  className="w-full sm:w-auto font-bold px-6 h-10 text-xs sm:text-sm rounded-xl"
                   disabled={loading}
                 >
                   {loading ? (

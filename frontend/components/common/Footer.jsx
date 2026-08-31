@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { getApiBaseUrl } from '@/lib/api';
 import {
   FilePlus,
   Layers,
@@ -209,7 +210,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="http://localhost:5000/api/health"
+                  href={`${getApiBaseUrl()}/health`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-slate-600 hover:text-[#0B1C30] flex items-center gap-1.5 transition-colors"

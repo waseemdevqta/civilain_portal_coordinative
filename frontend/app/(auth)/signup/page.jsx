@@ -98,14 +98,14 @@ export default function SignupPage() {
       {/* Top Header */}
       <header className="container mx-auto max-w-6xl px-4 py-6 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0F172A] text-white shadow-sm transition-transform group-hover:scale-105">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-[0_4px_12px_rgba(5,150,105,0.28)] transition-transform group-hover:scale-105">
             <Megaphone className="h-5 w-5" />
           </div>
           <div className="flex items-center gap-1.5">
             <span className="font-black text-xl tracking-tight text-[#0B1C30]">
               AWAZ
             </span>
-            <span className="rounded-full bg-[#EFF4FF] px-2.5 py-0.5 text-[9px] font-extrabold text-[#1F6C3A] border border-[#A4F1B2]">
+            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[9px] font-extrabold text-emerald-800 border border-emerald-200">
               CITIZEN
             </span>
           </div>
@@ -118,7 +118,7 @@ export default function SignupPage() {
           {/* Left Context Side */}
           <div className="hidden md:block md:col-span-6 space-y-6 text-left pr-4">
             <div className="space-y-2">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#1F6C3A] bg-[#E8F9ED] border border-[#A4F1B2] px-2.5 py-1 rounded-full">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
                 JOIN YOUR NEIGHBORS
               </span>
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#0B1C30] leading-tight">
@@ -131,15 +131,15 @@ export default function SignupPage() {
 
             <div className="space-y-3 pt-2">
               <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-                <CheckCircle2 className="h-4 w-4 text-[#1F6C3A] shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>Instant ticket tracking ID and duplicate detection protection.</span>
               </div>
               <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-                <CheckCircle2 className="h-4 w-4 text-[#1F6C3A] shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>Official resolution verification and municipal quality scoring.</span>
               </div>
               <div className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-                <CheckCircle2 className="h-4 w-4 text-[#1F6C3A] shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>Zero unsolicited marketing. Strictly civic and municipal use.</span>
               </div>
             </div>
@@ -175,7 +175,7 @@ export default function SignupPage() {
                       id="name"
                       name="name"
                       placeholder="e.g. Fatima Ali"
-                      className="pl-10 h-10 text-xs bg-[#F8F9FF] border-slate-200"
+                      className="pl-10 h-10 text-xs bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
                       value={formData.name}
                       onChange={handleChange}
                       required
@@ -194,7 +194,7 @@ export default function SignupPage() {
                       name="email"
                       type="email"
                       placeholder="name@example.com"
-                      className="pl-10 h-10 text-xs bg-[#F8F9FF] border-slate-200"
+                      className="pl-10 h-10 text-xs bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
                       value={formData.email}
                       onChange={handleChange}
                       required
@@ -214,7 +214,7 @@ export default function SignupPage() {
                       name="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className="pl-10 pr-10 h-10 text-xs bg-[#F8F9FF] border-slate-200"
+                      className="pl-10 pr-10 h-10 text-xs bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
                       value={formData.password}
                       onChange={handleChange}
                       required
@@ -241,7 +241,7 @@ export default function SignupPage() {
                       name="confirmPassword"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className="pl-10 h-10 text-xs bg-[#F8F9FF] border-slate-200"
+                      className="pl-10 h-10 text-xs bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       required
@@ -252,7 +252,9 @@ export default function SignupPage() {
 
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold shadow-[0_4px_14px_rgba(15,23,42,0.15)] mt-2 text-xs sm:text-sm rounded-xl hover:-translate-y-0.5 transition-all"
+                  size="lg"
+                  variant="default"
+                  className="w-full h-11 font-bold mt-2 text-xs sm:text-sm rounded-xl"
                   disabled={loading}
                 >
                   {loading ? (
@@ -268,7 +270,7 @@ export default function SignupPage() {
 
               <div className="pt-3 border-t border-slate-100 text-center text-xs text-slate-500">
                 Already have an account?{' '}
-                <Link href="/login" className="font-bold text-[#0B1C30] hover:underline">
+                <Link href="/login" className="font-bold text-emerald-700 hover:text-emerald-900 hover:underline">
                   Sign In Here
                 </Link>
               </div>

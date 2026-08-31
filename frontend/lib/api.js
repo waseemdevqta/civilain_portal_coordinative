@@ -1,18 +1,36 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+export const getApiBaseUrl = () => {
+  // 1. If explicit environment variable is configured, use it
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '');
+  }
+
+  // 2. In browser environment on any deployed host (Vercel, custom domain, etc.)
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return 'https://civilainportalcoordinative-production.up.railway.app/api';
+    }
+  }
+
+  // 3. Default fallback for local development
+  return 'http://localhost:5000/api';
+};
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 30000, // Generous timeout for AI calls
 });
 
-// Request interceptor to attach JWT access token
+// Request interceptor to dynamically update baseURL and attach JWT access token
 api.interceptors.request.use(
   (config) => {
+    config.baseURL = getApiBaseUrl();
+
     if (typeof window !== 'undefined') {
       const token =
         localStorage.getItem('accessToken') || localStorage.getItem('token');
@@ -45,14 +63,15 @@ api.interceptors.response.use(
   (response) => response.data,
   async (error) => {
     const originalRequest = error.config;
+    const currentBaseUrl = getApiBaseUrl();
 
     // Avoid infinite loop on auth routes or if already retried
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url.includes('/auth/login') &&
-      !originalRequest.url.includes('/auth/signup') &&
-      !originalRequest.url.includes('/auth/refresh')
+      !originalRequest.url?.includes('/auth/login') &&
+      !originalRequest.url?.includes('/auth/signup') &&
+      !originalRequest.url?.includes('/auth/refresh')
     ) {
       if (typeof window !== 'undefined') {
         const refreshToken = localStorage.getItem('refreshToken');
@@ -73,7 +92,7 @@ api.interceptors.response.use(
           isRefreshing = true;
 
           try {
-            const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+            const res = await axios.post(`${currentBaseUrl}/auth/refresh`, {
               refreshToken,
             });
 
@@ -167,7 +186,9 @@ export const uploadApi = {
       ? localStorage.getItem('accessToken') || localStorage.getItem('token')
       : null;
 
-    const res = await axios.post(`${API_BASE_URL}/upload?type=${type}`, formData, {
+    const currentBaseUrl = getApiBaseUrl();
+
+    const res = await axios.post(`${currentBaseUrl}/upload?type=${type}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),

@@ -247,8 +247,8 @@ export default function OfficerDashboardPage() {
           {/* HEADER BAR */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F9ED] px-3 py-0.5 text-xs font-bold text-[#1F6C3A] border border-[#A4F1B2]">
-                <ShieldCheck className="h-3.5 w-3.5 text-[#1F6C3A]" />
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-0.5 text-xs font-bold text-emerald-800 border border-emerald-200">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
                 <span>MUNICIPAL OPERATIONS COMMAND</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0B1C30]">
@@ -265,16 +265,17 @@ export default function OfficerDashboardPage() {
                 size="sm"
                 onClick={handleExportCsv}
                 disabled={exportingCsv}
-                className="gap-1.5 text-xs font-semibold rounded-xl h-10 px-3.5 border-slate-200 bg-white hover:bg-[#F8F9FF] text-slate-800 shadow-2xs"
+                className="gap-1.5 text-xs font-semibold rounded-xl h-10 px-3.5 border-slate-200 bg-white hover:bg-emerald-50/50 hover:text-emerald-900 hover:border-emerald-200 text-slate-800 shadow-2xs"
               >
-                <FileSpreadsheet className="h-4 w-4 text-[#1F6C3A]" />
+                <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
                 {exportingCsv ? 'Exporting...' : 'Export CSV Report'}
               </Button>
 
               <Button
                 size="sm"
+                variant="default"
                 onClick={() => setShowProvisionModal(true)}
-                className="gap-1.5 bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-bold rounded-xl h-10 px-4 shadow-[0_4px_14px_rgba(15,23,42,0.15)] hover:-translate-y-0.5 transition-all"
+                className="gap-1.5 text-xs font-bold rounded-xl h-10 px-4"
               >
                 <UserPlus className="h-4 w-4" />
                 Add New Officer
@@ -286,7 +287,7 @@ export default function OfficerDashboardPage() {
           <div className="rounded-3xl border border-blue-200 bg-gradient-to-br from-[#EFF4FF] to-white p-6 sm:p-7 shadow-[0_4px_20px_rgba(30,64,175,0.04)] space-y-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2.5">
-                <div className="h-9 w-9 rounded-2xl bg-[#1E40AF] flex items-center justify-center text-white shadow-xs">
+                <div className="h-9 w-9 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-xs">
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div>
@@ -300,7 +301,7 @@ export default function OfficerDashboardPage() {
                 size="sm"
                 onClick={fetchAiSummary}
                 disabled={aiLoading}
-                className="gap-1 text-xs text-[#1E40AF] hover:text-[#1E3A8A] hover:bg-[#EFF4FF] rounded-xl h-8 px-2.5 font-semibold"
+                className="gap-1 text-xs text-blue-700 hover:text-blue-900 hover:bg-blue-50 rounded-xl h-8 px-2.5 font-semibold"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${aiLoading ? 'animate-spin' : ''}`} />
                 <span>{aiLoading ? 'Analyzing...' : 'Refresh AI'}</span>
@@ -346,10 +347,10 @@ export default function OfficerDashboardPage() {
                 <span className="text-[10px] text-blue-700 block">Active field repairs</span>
               </div>
 
-              <div className="rounded-2xl border border-[#A4F1B2] bg-[#E8F9ED]/50 p-4 shadow-2xs space-y-1">
-                <span className="text-[11px] font-bold uppercase text-[#1F6C3A] block">Resolved</span>
-                <span className="text-2xl font-black text-[#14532D]">{stats.resolved || 0}</span>
-                <span className="text-[10px] text-[#1F6C3A] block">Completed & verified</span>
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 shadow-2xs space-y-1">
+                <span className="text-[11px] font-bold uppercase text-emerald-800 block">Resolved</span>
+                <span className="text-2xl font-black text-emerald-900">{stats.resolved || 0}</span>
+                <span className="text-[10px] text-emerald-700 block">Completed & verified</span>
               </div>
 
               <div className="rounded-2xl border border-red-200 bg-red-50/50 p-4 shadow-2xs space-y-1">
@@ -388,14 +389,14 @@ export default function OfficerDashboardPage() {
                       placeholder="Search tickets..."
                       value={filterSearch}
                       onChange={(e) => setFilterSearch(e.target.value)}
-                      className="pl-8 h-9 text-xs rounded-xl bg-[#F8F9FF] border-slate-200"
+                      className="pl-8 h-9 text-xs rounded-xl bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
                     />
                   </div>
 
                   <select
                     value={filterCategory}
                     onChange={(e) => setFilterCategory(e.target.value)}
-                    className="h-9 rounded-xl border border-slate-200 bg-[#F8F9FF] px-2.5 text-xs font-semibold text-slate-800 focus:outline-none"
+                    className="h-9 rounded-xl border border-slate-200 bg-[#F8F9FF] px-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600"
                   >
                     <option value="">All Categories</option>
                     <option value="road">Roads</option>
@@ -408,7 +409,7 @@ export default function OfficerDashboardPage() {
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="h-9 rounded-xl border border-slate-200 bg-[#F8F9FF] px-2.5 text-xs font-semibold text-slate-800 focus:outline-none"
+                    className="h-9 rounded-xl border border-slate-200 bg-[#F8F9FF] px-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600"
                   >
                     <option value="">All Statuses</option>
                     <option value="pending">Pending</option>
@@ -453,7 +454,7 @@ export default function OfficerDashboardPage() {
                         const hasPhoto = Boolean(c.imageUrl);
 
                         return (
-                          <tr key={c._id} className="hover:bg-[#F8F9FF] transition-colors">
+                          <tr key={c._id} className="hover:bg-emerald-50/30 transition-colors">
                             <td className="py-3.5 px-3.5 font-mono font-bold text-[#0B1C30]">
                               #CF-{c._id.slice(-6).toUpperCase()}
                             </td>
@@ -483,7 +484,7 @@ export default function OfficerDashboardPage() {
                             <td className="py-3.5 px-3.5 max-w-xs truncate">
                               <div className="font-bold text-[#0B1C30] truncate">{c.title}</div>
                               <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                                <MapPin className="h-3 w-3 text-slate-400" />
+                                <MapPin className="h-3 w-3 text-emerald-600" />
                                 {c.area}
                               </div>
                             </td>
@@ -498,7 +499,7 @@ export default function OfficerDashboardPage() {
                             </td>
                             <td className="py-3.5 px-3.5 font-bold text-slate-800">
                               <span className="flex items-center gap-1">
-                                <ThumbsUp className="h-3 w-3 text-slate-400" />
+                                <ThumbsUp className="h-3 w-3 text-emerald-600" />
                                 {c.upvotes || 0}
                               </span>
                             </td>
@@ -507,7 +508,7 @@ export default function OfficerDashboardPage() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleOpenStatusModal(c)}
-                                className="h-8 rounded-xl text-xs font-semibold px-2.5 border-slate-200 hover:bg-[#EFF4FF] hover:text-[#0B1C30]"
+                                className="h-8 rounded-xl text-xs font-semibold px-2.5 border-slate-200 hover:bg-emerald-50 hover:text-emerald-900 hover:border-emerald-300"
                               >
                                 <Edit3 className="h-3 w-3 mr-1" />
                                 Review
@@ -516,16 +517,16 @@ export default function OfficerDashboardPage() {
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => setDocketComplaint(c)}
-                                className="h-8 rounded-xl text-xs text-slate-600 hover:text-[#0B1C30] px-2"
+                                className="h-8 rounded-xl text-xs text-slate-600 hover:text-emerald-900 hover:bg-emerald-50 px-2"
                                 title="Print Municipal Docket"
                               >
-                                <Printer className="h-3.5 w-3.5 text-[#1F6C3A]" />
+                                <Printer className="h-3.5 w-3.5 text-emerald-600" />
                               </Button>
                               <Link href={`/complaints/${c._id}`}>
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className="h-8 rounded-xl text-xs text-slate-600 hover:text-[#0B1C30] px-2"
+                                  className="h-8 rounded-xl text-xs text-slate-600 hover:text-emerald-900 hover:bg-emerald-50 px-2"
                                 >
                                   Details
                                 </Button>
@@ -577,7 +578,7 @@ export default function OfficerDashboardPage() {
                         href={selectedComplaint.imageUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[#1F6C3A] font-semibold hover:underline"
+                        className="text-emerald-700 font-semibold hover:underline"
                       >
                         Inspect full resolution ↗
                       </a>
@@ -593,7 +594,7 @@ export default function OfficerDashboardPage() {
                     id="newStatus"
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-[#0B1C30] focus:outline-none focus:ring-2 focus:ring-slate-900"
+                    className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-[#0B1C30] focus:outline-none focus:ring-2 focus:ring-emerald-600"
                   >
                     <option value="pending">Pending Review (Awaiting Field Dispatch)</option>
                     <option value="in-progress">In Progress (Field Crew Deployed On Site)</option>
@@ -627,7 +628,7 @@ export default function OfficerDashboardPage() {
                     value={officerRemark}
                     onChange={(e) => setOfficerRemark(e.target.value)}
                     rows={3}
-                    className="text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
+                    className="text-xs sm:text-sm bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
                   />
                 </div>
 
@@ -638,14 +639,15 @@ export default function OfficerDashboardPage() {
                     size="sm"
                     onClick={() => setSelectedComplaint(null)}
                     disabled={updatingStatus}
-                    className="text-xs h-10 px-4 rounded-xl border-slate-200"
+                    className="text-xs h-10 px-4 rounded-xl border-slate-200 hover:bg-slate-50"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     size="sm"
-                    className="bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold text-xs h-10 px-5 rounded-xl shadow-xs"
+                    variant="default"
+                    className="font-bold text-xs h-10 px-5 rounded-xl"
                     disabled={updatingStatus}
                   >
                     {updatingStatus ? 'Updating Record...' : 'Confirm Update'}
@@ -677,7 +679,7 @@ export default function OfficerDashboardPage() {
                     placeholder="e.g. Inspector Tariq Mahmood"
                     value={provisionData.name}
                     onChange={(e) => setProvisionData((prev) => ({ ...prev, name: e.target.value }))}
-                    className="h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
+                    className="h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
                     required
                   />
                 </div>
@@ -692,7 +694,7 @@ export default function OfficerDashboardPage() {
                     placeholder="officer@municipal.gov"
                     value={provisionData.email}
                     onChange={(e) => setProvisionData((prev) => ({ ...prev, email: e.target.value }))}
-                    className="h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
+                    className="h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
                     required
                   />
                 </div>
@@ -707,7 +709,7 @@ export default function OfficerDashboardPage() {
                     placeholder="••••••••"
                     value={provisionData.password}
                     onChange={(e) => setProvisionData((prev) => ({ ...prev, password: e.target.value }))}
-                    className="h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200"
+                    className="h-10 text-xs sm:text-sm bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
                     required
                   />
                 </div>
@@ -719,14 +721,15 @@ export default function OfficerDashboardPage() {
                     size="sm"
                     onClick={() => setShowProvisionModal(false)}
                     disabled={provisioning}
-                    className="text-xs h-10 px-4 rounded-xl border-slate-200"
+                    className="text-xs h-10 px-4 rounded-xl border-slate-200 hover:bg-slate-50"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     size="sm"
-                    className="bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold text-xs h-10 px-5 rounded-xl shadow-xs"
+                    variant="default"
+                    className="font-bold text-xs h-10 px-5 rounded-xl"
                     disabled={provisioning}
                   >
                     {provisioning ? 'Provisioning...' : 'Create Officer Account'}

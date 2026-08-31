@@ -16,55 +16,58 @@ import ImageLightbox from '@/components/common/ImageLightbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/toaster';
 import {
+  Layers,
   Search,
   Filter,
+  PlusCircle,
+  FilePlus,
   ThumbsUp,
   MapPin,
   Calendar,
   User,
-  FilePlus,
-  ArrowRight,
-  AlertCircle,
-  X,
-  Check,
-  Layers,
-  Camera,
+  ArrowUpDown,
   CheckCircle2,
+  X,
+  AlertCircle,
+  Flame,
+  Check,
+  Camera,
 } from 'lucide-react';
 
 const CATEGORIES = [
-  { label: 'All Categories', value: '' },
-  { label: 'Roads', value: 'road' },
-  { label: 'Garbage', value: 'garbage' },
-  { label: 'Water', value: 'water' },
-  { label: 'Power', value: 'electricity' },
-  { label: 'Other', value: 'other' },
+  { value: '', label: 'All Categories' },
+  { value: 'road', label: 'Roads' },
+  { value: 'garbage', label: 'Garbage' },
+  { value: 'water', label: 'Water' },
+  { value: 'electricity', label: 'Electricity' },
+  { value: 'other', label: 'Other' },
 ];
 
 const STATUSES = [
-  { label: 'All Statuses', value: '' },
-  { label: 'Pending', value: 'pending' },
-  { label: 'In Progress', value: 'in-progress' },
-  { label: 'Resolved', value: 'resolved' },
+  { value: '', label: 'All Statuses' },
+  { value: 'pending', label: 'Pending Review' },
+  { value: 'in-progress', label: 'In Progress' },
+  { value: 'resolved', label: 'Resolved' },
 ];
 
-export default function ComplaintsFeedPage() {
-  const { user, isAuthenticated, isCitizen } = useAuth();
+export default function ComplaintsPage() {
+  const { user, isAuthenticated } = useAuth();
 
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Filter states
+  // Filters & Query State
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [status, setStatus] = useState('');
   const [area, setArea] = useState('');
   const [sort, setSort] = useState('recent');
 
+  // Upvoting loading map to prevent rapid multi-clicks
   const [upvotingIds, setUpvotingIds] = useState(new Set());
 
-  // Lightbox State
+  // Lightbox Modal state
   const [activeLightbox, setActiveLightbox] = useState(null);
 
   const fetchComplaints = useCallback(async () => {
@@ -72,48 +75,46 @@ export default function ComplaintsFeedPage() {
     setError('');
     try {
       const params = {};
-      if (search.trim()) params.search = search.trim();
       if (category) params.category = category;
       if (status) params.status = status;
       if (area.trim()) params.area = area.trim();
+      if (search.trim()) params.search = search.trim();
       if (sort) params.sort = sort;
 
       const res = await complaintApi.getAll(params);
       setComplaints(res.data || []);
     } catch (err) {
-      setError(err.message || 'Failed to load complaints feed');
+      setError(err.message || 'Failed to load civic complaints');
     } finally {
       setLoading(false);
     }
-  }, [search, category, status, area, sort]);
+  }, [category, status, area, search, sort]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchComplaints();
-    }, 250);
-    return () => clearTimeout(timer);
+    fetchComplaints();
   }, [fetchComplaints]);
 
+  // Handle Community Upvote
   const handleUpvote = async (complaintId) => {
     if (!isAuthenticated) {
-      toast.error('Please sign in as a citizen to support complaints.');
+      toast.info('Please sign in or register to support neighborhood reports');
       return;
     }
 
-    if (!isCitizen) {
-      toast.error('Only citizens can support community complaints.');
-      return;
-    }
+    if (upvotingIds.has(complaintId)) return;
 
     setUpvotingIds((prev) => new Set(prev).add(complaintId));
+
     try {
       const res = await complaintApi.upvote(complaintId);
+      toast.success('Thank you! Your support has been recorded.');
+
+      // Update complaint in state
       setComplaints((prev) =>
         prev.map((c) => (c._id === complaintId ? res.data : c))
       );
-      toast.success('Your support was registered! Dynamic priority score updated.');
     } catch (err) {
-      toast.error(err.message || 'Could not register upvote.');
+      toast.error(err.message || 'Could not record support');
     } finally {
       setUpvotingIds((prev) => {
         const next = new Set(prev);
@@ -124,10 +125,10 @@ export default function ComplaintsFeedPage() {
   };
 
   const hasUpvoted = (complaint) => {
-    const userIdStr = user?.id || user?._id;
-    if (!userIdStr || !complaint.upvotedBy) return false;
+    if (!user || !complaint?.upvotedBy) return false;
+    const userId = user.id || user._id;
     return complaint.upvotedBy.some(
-      (uid) => (typeof uid === 'object' ? uid._id || uid : uid).toString() === userIdStr.toString()
+      (upvoterId) => (upvoterId._id || upvoterId).toString() === userId?.toString()
     );
   };
 
@@ -139,12 +140,12 @@ export default function ComplaintsFeedPage() {
         {/* HEADER SECTION */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-3 py-0.5 text-xs font-bold text-[#1E40AF]">
-              <Layers className="h-3.5 w-3.5 text-[#1E40AF]" />
-              <span>COMMUNITY LEDGER</span>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-0.5 text-xs font-bold text-emerald-800 border border-emerald-200">
+              <Layers className="h-3.5 w-3.5 text-emerald-600" />
+              <span>LIVE CIVIC LEDGER</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0B1C30]">
-              Neighborhood Issues Feed
+              Community Issues Feed
             </h1>
             <p className="text-xs sm:text-sm text-slate-500">
               Browse public municipal reports, inspect verified photo evidence, rally community support, and track dispatch status in real time.
@@ -153,7 +154,7 @@ export default function ComplaintsFeedPage() {
 
           <div className="shrink-0">
             <Link href="/complaints/new">
-              <Button size="lg" className="w-full sm:w-auto bg-[#0F172A] hover:bg-[#1E293B] text-white gap-2 font-bold text-xs sm:text-sm h-11 px-5 rounded-xl shadow-[0_4px_16px_rgba(15,23,42,0.15)] hover:-translate-y-0.5 transition-all">
+              <Button size="lg" variant="default" className="w-full sm:w-auto gap-2 font-bold text-xs sm:text-sm h-11 px-5 rounded-xl">
                 <FilePlus className="h-4 w-4" />
                 Report an Issue
               </Button>
@@ -171,7 +172,7 @@ export default function ComplaintsFeedPage() {
                 placeholder="Search by keywords, title, or details..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-10 text-xs sm:text-sm rounded-xl bg-[#F8F9FF] border-slate-200"
+                className="pl-10 h-10 text-xs sm:text-sm rounded-xl bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
               />
               {search && (
                 <button
@@ -190,7 +191,7 @@ export default function ComplaintsFeedPage() {
                 placeholder="Filter by neighborhood..."
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
-                className="pl-10 h-10 text-xs sm:text-sm rounded-xl bg-[#F8F9FF] border-slate-200"
+                className="pl-10 h-10 text-xs sm:text-sm rounded-xl bg-[#F8F9FF] border-slate-200 focus-visible:ring-emerald-600"
               />
               {area && (
                 <button
@@ -207,7 +208,7 @@ export default function ComplaintsFeedPage() {
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
-                className="w-full h-10 rounded-xl border border-slate-200 bg-[#F8F9FF] px-3 text-xs sm:text-sm font-semibold text-[#0B1C30] focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full h-10 rounded-xl border border-slate-200 bg-[#F8F9FF] px-3 text-xs sm:text-sm font-semibold text-[#0B1C30] focus:outline-none focus:ring-2 focus:ring-emerald-600"
               >
                 <option value="recent">Sort: Newest First</option>
                 <option value="upvotes">Sort: Highest Community Support</option>
@@ -224,10 +225,10 @@ export default function ComplaintsFeedPage() {
                 <button
                   key={cat.value}
                   onClick={() => setCategory(cat.value)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
                     category === cat.value
-                      ? 'bg-[#0F172A] text-white shadow-xs'
-                      : 'bg-[#F8F9FF] text-slate-700 hover:bg-[#EFF4FF] border border-slate-200'
+                      ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-[0_2px_8px_rgba(5,150,105,0.3)] scale-[1.02]'
+                      : 'bg-white text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 border border-slate-200'
                   }`}
                 >
                   {cat.label}
@@ -241,7 +242,7 @@ export default function ComplaintsFeedPage() {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="h-8 rounded-xl border border-slate-200 bg-[#F8F9FF] px-2.5 text-xs font-semibold text-[#0B1C30] focus:outline-none"
+                className="h-8 rounded-xl border border-slate-200 bg-[#F8F9FF] px-2.5 text-xs font-semibold text-[#0B1C30] focus:outline-none focus:ring-2 focus:ring-emerald-600"
               >
                 {STATUSES.map((s) => (
                   <option key={s.value} value={s.value}>
@@ -274,7 +275,7 @@ export default function ComplaintsFeedPage() {
                   setArea('');
                   setSort('recent');
                 }}
-                className="text-[#1E40AF] hover:underline font-bold"
+                className="text-emerald-700 hover:underline font-bold"
               >
                 Clear all filters
               </button>
@@ -318,7 +319,7 @@ export default function ComplaintsFeedPage() {
                 return (
                   <div
                     key={complaint._id}
-                    className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs hover:border-slate-300 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+                    className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs hover:border-emerald-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                       {/* Photo Thumbnail if present */}
@@ -363,8 +364,8 @@ export default function ComplaintsFeedPage() {
                             showScore={true}
                           />
                           {hasResolutionPhoto && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1F6C3A] bg-[#E8F9ED] px-2 py-0.5 rounded-full border border-[#A4F1B2]">
-                              <CheckCircle2 className="w-3 h-3" />
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                               Fixed With Photo Proof
                             </span>
                           )}
@@ -372,7 +373,7 @@ export default function ComplaintsFeedPage() {
 
                         <Link
                           href={`/complaints/${complaint._id}`}
-                          className="text-base sm:text-lg font-bold text-[#0B1C30] hover:text-[#1E40AF] block transition-colors leading-snug"
+                          className="text-base sm:text-lg font-bold text-[#0B1C30] hover:text-emerald-700 block transition-colors leading-snug"
                         >
                           {complaint.title}
                         </Link>
@@ -383,7 +384,7 @@ export default function ComplaintsFeedPage() {
 
                         <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
                           <span className="flex items-center gap-1 font-semibold text-slate-700">
-                            <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                            <MapPin className="h-3.5 w-3.5 text-emerald-600" />
                             {complaint.area}
                           </span>
                           <span className="flex items-center gap-1">
@@ -397,7 +398,7 @@ export default function ComplaintsFeedPage() {
                         </div>
                       </div>
 
-                      {/* Right Action: Upvote & View Details */}
+                      {/* Right Action: Support / Upvote Button */}
                       <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2.5 shrink-0 pt-2 sm:pt-0">
                         <Button
                           size="sm"
@@ -405,13 +406,13 @@ export default function ComplaintsFeedPage() {
                           disabled={isUpvotingThis || userUpvoted}
                           className={`gap-1.5 h-10 px-4 rounded-xl text-xs font-bold transition-all shadow-xs ${
                             userUpvoted
-                              ? 'bg-[#E8F9ED] text-[#1F6C3A] border border-[#A4F1B2] hover:bg-[#E8F9ED]'
-                              : 'bg-[#0F172A] hover:bg-[#1E293B] text-white'
+                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 hover:text-emerald-900'
+                              : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-[0_4px_12px_rgba(5,150,105,0.22)]'
                           }`}
                         >
                           {userUpvoted ? (
                             <>
-                              <Check className="h-3.5 w-3.5 text-[#1F6C3A]" />
+                              <Check className="h-3.5 w-3.5 text-emerald-700" />
                               <span>Supported ({complaint.upvotes || 0})</span>
                             </>
                           ) : (
@@ -426,7 +427,7 @@ export default function ComplaintsFeedPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-xs h-9 rounded-xl text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF] px-3 font-semibold"
+                            className="text-xs h-9 rounded-xl text-slate-600 hover:text-emerald-900 hover:bg-emerald-50/60 px-3 font-semibold"
                           >
                             View Details &rarr;
                           </Button>
@@ -436,8 +437,8 @@ export default function ComplaintsFeedPage() {
 
                     {/* Officer Remark snippet if present */}
                     {complaint.officerRemark && (
-                      <div className="mt-4 pt-3 border-t border-slate-100 text-xs bg-[#F8F9FF] p-3.5 rounded-2xl text-slate-700 flex items-start gap-2 border border-slate-100">
-                        <span className="font-bold text-[#0B1C30] shrink-0">Official Response:</span>
+                      <div className="mt-4 pt-3 border-t border-slate-100 text-xs bg-emerald-50/40 p-3.5 rounded-2xl text-slate-700 flex items-start gap-2 border border-emerald-100">
+                        <span className="font-bold text-emerald-900 shrink-0">Official Response:</span>
                         <span className="text-slate-600 leading-relaxed">{complaint.officerRemark}</span>
                       </div>
                     )}

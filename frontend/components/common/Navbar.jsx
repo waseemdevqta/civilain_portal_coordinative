@@ -45,7 +45,7 @@ export function Navbar() {
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand / Logo */}
         <Link href="/" className="flex items-center space-x-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0F172A] text-white shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_4px_16px_rgba(15,23,42,0.25)]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-[0_4px_12px_rgba(5,150,105,0.28)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_6px_18px_rgba(5,150,105,0.4)]">
             <Megaphone className="h-5 w-5" />
           </div>
           <div className="flex flex-col">
@@ -53,8 +53,8 @@ export function Navbar() {
               <span className="font-black text-xl tracking-tight text-[#0B1C30]">
                 AWAZ
               </span>
-              <span className="rounded-full bg-[#EFF4FF] px-2.5 py-0.5 text-[9px] font-extrabold text-[#1F6C3A] border border-[#A4F1B2] tracking-wider uppercase">
-                Civic Excellence
+              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[9px] font-extrabold text-emerald-700 border border-emerald-200 tracking-wider uppercase">
+                Civic Platform
               </span>
             </div>
             <span className="text-[10px] text-slate-500 font-medium leading-none">
@@ -70,11 +70,11 @@ export function Navbar() {
             className={cn(
               'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
               isActive('/') && pathname === '/'
-                ? 'text-[#0B1C30] bg-[#EFF4FF] font-bold shadow-xs'
-                : 'text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF]'
+                ? 'text-emerald-950 bg-emerald-50/80 border border-emerald-200/60 font-bold shadow-2xs'
+                : 'text-slate-600 hover:text-[#0B1C30] hover:bg-slate-50'
             )}
           >
-            <Home className="h-3.5 w-3.5 text-slate-500" />
+            <Home className="h-3.5 w-3.5 text-emerald-600" />
             Home
           </Link>
 
@@ -83,11 +83,11 @@ export function Navbar() {
             className={cn(
               'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
               isActive('/complaints') && pathname !== '/complaints/new' && pathname !== '/complaints/mine'
-                ? 'text-[#0B1C30] bg-[#EFF4FF] font-bold shadow-xs'
-                : 'text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF]'
+                ? 'text-emerald-950 bg-emerald-50/80 border border-emerald-200/60 font-bold shadow-2xs'
+                : 'text-slate-600 hover:text-[#0B1C30] hover:bg-slate-50'
             )}
           >
-            <Layers className="h-3.5 w-3.5 text-slate-500" />
+            <Layers className="h-3.5 w-3.5 text-emerald-600" />
             Explore Issues
           </Link>
 
@@ -98,11 +98,11 @@ export function Navbar() {
                 className={cn(
                   'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
                   isActive('/dashboard')
-                    ? 'text-[#0B1C30] bg-[#EFF4FF] font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF]'
+                    ? 'text-emerald-950 bg-emerald-50/80 border border-emerald-200/60 font-bold shadow-2xs'
+                    : 'text-slate-600 hover:text-[#0B1C30] hover:bg-slate-50'
                 )}
               >
-                <LayoutDashboard className="h-3.5 w-3.5 text-slate-500" />
+                <LayoutDashboard className="h-3.5 w-3.5 text-emerald-600" />
                 Dashboard
               </Link>
               <Link
@@ -110,11 +110,11 @@ export function Navbar() {
                 className={cn(
                   'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
                   isActive('/complaints/mine')
-                    ? 'text-[#0B1C30] bg-[#EFF4FF] font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF]'
+                    ? 'text-emerald-950 bg-emerald-50/80 border border-emerald-200/60 font-bold shadow-2xs'
+                    : 'text-slate-600 hover:text-[#0B1C30] hover:bg-slate-50'
                 )}
               >
-                <FileText className="h-3.5 w-3.5 text-slate-500" />
+                <FileText className="h-3.5 w-3.5 text-emerald-600" />
                 My Reports
               </Link>
             </>
@@ -126,11 +126,11 @@ export function Navbar() {
               className={cn(
                 'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
                 isActive('/officer/dashboard')
-                  ? 'text-[#0B1C30] bg-[#EFF4FF] font-bold shadow-xs'
-                  : 'text-slate-600 hover:text-[#0B1C30] hover:bg-[#F8F9FF]'
+                  ? 'text-emerald-950 bg-emerald-50/80 border border-emerald-200/60 font-bold shadow-2xs'
+                  : 'text-slate-600 hover:text-[#0B1C30] hover:bg-slate-50'
               )}
             >
-              <ShieldCheck className="h-3.5 w-3.5 text-[#1F6C3A]" />
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
               Operations Center
             </Link>
           )}
@@ -144,7 +144,7 @@ export function Navbar() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs h-9 rounded-xl font-semibold text-slate-700 hover:text-[#0B1C30] hover:bg-[#EFF4FF] transition-all"
+                  className="text-xs h-9 rounded-xl font-semibold text-slate-700 hover:text-emerald-900 hover:bg-emerald-50/60 transition-all"
                 >
                   Sign In
                 </Button>
@@ -152,7 +152,8 @@ export function Navbar() {
               <Link href="/complaints/new">
                 <Button
                   size="sm"
-                  className="bg-[#0F172A] hover:bg-[#1E293B] text-white font-semibold text-xs h-9 px-4 rounded-xl gap-1.5 shadow-[0_2px_10px_rgba(15,23,42,0.12)] hover:-translate-y-0.5 transition-all duration-200"
+                  variant="default"
+                  className="font-semibold text-xs h-9 px-4 rounded-xl gap-1.5"
                 >
                   <PlusCircle className="h-3.5 w-3.5" />
                   Report an Issue
@@ -165,7 +166,8 @@ export function Navbar() {
                 <Link href="/complaints/new">
                   <Button
                     size="sm"
-                    className="bg-[#0F172A] hover:bg-[#1E293B] text-white font-semibold text-xs h-9 px-4 rounded-xl gap-1.5 shadow-[0_2px_10px_rgba(15,23,42,0.12)] hover:-translate-y-0.5 transition-all duration-200"
+                    variant="default"
+                    className="font-semibold text-xs h-9 px-4 rounded-xl gap-1.5"
                   >
                     <PlusCircle className="h-3.5 w-3.5" />
                     Report Issue
@@ -174,8 +176,8 @@ export function Navbar() {
               )}
 
               {isOfficer && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#A4F1B2] bg-[#E8F9ED] px-3 py-1 text-[11px] font-bold text-[#1F6C3A] shadow-xs">
-                  <span className="h-2 w-2 rounded-full bg-[#1F6C3A] animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-800 shadow-2xs">
+                  <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" />
                   Officer Active
                 </span>
               )}
@@ -185,9 +187,9 @@ export function Navbar() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-1.5 h-9 rounded-xl border-slate-200 bg-white text-slate-800 hover:bg-[#F8F9FF] text-xs font-semibold px-3 shadow-xs hover:border-slate-300 transition-all"
+                    className="gap-1.5 h-9 rounded-xl border-slate-200 bg-white text-slate-800 hover:bg-emerald-50/50 hover:text-emerald-900 hover:border-emerald-200 text-xs font-semibold px-3 shadow-xs transition-all"
                   >
-                    <User className="h-3.5 w-3.5 text-slate-500" />
+                    <User className="h-3.5 w-3.5 text-emerald-700" />
                     <span className="max-w-[120px] truncate">{user?.name || 'Account'}</span>
                     <ChevronDown className="h-3 w-3 text-slate-400" />
                   </Button>
@@ -208,27 +210,27 @@ export function Navbar() {
                       <DropdownMenuItem asChild>
                         <Link
                           href="/dashboard"
-                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-[#EFF4FF] hover:text-[#0B1C30]"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-emerald-50 hover:text-emerald-900"
                         >
-                          <LayoutDashboard className="mr-2 h-3.5 w-3.5 text-slate-500" />
+                          <LayoutDashboard className="mr-2 h-3.5 w-3.5 text-emerald-600" />
                           Dashboard
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link
                           href="/complaints/mine"
-                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-[#EFF4FF] hover:text-[#0B1C30]"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-emerald-50 hover:text-emerald-900"
                         >
-                          <FileText className="mr-2 h-3.5 w-3.5 text-slate-500" />
+                          <FileText className="mr-2 h-3.5 w-3.5 text-emerald-600" />
                           My Reports
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link
                           href="/dashboard/profile"
-                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-[#EFF4FF] hover:text-[#0B1C30]"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-emerald-50 hover:text-emerald-900"
                         >
-                          <User className="mr-2 h-3.5 w-3.5 text-slate-500" />
+                          <User className="mr-2 h-3.5 w-3.5 text-emerald-600" />
                           My Profile
                         </Link>
                       </DropdownMenuItem>
@@ -239,18 +241,18 @@ export function Navbar() {
                       <DropdownMenuItem asChild>
                         <Link
                           href="/officer/dashboard"
-                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-[#EFF4FF] hover:text-[#0B1C30]"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-emerald-50 hover:text-emerald-900"
                         >
-                          <ShieldCheck className="mr-2 h-3.5 w-3.5 text-[#1F6C3A]" />
+                          <ShieldCheck className="mr-2 h-3.5 w-3.5 text-emerald-600" />
                           Operations Center
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link
                           href="/dashboard/profile"
-                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-[#EFF4FF] hover:text-[#0B1C30]"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-emerald-50 hover:text-emerald-900"
                         >
-                          <User className="mr-2 h-3.5 w-3.5 text-slate-500" />
+                          <User className="mr-2 h-3.5 w-3.5 text-emerald-600" />
                           Officer Profile
                         </Link>
                       </DropdownMenuItem>
@@ -274,7 +276,7 @@ export function Navbar() {
         <div className="flex md:hidden items-center">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl text-slate-700 hover:bg-[#EFF4FF] transition-colors"
+            className="p-2 rounded-xl text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 transition-colors"
             aria-label="Toggle Menu"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -288,18 +290,18 @@ export function Navbar() {
           <Link
             href="/"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-[#EFF4FF]"
+            className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-emerald-50 hover:text-emerald-900"
           >
-            <Home className="h-4 w-4 text-slate-500" />
+            <Home className="h-4 w-4 text-emerald-600" />
             Home
           </Link>
 
           <Link
             href="/complaints"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-[#EFF4FF]"
+            className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-emerald-50 hover:text-emerald-900"
           >
-            <Layers className="h-4 w-4 text-slate-500" />
+            <Layers className="h-4 w-4 text-emerald-600" />
             Explore Issues
           </Link>
 
@@ -308,31 +310,31 @@ export function Navbar() {
               <Link
                 href="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-[#EFF4FF]"
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-emerald-50 hover:text-emerald-900"
               >
-                <LayoutDashboard className="h-4 w-4 text-slate-500" />
+                <LayoutDashboard className="h-4 w-4 text-emerald-600" />
                 Dashboard
               </Link>
               <Link
                 href="/complaints/mine"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-[#EFF4FF]"
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-emerald-50 hover:text-emerald-900"
               >
-                <FileText className="h-4 w-4 text-slate-500" />
+                <FileText className="h-4 w-4 text-emerald-600" />
                 My Reports
               </Link>
               <Link
                 href="/dashboard/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-[#EFF4FF]"
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-emerald-50 hover:text-emerald-900"
               >
-                <User className="h-4 w-4 text-slate-500" />
+                <User className="h-4 w-4 text-emerald-600" />
                 My Profile
               </Link>
               <Link
                 href="/complaints/new"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-semibold bg-[#0F172A] text-white shadow-sm"
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-semibold bg-emerald-600 text-white shadow-sm"
               >
                 <PlusCircle className="h-4 w-4" />
                 Report an Issue
@@ -345,17 +347,17 @@ export function Navbar() {
               <Link
                 href="/officer/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-semibold bg-[#0F172A] text-white shadow-sm"
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-semibold bg-emerald-600 text-white shadow-sm"
               >
-                <ShieldCheck className="h-4 w-4 text-[#A4F1B2]" />
+                <ShieldCheck className="h-4 w-4 text-emerald-100" />
                 Operations Center
               </Link>
               <Link
                 href="/dashboard/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-[#EFF4FF]"
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-emerald-50 hover:text-emerald-900"
               >
-                <User className="h-4 w-4 text-slate-500" />
+                <User className="h-4 w-4 text-emerald-600" />
                 Officer Profile
               </Link>
             </>
@@ -388,7 +390,7 @@ export function Navbar() {
                   </Button>
                 </Link>
                 <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
-                  <Button size="sm" className="w-full rounded-xl bg-[#0F172A] text-white text-xs">
+                  <Button size="sm" variant="default" className="w-full rounded-xl text-xs">
                     Register Citizen Account
                   </Button>
                 </Link>

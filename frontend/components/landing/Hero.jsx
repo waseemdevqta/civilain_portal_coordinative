@@ -83,7 +83,7 @@ export function LandingHero() {
               http://localhost:3000/dashboard
             </div>
             <div className="text-xs text-muted-foreground font-mono hidden sm:block">
-              REST: http://localhost:5000/api
+              REST: /api
             </div>
           </div>
 
