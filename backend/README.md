@@ -1,6 +1,6 @@
-# CivicFix — Citizen Complaint Portal (Backend REST API)
+# AWAZ — Backend REST API & Services
 
-CivicFix is a robust, production-structured RESTful API built for a civic complaint portal where citizens can submit municipal issues (road damage, garbage accumulation, water supply, electricity hazards, etc.), upvote community issues, and submit feedback upon resolution. Government municipal officers can triage complaints, update operational statuses, view aggregated statistics, and generate an AI-powered daily briefing using the Google Gemini API.
+RESTful API backend for the **AWAZ Civic Platform**, handling authentication, complaint lifecycles, democratic community upvotes, Cloudinary visual evidence, Gemini AI operational briefings, 3-tier staff management (Super Officer, Officers, Field Technicians), and field task assignments.
 
 ---
 
@@ -8,11 +8,11 @@ CivicFix is a robust, production-structured RESTful API built for a civic compla
 
 - **Runtime**: Node.js
 - **Framework**: Express.js
-- **Database**: MongoDB & Mongoose ODM
-- **Authentication**: JWT (JSON Web Tokens) with `Authorization: Bearer <token>`
-- **Security**: Password hashing with `bcryptjs`, role-based access control (`citizen` vs `officer`), CORS configuration, sanitized outputs
-- **AI Integration**: Google Gemini API via `@google/genai` SDK (`gemini-3.6-flash`)
-- **Environment Management**: `dotenv`
+- **Database**: MongoDB Atlas with Mongoose ODM (with in-memory fallback for resilient test/dev)
+- **Authentication**: JWT (JSON Web Tokens) with Access Token (15m) + Refresh Token (7d) rotation
+- **Security**: Password hashing with `bcryptjs`, fine-grained RBAC (`citizen`, `officer`, `technician`, `isSuperOfficer`), CORS configuration
+- **AI Integration**: Google Gemini API (`gemini-3.6-flash`)
+- **Media Upload**: Cloudinary REST API with multipart file handling
 
 ---
 
@@ -21,151 +21,113 @@ CivicFix is a robust, production-structured RESTful API built for a civic compla
 ```
 backend/
 ├── config/
-│   ├── db.js                 # MongoDB connection & resilient dev/test fallback
-│   └── gemini.js             # Google GenAI client & briefing prompt service
+│   ├── db.js                 # MongoDB connection & resilient fallback
+│   └── gemini.js             # Google GenAI client & briefing service
 ├── controllers/
 │   ├── authController.js     # Citizen signup, credentials login, profile
-│   ├── complaintController.js# Complaints CRUD, upvoting, status, feedback, stats
-│   └── aiController.js        # Officer AI summary generation via Gemini
+│   ├── complaintController.js# Complaint CRUD, upvotes, status, technician assignment
+│   ├── staffController.js    # Super Officer provisioning, assignment, deletion
+│   ├── aiController.js       # Officer AI operational briefing via Gemini
+│   └── uploadController.js   # Cloudinary image upload handler
 ├── middleware/
 │   ├── authMiddleware.js     # JWT verification & req.user attachment
-│   ├── roleMiddleware.js     # requireOfficer & requireCitizen role guards
+│   ├── roleMiddleware.js     # requireCitizen, requireOfficer, requireSuperOfficer guards
 │   └── errorMiddleware.js    # Centralized error handler & 404 handler
 ├── models/
-│   ├── User.js               # User schema (citizen / officer) with bcrypt hashing
+│   ├── User.js               # Citizen, Officer, Technician schema
 │   └── Complaint.js          # Complaint lifecycle schema & feedback tracking
 ├── routes/
 │   ├── authRoutes.js         # /api/auth routes
 │   ├── complaintRoutes.js    # /api/complaints routes
-│   └── aiRoutes.js           # /api/ai routes
+│   ├── staffRoutes.js        # /api/staff routes
+│   ├── aiRoutes.js           # /api/ai routes
+│   └── uploadRoutes.js       # /api/upload routes
 ├── utils/
-│   ├── priority.js           # Dynamic score calculation (upvotes * 2 + daysSinceCreated)
+│   ├── priority.js           # Dynamic score calculation engine
 │   ├── apiResponse.js        # Standardized JSON response helpers
 │   └── generateToken.js      # JWT signing utility
 ├── scripts/
-│   ├── seed.js               # Database seeding script (demo officer, citizens & complaints)
-│   └── test-api.js           # Comprehensive automated 28-assertion integration test runner
+│   ├── seed.js               # Database seeding script (Super Officer initialized from .env)
+│   └── test-api.js           # Automated API integration test runner
 ├── server.js                 # Express server bootstrap & route mounting
 ├── .env                      # Local environment configuration
 ├── .env.example              # Template environment configuration
-├── package.json              # Dependencies and npm scripts
-└── README.md                 # Documentation
+└── package.json              # Dependencies and npm scripts
 ```
-
----
-
-## ⚙️ Environment Variables
-
-Create a `.env` file in the `backend/` directory (see `.env.example`):
-
-```env
-PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/civicfix?retryWrites=true&w=majority
-JWT_SECRET=your_jwt_secret_key_here
-JWT_EXPIRES_IN=30d
-GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_MODEL=gemini-3.6-flash
-CLIENT_URL=http://localhost:3000
-```
-
-> **Note on MongoDB**: If connecting to MongoDB Atlas, ensure your network IP is whitelisted on your Atlas cluster. If offline or running tests, the system automatically uses an in-memory database fallback so you can develop without interruption.
 
 ---
 
 ## 🛠️ Installation & Setup
 
-1. **Navigate to the backend directory**:
+1. **Install dependencies**:
    ```bash
    cd backend
-   ```
-
-2. **Install dependencies**:
-   ```bash
    npm install
    ```
 
-3. **Configure environment**:
+2. **Configure environment**:
    ```bash
    cp .env.example .env
-   # Update .env with your MONGODB_URI and GEMINI_API_KEY
+   # Populate .env with your MongoDB, Gemini, Cloudinary, and Seed Officer credentials
    ```
 
-4. **Seed the database**:
+3. **Seed the database (Initializes Super Officer)**:
    ```bash
-   npm run seed
+   node scripts/seed.js
    ```
 
-5. **Start the development server**:
+4. **Start development server**:
    ```bash
    npm run dev
-   # Server runs at http://localhost:5000
    ```
+   API runs at: `http://localhost:5000`  
+   Health check: `http://localhost:5000/api/health`
 
 ---
 
-## 🔑 Demo Credentials (Seeded)
+## 📡 REST API Reference
 
-The database seed script initializes the following accounts for testing:
-
-| Role | Email | Password | Name |
+### 🔐 Authentication (`/api/auth`)
+| Method | Endpoint | Access | Description |
 | :--- | :--- | :--- | :--- |
-| **Officer** | `officer@civicfix.demo` | `Officer123!` | Officer Tariq Baloch |
-| **Citizen 1** | `ahmed@civicfix.demo` | `Citizen123!` | Ahmed Khan |
-| **Citizen 2** | `fatima@civicfix.demo` | `Citizen123!` | Fatima Ali |
-| **Citizen 3** | `bilal@civicfix.demo` | `Citizen123!` | Bilal Ahmed |
+| `POST` | `/api/auth/signup` | Public | Register citizen account |
+| `POST` | `/api/auth/login` | Public | Login with email & password |
+| `GET` | `/api/auth/me` | Protected | Get authenticated profile |
+| `POST` | `/api/auth/refresh` | Public | Refresh expired access token |
+| `PUT` | `/api/auth/profile` | Protected | Update profile |
 
-> **Security Note**: Public registration (`POST /api/auth/signup`) is strictly restricted to creating **Citizen** accounts. Officer accounts can only be provisioned via the seed script.
+### 📋 Complaints (`/api/complaints`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/complaints` | Public | List complaints with search & filters |
+| `POST` | `/api/complaints` | Citizen | Create new complaint |
+| `GET` | `/api/complaints/mine` | Citizen | Get complaints by logged-in citizen |
+| `GET` | `/api/complaints/:id` | Public | Get complaint details by ID |
+| `PATCH` | `/api/complaints/:id/upvote` | Citizen | Upvote complaint |
+| `PATCH` | `/api/complaints/:id/status` | Officer | Update status, remarks & resolution proof |
+| `PATCH` | `/api/complaints/:id/assign` | Officer | Assign technician to complaint |
+| `PATCH` | `/api/complaints/:id/feedback` | Citizen | Submit resolution star rating |
+| `GET` | `/api/complaints/stats` | Officer | Aggregated statistics |
+| `GET` | `/api/complaints/export` | Officer | Export CSV dataset |
+| `GET` | `/api/complaints/duplicates` | Citizen | Check for duplicates |
 
----
+### 👥 Staff Management (`/api/staff`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/staff` | Officer | List staff (Super Officer: all; Officer: direct technicians) |
+| `GET` | `/api/staff/officers` | Super Officer | List all officers |
+| `GET` | `/api/staff/technicians`| Officer | List technicians under requesting officer |
+| `POST` | `/api/staff/provision` | Super Officer | Create Officer or Technician account |
+| `PATCH` | `/api/staff/:id/assign-officer` | Super Officer | Assign technician to officer |
+| `DELETE`| `/api/staff/:id` | Super Officer | Remove staff member (Super Officer protected) |
 
-## 🧪 Automated Testing
+### 🤖 AI Operational Intelligence (`/api/ai`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/ai/officer-summary` | Officer | Generate Gemini AI operational summary |
+| `POST` | `/api/ai/analyze-complaint`| Citizen | AI complaint triage & recommendations |
 
-To run the complete automated integration test suite covering 28 test cases across all endpoints, authentication, upvotes, duplicate checks, officer actions, feedback, and Gemini AI:
-
-```bash
-npm test
-```
-
----
-
-## 📡 API Endpoint Reference
-
-### 1. Health Check
-- `GET /api/health` — Public health check
-
-### 2. Authentication (`/api/auth`)
-- `POST /api/auth/signup` — Public registration (**Citizen only**). Body: `{ "name", "email", "password" }`
-- `POST /api/auth/login` — Public login. Body: `{ "email", "password" }`. Returns `{ token, user }`
-- `GET /api/auth/me` — Protected (requires Bearer token). Returns current user profile.
-
-### 3. Complaints (`/api/complaints`)
-- `GET /api/complaints` — **Public**. List complaints. Query params:
-  - `?category=road|garbage|water|electricity|other`
-  - `?status=pending|in-progress|resolved`
-  - `?area=University Road`
-  - `?search=pothole` (searches title, description, area)
-  - `?sort=recent|upvotes`
-- `POST /api/complaints` — **Citizen only**. Create complaint. Body: `{ "title", "description", "category", "area" }`
-- `GET /api/complaints/mine` — **Citizen only**. Get current citizen's submitted complaints.
-- `GET /api/complaints/duplicates` — **Citizen only**. Check potential duplicates. Query: `?category=garbage&area=University%20Road`
-- `GET /api/complaints/:id` — **Public**. Retrieve full complaint details by ID.
-- `PATCH /api/complaints/:id/upvote` — **Citizen only**. Upvote a complaint (single upvote per citizen enforced).
-- `PATCH /api/complaints/:id/status` — **Officer only**. Update complaint status. Body: `{ "status": "in-progress"|"resolved"|"pending", "remark": "..." }`
-- `PATCH /api/complaints/:id/feedback` — **Citizen author only**. Submit feedback on resolved complaint. Body: `{ "rating": 5, "comment": "..." }`
-- `GET /api/complaints/stats` — **Officer only**. Retrieve aggregated metrics (total, statuses, priorities, top categories, top areas, average rating).
-
-### 4. AI Officer Briefing (`/api/ai`)
-- `POST /api/ai/officer-summary` — **Officer only**. Generates a concise 3-5 sentence operational briefing using Gemini based strictly on aggregated statistics without citizen PII.
-
----
-
-## ⚡ Dynamic Priority Formula
-
-Priority is computed dynamically on read and never permanently stored in the database:
-$$\text{score} = (\text{upvotes} \times 2) + \text{daysSinceCreated}$$
-
-- `score < 5` → **low**
-- `5 <= score <= 15` → **medium**
-- `16 <= score <= 30` → **high**
-- `score > 30` → **critical**
+### 📸 Media Uploads (`/api/upload`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/upload` | Protected | Upload image to Cloudinary (`evidence` or `resolution`) |

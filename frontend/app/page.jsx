@@ -40,11 +40,11 @@ export default function LandingPage() {
   const { user, isAuthenticated, isOfficer, isCitizen } = useAuth();
 
   const [pulseData, setPulseData] = useState({
-    total: 14,
-    pending: 7,
-    inProgress: 4,
-    resolved: 3,
-    critical: 5,
+    total: 0,
+    pending: 0,
+    inProgress: 0,
+    resolved: 0,
+    critical: 0,
   });
 
   const [topComplaints, setTopComplaints] = useState([]);
@@ -55,7 +55,7 @@ export default function LandingPage() {
     const fetchLiveStats = async () => {
       try {
         const allRes = await complaintApi.getAll({ sort: 'upvotes' });
-        if (Array.isArray(allRes.data) && allRes.data.length > 0) {
+        if (Array.isArray(allRes.data)) {
           const list = allRes.data;
           const total = list.length;
           const pending = list.filter((c) => c.status === 'pending').length;
@@ -67,7 +67,7 @@ export default function LandingPage() {
           setTopComplaints(list.slice(0, 4));
         }
       } catch {
-        // Fallback to default community pulse
+        // Keep zero count state on error
       }
     };
     fetchLiveStats();
@@ -295,58 +295,65 @@ export default function LandingPage() {
                     <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                       High-Priority Neighborhood Issues
                     </div>
-                    {topComplaints.map((item) => {
-                      const { icon: CatIcon, container } = getCategoryIcon(item.category);
-                      const userUpvoted = hasUpvoted(item);
-                      const isUpvotingThis = upvotingIds.has(item._id);
+                    {topComplaints.length === 0 ? (
+                      <div className="py-6 text-center text-xs text-slate-500 space-y-1.5 bg-[#F8F9FF] rounded-2xl border border-dashed border-slate-200 p-4">
+                        <p className="font-bold text-[#0B1C30]">No Active Reports Yet</p>
+                        <p className="text-[11px] text-slate-400">Be the first to file an issue in your area!</p>
+                      </div>
+                    ) : (
+                      topComplaints.map((item) => {
+                        const { icon: CatIcon, container } = getCategoryIcon(item.category);
+                        const userUpvoted = hasUpvoted(item);
+                        const isUpvotingThis = upvotingIds.has(item._id);
 
-                      return (
-                        <div
-                          key={item._id}
-                          className="flex items-center justify-between p-3 rounded-2xl border border-slate-200 bg-[#F8F9FF] hover:bg-emerald-50/40 hover:border-emerald-200 transition-all group"
-                        >
-                          <Link href={`/complaints/${item._id}`} className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 ${container}`}>
-                              <CatIcon className="h-4 w-4" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="text-xs font-bold text-[#0B1C30] truncate group-hover:text-emerald-800">
-                                {item.title}
+                        return (
+                          <div
+                            key={item._id}
+                            className="flex items-center justify-between p-3 rounded-2xl border border-slate-200 bg-[#F8F9FF] hover:bg-emerald-50/40 hover:border-emerald-200 transition-all group"
+                          >
+                            <Link href={`/complaints/${item._id}`} className="flex items-center gap-3 min-w-0 flex-1">
+                              <div className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 ${container}`}>
+                                <CatIcon className="h-4 w-4" />
                               </div>
-                              <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                                <MapPin className="h-3 w-3 text-emerald-600" />
-                                <span>{item.area}</span>
+                              <div className="min-w-0">
+                                <div className="text-xs font-bold text-[#0B1C30] truncate group-hover:text-emerald-800">
+                                  {item.title}
+                                </div>
+                                <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                                  <MapPin className="h-3 w-3 text-emerald-600" />
+                                  <span>{item.area}</span>
+                                </div>
                               </div>
-                            </div>
-                          </Link>
+                            </Link>
 
-                          {/* 1-Click Interactive Upvote Button for Citizens/Visitors */}
-                          {!isOfficer ? (
-                            <button
-                              type="button"
-                              onClick={(e) => handleUpvote(e, item._id)}
-                              disabled={isUpvotingThis || userUpvoted}
-                              title={userUpvoted ? 'You supported this' : 'Click to support this issue'}
-                              className={`flex items-center gap-1.5 pl-3 shrink-0 transition-transform active:scale-95`}
-                            >
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold shadow-2xs transition-all ${
-                                userUpvoted
-                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                                  : 'bg-white border border-emerald-200/80 text-emerald-800 hover:bg-emerald-600 hover:text-white hover:border-emerald-600'
-                              }`}>
-                                {userUpvoted ? <Check className="h-3 w-3 text-emerald-700" /> : <ThumbsUp className="h-3 w-3" />}
+                            {/* 1-Click Interactive Upvote Button for Citizens/Visitors */}
+                            {!isOfficer ? (
+                              <button
+                                type="button"
+                                onClick={(e) => handleUpvote(e, item._id)}
+                                disabled={isUpvotingThis || userUpvoted}
+                                title={userUpvoted ? 'You supported this' : 'Click to support this issue'}
+                                className={`flex items-center gap-1.5 pl-3 shrink-0 transition-transform active:scale-95`}
+                              >
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold shadow-2xs transition-all ${
+                                  userUpvoted
+                                    ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                    : 'bg-white border border-emerald-200/80 text-emerald-800 hover:bg-emerald-600 hover:text-white hover:border-emerald-600'
+                                }`}>
+                                  {userUpvoted ? <Check className="h-3 w-3 text-emerald-700" /> : <ThumbsUp className="h-3 w-3" />}
+                                  {item.upvotes || 0}
+                                </span>
+                              </button>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold bg-white border border-slate-200 text-slate-700 shadow-2xs ml-3">
+                                <ThumbsUp className="h-3 w-3 text-emerald-600" />
                                 {item.upvotes || 0}
                               </span>
-                            </button>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold bg-white border border-slate-200 text-slate-700 shadow-2xs ml-3">
-                              <ThumbsUp className="h-3 w-3 text-emerald-600" />
-                              {item.upvotes || 0}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
 
                   {/* Explore Link */}
@@ -354,7 +361,9 @@ export default function LandingPage() {
                     href="/complaints"
                     className="block text-center text-xs font-bold text-emerald-700 hover:text-emerald-900 pt-1 transition-colors"
                   >
-                    View all {pulseData.total} community complaints &rarr;
+                    {pulseData.total > 0
+                      ? `View all ${pulseData.total} community complaints →`
+                      : 'Explore Complaints Directory →'}
                   </Link>
                 </div>
               </div>
@@ -389,7 +398,22 @@ export default function LandingPage() {
 
             {/* UPVOTE CARDS GRID */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {topComplaints.map((item) => {
+              {topComplaints.length === 0 ? (
+                <div className="col-span-1 md:col-span-2 py-12 text-center rounded-3xl border border-dashed border-slate-200 bg-[#F8F9FF] p-8 space-y-3">
+                  <Layers className="h-8 w-8 mx-auto text-emerald-600" />
+                  <h3 className="text-base font-bold text-[#0B1C30]">Community Issues Queue is Clear</h3>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    No complaints have been reported yet. As citizens file neighborhood reports, they will appear here for community upvotes and field dispatch.
+                  </p>
+                  <Link href="/complaints/new">
+                    <Button size="sm" variant="default" className="gap-1.5 font-bold rounded-xl mt-2">
+                      <FilePlus className="h-3.5 w-3.5" />
+                      Report an Issue
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                topComplaints.map((item) => {
                 const userUpvoted = hasUpvoted(item);
                 const isUpvotingThis = upvotingIds.has(item._id);
                 const hasPhoto = Boolean(item.imageUrl);
@@ -502,7 +526,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                 );
-              })}
+              }))}
             </div>
           </div>
         </section>
