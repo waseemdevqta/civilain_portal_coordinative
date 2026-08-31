@@ -2,11 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/common/Navbar';
 import { Footer } from '@/components/common/Footer';
 import { Button } from '@/components/ui/button';
+import { StatusBadge } from '@/components/common/StatusBadge';
+import { PriorityBadge } from '@/components/common/PriorityBadge';
+import { CategoryBadge } from '@/components/common/CategoryBadge';
+import ImageLightbox from '@/components/common/ImageLightbox';
 import { complaintApi } from '@/lib/api';
+import { toast } from '@/components/ui/toaster';
 import {
   FilePlus,
   Layers,
@@ -25,10 +31,14 @@ import {
   Clock,
   Heart,
   TrendingUp,
+  Check,
+  Camera,
 } from 'lucide-react';
 
 export default function LandingPage() {
-  const { isAuthenticated, isOfficer, isCitizen } = useAuth();
+  const router = useRouter();
+  const { user, isAuthenticated, isOfficer, isCitizen } = useAuth();
+
   const [pulseData, setPulseData] = useState({
     total: 14,
     pending: 7,
@@ -37,32 +47,9 @@ export default function LandingPage() {
     critical: 5,
   });
 
-  const [topComplaints, setTopComplaints] = useState([
-    {
-      _id: '1',
-      category: 'road',
-      area: 'University Road',
-      title: 'Road damage & potholes near Campus Gate 3',
-      upvotes: 42,
-      status: 'in-progress',
-    },
-    {
-      _id: '2',
-      category: 'water',
-      area: 'Satellite Town',
-      title: 'Main pipeline leak causing low pressure in Block B',
-      upvotes: 28,
-      status: 'pending',
-    },
-    {
-      _id: '3',
-      category: 'garbage',
-      area: 'Jinnah Road',
-      title: 'Overflowing public dumpsters outside central market',
-      upvotes: 19,
-      status: 'in-progress',
-    },
-  ]);
+  const [topComplaints, setTopComplaints] = useState([]);
+  const [upvotingIds, setUpvotingIds] = useState(new Set());
+  const [activeLightbox, setActiveLightbox] = useState(null);
 
   useEffect(() => {
     const fetchLiveStats = async () => {
@@ -77,8 +64,7 @@ export default function LandingPage() {
           const critical = list.filter((c) => c.priority === 'critical').length;
           setPulseData({ total, pending, inProgress, resolved, critical });
 
-          // Take top 3 for live pulse card preview
-          setTopComplaints(list.slice(0, 3));
+          setTopComplaints(list.slice(0, 4));
         }
       } catch {
         // Fallback to default community pulse
@@ -86,6 +72,47 @@ export default function LandingPage() {
     };
     fetchLiveStats();
   }, []);
+
+  // Handle direct 1-click upvote from home page
+  const handleUpvote = async (e, complaintId) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      toast.info('Please sign in or create an account to support neighborhood issues');
+      router.push(`/login?redirect=/`);
+      return;
+    }
+
+    if (upvotingIds.has(complaintId)) return;
+
+    setUpvotingIds((prev) => new Set(prev).add(complaintId));
+
+    try {
+      const res = await complaintApi.upvote(complaintId);
+      toast.success('Your support for this issue has been recorded!');
+
+      setTopComplaints((prev) =>
+        prev.map((c) => (c._id === complaintId ? res.data : c))
+      );
+    } catch (err) {
+      toast.error(err.message || 'Could not record support');
+    } finally {
+      setUpvotingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(complaintId);
+        return next;
+      });
+    }
+  };
+
+  const hasUpvoted = (complaint) => {
+    if (!user || !complaint?.upvotedBy) return false;
+    const userId = user.id || user._id;
+    return complaint.upvotedBy.some(
+      (upvoterId) => (upvoterId._id || upvoterId).toString() === userId?.toString()
+    );
+  };
 
   const getCategoryIcon = (cat) => {
     switch ((cat || '').toLowerCase()) {
@@ -150,7 +177,7 @@ export default function LandingPage() {
                   AWAZ gives citizens a simple, transparent way to report neighborhood problems, rally community support, and track verified municipal resolutions.
                 </p>
 
-                {/* CTAs with Emerald and Blue primary theme styling */}
+                {/* CTAs */}
                 <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   {isAuthenticated ? (
                     isOfficer ? (
@@ -202,51 +229,55 @@ export default function LandingPage() {
                   )}
                 </div>
 
-                {/* Reassurance pills */}
-                <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-500">
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    Public tracking ID
-                  </span>
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    Democratic priority scores
-                  </span>
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    Verified resolution remarks
-                  </span>
+                {/* Quick Trust Highlights */}
+                <div className="pt-6 grid grid-cols-3 gap-3 border-t border-slate-200/80 text-xs">
+                  <div>
+                    <div className="font-extrabold text-[#0B1C30] text-sm">100% Public</div>
+                    <div className="text-slate-500 text-[11px]">Civic transparency</div>
+                  </div>
+                  <div>
+                    <div className="font-extrabold text-[#0B1C30] text-sm">AI Assisted</div>
+                    <div className="text-slate-500 text-[11px]">Smart triage & duplicates</div>
+                  </div>
+                  <div>
+                    <div className="font-extrabold text-[#0B1C30] text-sm">Verified Fixes</div>
+                    <div className="text-slate-500 text-[11px]">Photo evidence required</div>
+                  </div>
                 </div>
               </div>
 
-              {/* RIGHT COLUMN: COMMUNITY PULSE */}
+              {/* RIGHT COLUMN: LIVE COMMUNITY PULSE CARD */}
               <div className="lg:col-span-5">
-                <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-[0_8px_30px_rgba(11,28,48,0.06)] space-y-5">
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-[0_8px_30px_rgba(11,28,48,0.06)] space-y-6">
+                  {/* Card Header */}
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-600 animate-pulse" />
-                      <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-950">
-                        COMMUNITY PULSE
+                      <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-600 animate-ping" />
+                      <span className="font-bold text-xs uppercase tracking-wider text-[#0B1C30]">
+                        Live Community Pulse
                       </span>
                     </div>
-                    <span className="text-xs font-semibold text-slate-500">
-                      {pulseData.total} total cases
+                    <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      Real-time
                     </span>
                   </div>
 
-                  {/* Summary Metric Strip */}
-                  <div className="grid grid-cols-3 gap-2 text-center">
+                  {/* Metric Counters Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-left">
                     <div className="rounded-2xl border border-slate-200 bg-[#F8F9FF] p-3">
-                      <div className="text-[10px] font-bold uppercase text-slate-500">Active</div>
+                      <div className="text-[10px] font-bold uppercase text-slate-500">Total Logged</div>
                       <div className="text-xl font-extrabold text-[#0B1C30] mt-0.5">
-                        {pulseData.pending + pulseData.inProgress}
+                        {pulseData.total}
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-red-200 bg-red-50/60 p-3">
-                      <div className="text-[10px] font-bold uppercase text-[#BA1A1A] flex items-center justify-center gap-1">
-                        <Flame className="h-3 w-3" />
-                        Critical
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-3">
+                      <div className="text-[10px] font-bold uppercase text-amber-800">Pending Review</div>
+                      <div className="text-xl font-extrabold text-amber-900 mt-0.5">
+                        {pulseData.pending}
                       </div>
+                    </div>
+                    <div className="rounded-2xl border border-red-200 bg-red-50/80 p-3">
+                      <div className="text-[10px] font-bold uppercase text-[#BA1A1A]">Critical / Urgent</div>
                       <div className="text-xl font-extrabold text-[#BA1A1A] mt-0.5">
                         {pulseData.critical}
                       </div>
@@ -259,20 +290,22 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  {/* Live Complaint Items */}
+                  {/* Live Complaint Items with Direct Upvote Button */}
                   <div className="space-y-2.5">
                     <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                       High-Priority Neighborhood Issues
                     </div>
                     {topComplaints.map((item) => {
                       const { icon: CatIcon, container } = getCategoryIcon(item.category);
+                      const userUpvoted = hasUpvoted(item);
+                      const isUpvotingThis = upvotingIds.has(item._id);
+
                       return (
-                        <Link
+                        <div
                           key={item._id}
-                          href={`/complaints/${item._id}`}
                           className="flex items-center justify-between p-3 rounded-2xl border border-slate-200 bg-[#F8F9FF] hover:bg-emerald-50/40 hover:border-emerald-200 transition-all group"
                         >
-                          <div className="flex items-center gap-3 min-w-0">
+                          <Link href={`/complaints/${item._id}`} className="flex items-center gap-3 min-w-0 flex-1">
                             <div className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 ${container}`}>
                               <CatIcon className="h-4 w-4" />
                             </div>
@@ -281,19 +314,37 @@ export default function LandingPage() {
                                 {item.title}
                               </div>
                               <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                                <MapPin className="h-3 w-3 text-slate-400" />
+                                <MapPin className="h-3 w-3 text-emerald-600" />
                                 <span>{item.area}</span>
                               </div>
                             </div>
-                          </div>
+                          </Link>
 
-                          <div className="flex items-center gap-1.5 pl-3 shrink-0">
-                            <span className="inline-flex items-center gap-1 rounded-full bg-white border border-emerald-200/80 px-2.5 py-1 text-xs font-bold text-emerald-800 shadow-2xs group-hover:border-emerald-300">
+                          {/* 1-Click Interactive Upvote Button for Citizens/Visitors */}
+                          {!isOfficer ? (
+                            <button
+                              type="button"
+                              onClick={(e) => handleUpvote(e, item._id)}
+                              disabled={isUpvotingThis || userUpvoted}
+                              title={userUpvoted ? 'You supported this' : 'Click to support this issue'}
+                              className={`flex items-center gap-1.5 pl-3 shrink-0 transition-transform active:scale-95`}
+                            >
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold shadow-2xs transition-all ${
+                                userUpvoted
+                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                  : 'bg-white border border-emerald-200/80 text-emerald-800 hover:bg-emerald-600 hover:text-white hover:border-emerald-600'
+                              }`}>
+                                {userUpvoted ? <Check className="h-3 w-3 text-emerald-700" /> : <ThumbsUp className="h-3 w-3" />}
+                                {item.upvotes || 0}
+                              </span>
+                            </button>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold bg-white border border-slate-200 text-slate-700 shadow-2xs ml-3">
                               <ThumbsUp className="h-3 w-3 text-emerald-600" />
                               {item.upvotes || 0}
                             </span>
-                          </div>
-                        </Link>
+                          )}
+                        </div>
                       );
                     })}
                   </div>
@@ -307,6 +358,151 @@ export default function LandingPage() {
                   </Link>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* DEDICATED DEMOCRATIC UPVOTING & COMMUNITY DEMANDS SECTION */}
+        <section className="py-16 sm:py-20 border-b border-slate-200/80 bg-white">
+          <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 space-y-10">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-100 pb-6">
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-0.5 text-xs font-bold text-emerald-800 border border-emerald-200">
+                  <ThumbsUp className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>DEMOCRATIC CITIZEN UPVOTES</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0B1C30]">
+                  Rally Support for Your Neighborhood
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 max-w-2xl">
+                  Public works crews prioritize issues backed by community voice. Browse active municipal reports below and click to cast your support.
+                </p>
+              </div>
+
+              <Link href="/complaints?sort=upvotes">
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs font-bold rounded-xl h-10 px-4">
+                  <span>Explore All Demands</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* UPVOTE CARDS GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {topComplaints.map((item) => {
+                const userUpvoted = hasUpvoted(item);
+                const isUpvotingThis = upvotingIds.has(item._id);
+                const hasPhoto = Boolean(item.imageUrl);
+
+                return (
+                  <div
+                    key={item._id}
+                    className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs hover:border-emerald-200 hover:shadow-md transition-all duration-200 space-y-4 flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      {/* Badges */}
+                      <div className="flex flex-wrap items-center gap-2 justify-between">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <CategoryBadge category={item.category} />
+                          <StatusBadge status={item.status} />
+                          <PriorityBadge priority={item.priority} score={item.priorityScore} showScore={true} />
+                        </div>
+                        <span className="font-mono text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                          #CF-{item._id.slice(-6).toUpperCase()}
+                        </span>
+                      </div>
+
+                      {/* Photo Thumbnail + Title */}
+                      <div className="flex gap-3.5 items-start">
+                        {hasPhoto && (
+                          <div
+                            onClick={() =>
+                              setActiveLightbox({
+                                url: item.imageUrl,
+                                title: item.title,
+                                subtitle: item.area,
+                              })
+                            }
+                            className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex-shrink-0 cursor-pointer group shadow-2xs"
+                            title="Click to view photo"
+                          >
+                            <img
+                              src={item.imageUrl}
+                              alt={item.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                            <div className="absolute inset-0 bg-[#0B1C30]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                              <Camera className="w-4 h-4" />
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="space-y-1 min-w-0 flex-1">
+                          <Link
+                            href={`/complaints/${item._id}`}
+                            className="text-base font-bold text-[#0B1C30] hover:text-emerald-700 block transition-colors leading-snug"
+                          >
+                            {item.title}
+                          </Link>
+                          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                            <MapPin className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                            <span>{item.area}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                        {item.description || 'Public infrastructure report submitted for municipal inspection and field repairs.'}
+                      </p>
+                    </div>
+
+                    {/* Action Bar: Upvote Trigger & View Details */}
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-100 gap-3">
+                      <div className="text-xs text-slate-500 font-semibold flex items-center gap-1.5">
+                        <Flame className="h-4 w-4 text-amber-500" />
+                        <span>{item.upvotes || 0} Citizens Supporting</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {!isOfficer && (
+                          <Button
+                            size="sm"
+                            onClick={(e) => handleUpvote(e, item._id)}
+                            disabled={isUpvotingThis || userUpvoted}
+                            className={`gap-1.5 h-10 px-4 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                              userUpvoted
+                                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
+                                : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-[0_4px_12px_rgba(5,150,105,0.22)]'
+                            }`}
+                          >
+                            {userUpvoted ? (
+                              <>
+                                <Check className="h-3.5 w-3.5 text-emerald-700" />
+                                <span>Supported</span>
+                              </>
+                            ) : (
+                              <>
+                                <ThumbsUp className="h-3.5 w-3.5" />
+                                <span>Support (+1)</span>
+                              </>
+                            )}
+                          </Button>
+                        )}
+
+                        <Link href={`/complaints/${item._id}`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs h-10 rounded-xl text-slate-600 hover:text-emerald-900 hover:bg-emerald-50 px-2.5 font-semibold"
+                          >
+                            {isOfficer ? 'Inspect & Review \u2192' : 'Details \u2192'}
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -469,6 +665,17 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
+
+      {/* Lightbox Modal */}
+      {activeLightbox && (
+        <ImageLightbox
+          isOpen={true}
+          onClose={() => setActiveLightbox(null)}
+          imageUrl={activeLightbox.url}
+          title={activeLightbox.title}
+          subtitle={activeLightbox.subtitle}
+        />
+      )}
 
       <Footer />
     </div>

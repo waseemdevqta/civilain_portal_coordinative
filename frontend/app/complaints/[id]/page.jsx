@@ -86,7 +86,8 @@ export default function ComplaintDetailPage() {
   // Handle Community Support Upvote
   const handleUpvote = async () => {
     if (!isAuthenticated) {
-      toast.info('Please sign in to support this civic issue');
+      toast.info('Please sign in or create an account to support this neighborhood issue');
+      router.push(`/login?redirect=/complaints/${complaint?._id || id}`);
       return;
     }
 
@@ -95,7 +96,7 @@ export default function ComplaintDetailPage() {
     setUpvoting(true);
     try {
       const res = await complaintApi.upvote(complaint._id);
-      toast.success('Your support for this issue has been recorded!');
+      toast.success('Thank you! Your support has been recorded and priority escalated.');
       setComplaint(res.data);
     } catch (err) {
       toast.error(err.message || 'Could not record support');
@@ -426,40 +427,83 @@ export default function ComplaintDetailPage() {
                 </div>
               )}
 
-              {/* COMMUNITY SUPPORT & UPVOTES */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
-                <div>
-                  <div className="text-sm font-bold text-[#0B1C30] flex items-center gap-2">
-                    <ThumbsUp className="h-4 w-4 text-emerald-600" />
-                    {complaint.upvotes || 0} Citizens Supporting This Issue
+              {/* COMMUNITY SUPPORT & DEMOCRATIC PRIORITY SECTION */}
+              <div className="rounded-3xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/50 p-6 sm:p-7 shadow-[0_4px_20px_rgba(5,150,105,0.06)] space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 text-white flex items-center justify-center shadow-xs">
+                        <ThumbsUp className="h-4 w-4" />
+                      </div>
+                      <h3 className="text-base sm:text-lg font-extrabold text-[#0B1C30]">
+                        Community Support & Democratic Priority
+                      </h3>
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-600">
+                      {isOfficer
+                        ? 'Citizen upvotes directly affect the computed priority score used for dispatch ordering.'
+                        : 'Every verified citizen upvote elevates this ticket in the municipal field crew dispatch queue.'}
+                    </p>
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Community support directly affects dynamic municipal priority score.
-                  </p>
+
+                  {/* Only citizens can upvote; officers see a read-only badge */}
+                  {!isOfficer ? (
+                    <Button
+                      size="lg"
+                      onClick={handleUpvote}
+                      disabled={upvoting || hasUserUpvoted}
+                      className={`gap-2 h-12 px-6 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 shadow-md ${
+                        hasUserUpvoted
+                          ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 hover:bg-emerald-100 cursor-default shadow-xs'
+                          : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-[0_4px_16px_rgba(5,150,105,0.28)] hover:-translate-y-0.5'
+                      }`}
+                    >
+                      {hasUserUpvoted ? (
+                        <>
+                          <Check className="h-4 w-4 text-emerald-800" />
+                          <span>You Supported This ({complaint.upvotes || 0})</span>
+                        </>
+                      ) : (
+                        <>
+                          <ThumbsUp className="h-4 w-4" />
+                          <span>Support & Upvote ({complaint.upvotes || 0})</span>
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <span className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-xs shrink-0">
+                      <ThumbsUp className="h-4 w-4 text-emerald-600" />
+                      {complaint.upvotes || 0} citizen supporters
+                    </span>
+                  )}
                 </div>
 
-                <Button
-                  size="sm"
-                  onClick={handleUpvote}
-                  disabled={upvoting || hasUserUpvoted}
-                  className={`gap-1.5 h-10 px-5 rounded-xl text-xs font-bold transition-all shadow-xs ${
-                    hasUserUpvoted
-                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 hover:text-emerald-900'
-                      : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-[0_4px_14px_rgba(5,150,105,0.25)]'
-                  }`}
-                >
-                  {hasUserUpvoted ? (
-                    <>
-                      <Check className="h-4 w-4 text-emerald-700" />
-                      <span>Supported ({complaint.upvotes || 0})</span>
-                    </>
-                  ) : (
-                    <>
-                      <ThumbsUp className="h-4 w-4" />
-                      <span>Support This Issue</span>
-                    </>
-                  )}
-                </Button>
+                {/* Priority Impact & Support Status Breakdown */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                  <div className="p-3.5 rounded-2xl bg-white border border-emerald-100 shadow-2xs">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Total Citizen Upvotes</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-2xl font-black text-emerald-800">{complaint.upvotes || 0}</span>
+                      <span className="text-xs text-slate-500 font-medium">supporters</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-white border border-emerald-100 shadow-2xs">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Computed Priority Score</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-2xl font-black text-[#0B1C30]">{complaint.priorityScore || 0} pts</span>
+                      <PriorityBadge priority={complaint.priority} />
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-white border border-emerald-100 shadow-2xs">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Dispatch Escalation</span>
+                    <div className="flex items-center gap-1.5 mt-1 text-xs font-bold text-emerald-800">
+                      <Flame className="h-4 w-4 text-amber-500 animate-pulse" />
+                      <span>{complaint.upvotes >= 10 ? 'High Priority Accelerated' : 'Escalates at 10+ votes'}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* CITIZEN RESOLUTION REVIEW (IF GIVEN) */}

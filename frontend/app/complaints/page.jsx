@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { complaintApi } from '@/lib/api';
 import { Navbar } from '@/components/common/Navbar';
@@ -52,6 +53,7 @@ const STATUSES = [
 ];
 
 export default function ComplaintsPage() {
+  const router = useRouter();
   const { user, isAuthenticated, isOfficer } = useAuth();
 
   const [complaints, setComplaints] = useState([]);
@@ -98,7 +100,8 @@ export default function ComplaintsPage() {
   // Handle Community Upvote
   const handleUpvote = async (complaintId) => {
     if (!isAuthenticated) {
-      toast.info('Please sign in or register to support neighborhood reports');
+      toast.info('Please sign in or create an account to support neighborhood reports');
+      router.push(`/login?redirect=/complaints`);
       return;
     }
 
@@ -408,30 +411,37 @@ export default function ComplaintsPage() {
                         </div>
                       </div>
 
-                      {/* Right Action: Support / Upvote Button */}
+                      {/* Right Action: Support / Upvote Button (Citizens only) */}
                       <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2.5 shrink-0 pt-2 sm:pt-0">
-                        <Button
-                          size="sm"
-                          onClick={() => handleUpvote(complaint._id)}
-                          disabled={isUpvotingThis || userUpvoted}
-                          className={`gap-1.5 h-10 px-4 rounded-xl text-xs font-bold transition-all shadow-xs ${
-                            userUpvoted
-                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 hover:text-emerald-900'
-                              : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-[0_4px_12px_rgba(5,150,105,0.22)]'
-                          }`}
-                        >
-                          {userUpvoted ? (
-                            <>
-                              <Check className="h-3.5 w-3.5 text-emerald-700" />
-                              <span>Supported ({complaint.upvotes || 0})</span>
-                            </>
-                          ) : (
-                            <>
-                              <ThumbsUp className="h-3.5 w-3.5" />
-                              <span>Support ({complaint.upvotes || 0})</span>
-                            </>
-                          )}
-                        </Button>
+                        {!isOfficer ? (
+                          <Button
+                            size="sm"
+                            onClick={() => handleUpvote(complaint._id)}
+                            disabled={isUpvotingThis || userUpvoted}
+                            className={`gap-1.5 h-10 px-4 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                              userUpvoted
+                                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 hover:text-emerald-900'
+                                : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-[0_4px_12px_rgba(5,150,105,0.22)]'
+                            }`}
+                          >
+                            {userUpvoted ? (
+                              <>
+                                <Check className="h-3.5 w-3.5 text-emerald-700" />
+                                <span>Supported ({complaint.upvotes || 0})</span>
+                              </>
+                            ) : (
+                              <>
+                                <ThumbsUp className="h-3.5 w-3.5" />
+                                <span>Support ({complaint.upvotes || 0})</span>
+                              </>
+                            )}
+                          </Button>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600">
+                            <ThumbsUp className="h-3.5 w-3.5 text-emerald-600" />
+                            {complaint.upvotes || 0} supporters
+                          </span>
+                        )}
 
                         <Link href={`/complaints/${complaint._id}`}>
                           <Button
@@ -439,7 +449,7 @@ export default function ComplaintsPage() {
                             size="sm"
                             className="text-xs h-9 rounded-xl text-slate-600 hover:text-emerald-900 hover:bg-emerald-50/60 px-3 font-semibold"
                           >
-                            View Details &rarr;
+                            {isOfficer ? 'Inspect →' : 'View Details →'}
                           </Button>
                         </Link>
                       </div>
