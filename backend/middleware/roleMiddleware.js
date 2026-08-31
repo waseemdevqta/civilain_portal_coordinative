@@ -1,8 +1,7 @@
 const { errorResponse } = require('../utils/apiResponse');
 
 /**
- * Require Officer role middleware
- * Returns 403 when an authenticated citizen attempts an officer-only route
+ * Require Officer role middleware (includes super officer)
  */
 const requireOfficer = (req, res, next) => {
   if (req.user && req.user.role === 'officer') {
@@ -13,7 +12,6 @@ const requireOfficer = (req, res, next) => {
 
 /**
  * Require Citizen role middleware
- * Returns 403 when an authenticated non-citizen attempts a citizen-only route
  */
 const requireCitizen = (req, res, next) => {
   if (req.user && req.user.role === 'citizen') {
@@ -22,7 +20,52 @@ const requireCitizen = (req, res, next) => {
   return errorResponse(res, 403, 'Forbidden: Citizen access required for this action.');
 };
 
+/**
+ * Require Super Officer middleware
+ * Only the root super officer (isSuperOfficer: true) can access these routes
+ */
+const requireSuperOfficer = (req, res, next) => {
+  if (req.user && req.user.role === 'officer' && req.user.isSuperOfficer === true) {
+    return next();
+  }
+  return errorResponse(res, 403, 'Forbidden: Super Officer access required for this action.');
+};
+
+/**
+ * Require Officer or Super Officer (any officer-level access)
+ */
+const requireOfficerOrAbove = (req, res, next) => {
+  if (req.user && req.user.role === 'officer') {
+    return next();
+  }
+  return errorResponse(res, 403, 'Forbidden: Officer-level access required.');
+};
+
+/**
+ * Require Technician role middleware
+ */
+const requireTechnician = (req, res, next) => {
+  if (req.user && req.user.role === 'technician') {
+    return next();
+  }
+  return errorResponse(res, 403, 'Forbidden: Technician access required for this action.');
+};
+
+/**
+ * Require Officer or Technician (field staff access)
+ */
+const requireFieldStaff = (req, res, next) => {
+  if (req.user && (req.user.role === 'officer' || req.user.role === 'technician')) {
+    return next();
+  }
+  return errorResponse(res, 403, 'Forbidden: Field staff access required.');
+};
+
 module.exports = {
   requireOfficer,
   requireCitizen,
+  requireSuperOfficer,
+  requireOfficerOrAbove,
+  requireTechnician,
+  requireFieldStaff,
 };

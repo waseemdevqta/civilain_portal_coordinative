@@ -42,6 +42,7 @@ import {
   ExternalLink,
   Printer,
   Sparkles,
+  Wrench,
 } from 'lucide-react';
 
 export default function ComplaintDetailPage() {
@@ -238,6 +239,13 @@ export default function ComplaintDetailPage() {
                     <User className="h-4 w-4 text-slate-400" />
                     Reported by {complaint.createdBy?.name || 'Citizen'}
                   </span>
+                  {complaint.assignedTechnician && (
+                    <span className="flex items-center gap-1.5 font-bold text-blue-800 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
+                      <Wrench className="h-3.5 w-3.5 text-blue-600" />
+                      Assigned Crew: {complaint.assignedTechnician.name}
+                      {complaint.assignedTechnician.designation ? ` (${complaint.assignedTechnician.designation})` : ''}
+                    </span>
+                  )}
                 </div>
               </div>
 

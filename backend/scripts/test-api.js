@@ -292,10 +292,10 @@ const runAggressiveSuite = async () => {
       citizenLoginRes.data
     );
 
-    // 3.2 Valid officer login (seeded credentials)
+    // 3.2 Valid officer login (seeded credentials from .env)
     const officerLoginRes = await makeRequest('POST', '/api/auth/login', {
-      email: 'waseemahmedbaloch2004@gmail.com',
-      password: 'Officer123!',
+      email: process.env.SEED_OFFICER_EMAIL || 'officer@civicfix.demo',
+      password: process.env.SEED_OFFICER_PASSWORD || 'Officer123!',
     });
     assert(
       officerLoginRes.status === 200 &&

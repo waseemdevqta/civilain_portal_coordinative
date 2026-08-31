@@ -189,7 +189,8 @@ const getComplaints = async (req, res, next) => {
 
     const complaints = await Complaint.find(query)
       .sort(sortOption)
-      .populate('createdBy', 'name email');
+      .populate('createdBy', 'name email')
+      .populate('assignedTechnician', 'name email designation phone');
 
     const formattedComplaints = complaints.map(attachPriority);
 
@@ -218,7 +219,8 @@ const getMyComplaints = async (req, res, next) => {
   try {
     const complaints = await Complaint.find({ createdBy: req.user._id })
       .sort({ createdAt: -1 })
-      .populate('createdBy', 'name email');
+      .populate('createdBy', 'name email')
+      .populate('assignedTechnician', 'name email designation phone');
 
     const formattedComplaints = complaints.map(attachPriority);
 
@@ -246,7 +248,9 @@ const getComplaintById = async (req, res, next) => {
       return errorResponse(res, 400, 'Invalid complaint ID format');
     }
 
-    const complaint = await Complaint.findById(id).populate('createdBy', 'name email');
+    const complaint = await Complaint.findById(id)
+      .populate('createdBy', 'name email')
+      .populate('assignedTechnician', 'name email designation phone');
 
     if (!complaint) {
       return errorResponse(res, 404, 'Complaint not found');
@@ -366,10 +370,9 @@ const updateComplaintStatus = async (req, res, next) => {
 
     await complaint.save();
 
-    const populatedComplaint = await Complaint.findById(complaint._id).populate(
-      'createdBy',
-      'name email'
-    );
+    const populatedComplaint = await Complaint.findById(complaint._id)
+      .populate('createdBy', 'name email')
+      .populate('assignedTechnician', 'name email designation phone');
 
     return successResponse(
       res,
@@ -660,6 +663,45 @@ const exportComplaintsCSV = async (req, res, next) => {
   }
 };
 
+/**
+ * PATCH /api/complaints/:id/assign
+ * Officer or super officer assigns a technician to a complaint
+ * Body: { technicianId } — pass null to unassign
+ */
+const assignTechnician = async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const { technicianId } = req.body;
+    const complaint = await Complaint.findById(req.params.id);
+    if (!complaint) return errorResponse(res, 404, 'Complaint not found.');
+
+    if (technicianId) {
+      const tech = await User.findOne({ _id: technicianId, role: 'technician' });
+      if (!tech) return errorResponse(res, 404, 'Technician not found.');
+
+      // Regular officer can only assign their own technicians
+      if (!req.user.isSuperOfficer) {
+        const techOfficerId = tech.assignedOfficer?.toString();
+        if (techOfficerId !== req.user._id.toString()) {
+          return errorResponse(res, 403, 'You can only assign technicians under your command.');
+        }
+      }
+      complaint.assignedTechnician = technicianId;
+    } else {
+      complaint.assignedTechnician = null;
+    }
+
+    await complaint.save();
+    const updated = await Complaint.findById(complaint._id)
+      .populate('assignedTechnician', 'name email designation phone')
+      .populate('createdBy', 'name email');
+
+    return successResponse(res, 200, 'Technician assignment updated.', { complaint: updated });
+  } catch (err) {
+    return errorResponse(res, 500, err.message);
+  }
+};
+
 module.exports = {
   createComplaint,
   getComplaints,
@@ -673,4 +715,5 @@ module.exports = {
   getHotspots,
   exportComplaintsCSV,
   computeComplaintsStats,
+  assignTechnician,
 };

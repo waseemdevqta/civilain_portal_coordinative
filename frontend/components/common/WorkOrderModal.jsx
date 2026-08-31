@@ -110,6 +110,23 @@ export default function WorkOrderModal({
             </div>
           </div>
 
+          {/* Assigned Field Crew / Technician */}
+          <div className="py-4 border-b border-[#E2E8F0] bg-emerald-50/40 -mx-8 px-8 flex items-center justify-between text-xs">
+            <div>
+              <span className="text-[10px] font-bold uppercase text-[#1F6C3A] block">Assigned Field Crew / Technician</span>
+              <p className="text-xs font-bold text-[#0B1C30] mt-0.5">
+                {complaint.assignedTechnician?.name || 'Unassigned / General Municipal Dispatch'}
+                {complaint.assignedTechnician?.designation ? ` (${complaint.assignedTechnician.designation})` : ''}
+              </p>
+            </div>
+            {complaint.assignedTechnician?.phone && (
+              <div className="text-right">
+                <span className="text-[10px] font-bold uppercase text-[#526071] block">Crew Contact</span>
+                <p className="text-xs font-mono font-semibold text-[#0B1C30] mt-0.5">{complaint.assignedTechnician.phone}</p>
+              </div>
+            )}
+          </div>
+
           {/* Issue Statement */}
           <div className="py-6 border-b border-[#E2E8F0]">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#526071]">Incident Title</span>

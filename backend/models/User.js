@@ -29,10 +29,32 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: {
-        values: ['citizen', 'officer'],
+        values: ['citizen', 'officer', 'technician'],
         message: '{VALUE} is not a valid role',
       },
       default: 'citizen',
+    },
+    // True only for the root super officer account (set during seed)
+    isSuperOfficer: {
+      type: Boolean,
+      default: false,
+    },
+    // For technicians: which officer they report to
+    assignedOfficer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    // Display info for staff directory
+    phone: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    designation: {
+      type: String,
+      default: '',
+      trim: true,
     },
   },
   {

@@ -162,6 +162,8 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!accessToken && !!user,
     isOfficer: user?.role === 'officer',
     isCitizen: user?.role === 'citizen',
+    isTechnician: user?.role === 'technician',
+    isSuperOfficer: user?.role === 'officer' && user?.isSuperOfficer === true,
     login,
     signup,
     updateProfile,

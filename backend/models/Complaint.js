@@ -76,6 +76,12 @@ const complaintSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    // Technician assigned to handle this complaint in the field
+    assignedTechnician: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
     feedbackRating: {
       type: Number,
       min: [1, 'Feedback rating must be at least 1'],

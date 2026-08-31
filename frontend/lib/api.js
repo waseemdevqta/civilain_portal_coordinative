@@ -167,11 +167,31 @@ export const complaintApi = {
   getDuplicates: (params) => api.get('/complaints/duplicates', { params }),
   getStats: () => api.get('/complaints/stats'),
   getHotspots: () => api.get('/complaints/hotspots'),
+  assignTechnician: (id, technicianId) => api.patch(`/complaints/${id}/assign`, { technicianId }),
   exportCSV: (params) =>
     api.get('/complaints/export', {
       params,
       responseType: 'blob',
     }),
+};
+
+/* ============================================================
+   STAFF MANAGEMENT API SERVICES
+   ============================================================ */
+export const staffApi = {
+  // List all staff (super officer = all; officer = own technicians)
+  getAll: () => api.get('/staff'),
+  // List only officers (for dropdowns)
+  getOfficers: () => api.get('/staff/officers'),
+  // List technicians under the requesting officer
+  getMyTechnicians: () => api.get('/staff/technicians'),
+  // Super officer: provision a new officer or technician account
+  provision: (data) => api.post('/staff/provision', data),
+  // Super officer: assign a technician to an officer
+  assignOfficer: (technicianId, officerId) =>
+    api.patch(`/staff/${technicianId}/assign-officer`, { officerId }),
+  // Super officer: remove a staff member
+  remove: (id) => api.delete(`/staff/${id}`),
 };
 
 /* ============================================================

@@ -68,6 +68,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/complaints', require('./routes/complaintRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/staff', require('./routes/staffRoutes'));
 
 // 404 & Centralized Error Handlers
 app.use(notFound);

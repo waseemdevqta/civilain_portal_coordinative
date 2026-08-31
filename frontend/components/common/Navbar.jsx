@@ -121,18 +121,32 @@ export function Navbar() {
           )}
 
           {isAuthenticated && isOfficer && (
-            <Link
-              href="/officer/dashboard"
-              className={cn(
-                'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
-                isActive('/officer/dashboard')
-                  ? 'text-emerald-950 bg-emerald-50/80 border border-emerald-200/60 font-bold shadow-2xs'
-                  : 'text-slate-600 hover:text-[#0B1C30] hover:bg-slate-50'
-              )}
-            >
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-              Operations Center
-            </Link>
+            <>
+              <Link
+                href="/officer/dashboard"
+                className={cn(
+                  'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
+                  isActive('/officer/dashboard')
+                    ? 'text-emerald-950 bg-emerald-50/80 border border-emerald-200/60 font-bold shadow-2xs'
+                    : 'text-slate-600 hover:text-[#0B1C30] hover:bg-slate-50'
+                )}
+              >
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                Operations Center
+              </Link>
+              <Link
+                href="/officer/staff"
+                className={cn(
+                  'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
+                  isActive('/officer/staff')
+                    ? 'text-emerald-950 bg-emerald-50/80 border border-emerald-200/60 font-bold shadow-2xs'
+                    : 'text-slate-600 hover:text-[#0B1C30] hover:bg-slate-50'
+                )}
+              >
+                <User className="h-3.5 w-3.5 text-emerald-600" />
+                Staff
+              </Link>
+            </>
           )}
         </nav>
 
@@ -249,6 +263,15 @@ export function Navbar() {
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link
+                          href="/officer/staff"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-emerald-50 hover:text-emerald-900"
+                        >
+                          <User className="mr-2 h-3.5 w-3.5 text-emerald-600" />
+                          Staff Management
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link
                           href="/dashboard/profile"
                           className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-emerald-50 hover:text-emerald-900"
                         >
@@ -351,6 +374,14 @@ export function Navbar() {
               >
                 <ShieldCheck className="h-4 w-4 text-emerald-100" />
                 Operations Center
+              </Link>
+              <Link
+                href="/officer/staff"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-emerald-50 hover:text-emerald-900"
+              >
+                <User className="h-4 w-4 text-emerald-600" />
+                Staff Management
               </Link>
               <Link
                 href="/dashboard/profile"

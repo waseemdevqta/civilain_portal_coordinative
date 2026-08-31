@@ -12,9 +12,10 @@ const {
   getOfficerStats,
   getHotspots,
   exportComplaintsCSV,
+  assignTechnician,
 } = require('../controllers/complaintController');
 const { protect } = require('../middleware/authMiddleware');
-const { requireOfficer, requireCitizen } = require('../middleware/roleMiddleware');
+const { requireOfficer, requireCitizen, requireOfficerOrAbove } = require('../middleware/roleMiddleware');
 
 // 1. Static / specific routes (must be defined before /:id)
 
@@ -52,5 +53,8 @@ router.patch('/:id/status', protect, requireOfficer, updateComplaintStatus);
 
 // Submit citizen feedback (Citizen only)
 router.patch('/:id/feedback', protect, requireCitizen, submitFeedback);
+
+// Assign technician to complaint (Officer or Super Officer)
+router.patch('/:id/assign', protect, requireOfficerOrAbove, assignTechnician);
 
 module.exports = router;

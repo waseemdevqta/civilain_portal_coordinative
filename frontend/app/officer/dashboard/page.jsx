@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { complaintApi, aiApi, authApi } from '@/lib/api';
+import { complaintApi, aiApi, authApi, staffApi } from '@/lib/api';
 import { Navbar } from '@/components/common/Navbar';
 import { Footer } from '@/components/common/Footer';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
@@ -57,10 +57,13 @@ import {
   Camera,
   Printer,
   ExternalLink,
+  Wrench,
+  Users,
+  Crown,
 } from 'lucide-react';
 
 export default function OfficerDashboardPage() {
-  const { user } = useAuth();
+  const { user, isSuperOfficer } = useAuth();
 
   // Primary states
   const [stats, setStats] = useState(null);
@@ -88,7 +91,12 @@ export default function OfficerDashboardPage() {
   const [officerRemark, setOfficerRemark] = useState('');
   const [resolutionImageUrl, setResolutionImageUrl] = useState('');
   const [resolutionImagePublicId, setResolutionImagePublicId] = useState('');
+  const [selectedTechnicianId, setSelectedTechnicianId] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  // Field Technicians List State
+  const [technicians, setTechnicians] = useState([]);
+  const [quickAssigningId, setQuickAssigningId] = useState(null);
 
   // New Officer Provisioning Modal State
   const [showProvisionModal, setShowProvisionModal] = useState(false);
@@ -111,13 +119,15 @@ export default function OfficerDashboardPage() {
       if (filterStatus) params.status = filterStatus;
       if (filterSearch.trim()) params.search = filterSearch.trim();
 
-      const [statsRes, complaintsRes] = await Promise.all([
+      const [statsRes, complaintsRes, techRes] = await Promise.all([
         complaintApi.getStats(),
         complaintApi.getAll(params),
+        staffApi.getMyTechnicians().catch(() => ({ data: { technicians: [] } })),
       ]);
 
       setStats(statsRes.data);
       setComplaints(complaintsRes.data || []);
+      setTechnicians(techRes.data?.technicians || []);
     } catch (err) {
       setError(err.message || 'Failed to load officer operations data');
     } finally {
@@ -154,6 +164,7 @@ export default function OfficerDashboardPage() {
     setOfficerRemark(complaint.officerRemark || '');
     setResolutionImageUrl(complaint.resolutionImageUrl || '');
     setResolutionImagePublicId(complaint.resolutionImagePublicId || '');
+    setSelectedTechnicianId(complaint.assignedTechnician?._id || complaint.assignedTechnician || '');
   };
 
   const handleUpdateStatusSubmit = async (e) => {
@@ -162,6 +173,7 @@ export default function OfficerDashboardPage() {
 
     setUpdatingStatus(true);
     try {
+      // 1. Update status & remarks
       const res = await complaintApi.updateStatus(selectedComplaint._id, {
         status: newStatus,
         officerRemark: officerRemark.trim(),
@@ -169,9 +181,23 @@ export default function OfficerDashboardPage() {
         resolutionImagePublicId: resolutionImagePublicId.trim(),
       });
 
+      let updatedComplaint = res.data;
+
+      // 2. Update technician assignment if changed
+      const originalTechId = selectedComplaint.assignedTechnician?._id || selectedComplaint.assignedTechnician || '';
+      if (selectedTechnicianId !== originalTechId) {
+        const assignRes = await complaintApi.assignTechnician(
+          selectedComplaint._id,
+          selectedTechnicianId || null
+        );
+        if (assignRes.data?.complaint) {
+          updatedComplaint = assignRes.data.complaint;
+        }
+      }
+
       toast.success(`Complaint status updated to ${newStatus}`);
       setComplaints((prev) =>
-        prev.map((c) => (c._id === selectedComplaint._id ? res.data : c))
+        prev.map((c) => (c._id === selectedComplaint._id ? updatedComplaint : c))
       );
       setSelectedComplaint(null);
       // Refresh stats
@@ -180,6 +206,23 @@ export default function OfficerDashboardPage() {
       toast.error(err.message || 'Failed to update complaint status');
     } finally {
       setUpdatingStatus(false);
+    }
+  };
+
+  // Quick inline technician assignment handler
+  const handleQuickAssignTechnician = async (complaintId, technicianId) => {
+    setQuickAssigningId(complaintId);
+    try {
+      const res = await complaintApi.assignTechnician(complaintId, technicianId || null);
+      const updated = res.data?.complaint;
+      toast.success(technicianId ? 'Technician assigned successfully' : 'Technician unassigned');
+      setComplaints((prev) =>
+        prev.map((c) => (c._id === complaintId ? (updated || { ...c, assignedTechnician: null }) : c))
+      );
+    } catch (err) {
+      toast.error(err.message || 'Failed to assign technician');
+    } finally {
+      setQuickAssigningId(null);
     }
   };
 
@@ -260,6 +303,17 @@ export default function OfficerDashboardPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              <Link href="/officer/staff">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs font-semibold rounded-xl h-10 px-3.5 border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100 hover:text-emerald-950 text-emerald-900 shadow-2xs"
+                >
+                  <Users className="h-4 w-4 text-emerald-600" />
+                  Staff & Crews ({technicians.length})
+                </Button>
+              </Link>
+
               <Button
                 variant="outline"
                 size="sm"
@@ -269,16 +323,6 @@ export default function OfficerDashboardPage() {
               >
                 <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
                 {exportingCsv ? 'Exporting...' : 'Export CSV Report'}
-              </Button>
-
-              <Button
-                size="sm"
-                variant="default"
-                onClick={() => setShowProvisionModal(true)}
-                className="gap-1.5 text-xs font-bold rounded-xl h-10 px-4"
-              >
-                <UserPlus className="h-4 w-4" />
-                Add New Officer
               </Button>
             </div>
           </div>
@@ -430,6 +474,7 @@ export default function OfficerDashboardPage() {
                       <th className="py-3 px-3.5">Category</th>
                       <th className="py-3 px-3.5">Priority</th>
                       <th className="py-3 px-3.5">Status</th>
+                      <th className="py-3 px-3.5">Field Crew</th>
                       <th className="py-3 px-3.5">Support</th>
                       <th className="py-3 px-3.5 rounded-r-xl text-right">Actions</th>
                     </tr>
@@ -438,20 +483,21 @@ export default function OfficerDashboardPage() {
                     {loading ? (
                       [1, 2, 3, 4, 5].map((i) => (
                         <tr key={i}>
-                          <td colSpan={8} className="py-3.5 px-3.5">
+                          <td colSpan={9} className="py-3.5 px-3.5">
                             <Skeleton className="h-4 w-full rounded-md" />
                           </td>
                         </tr>
                       ))
                     ) : complaints.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="py-8 text-center text-slate-500">
+                        <td colSpan={9} className="py-8 text-center text-slate-500">
                           No complaints match the current filter criteria.
                         </td>
                       </tr>
                     ) : (
                       complaints.map((c) => {
                         const hasPhoto = Boolean(c.imageUrl);
+                        const assignedTech = c.assignedTechnician;
 
                         return (
                           <tr key={c._id} className="hover:bg-emerald-50/30 transition-colors">
@@ -496,6 +542,25 @@ export default function OfficerDashboardPage() {
                             </td>
                             <td className="py-3.5 px-3.5">
                               <StatusBadge status={c.status} />
+                            </td>
+                            <td className="py-3.5 px-3.5">
+                              <select
+                                value={assignedTech?._id || assignedTech || ''}
+                                onChange={(e) => handleQuickAssignTechnician(c._id, e.target.value)}
+                                disabled={quickAssigningId === c._id}
+                                className={`text-[11px] font-semibold h-7 rounded-lg border px-2 py-0.5 max-w-[130px] truncate focus:outline-none focus:ring-1 focus:ring-emerald-500 ${
+                                  assignedTech
+                                    ? 'border-blue-200 bg-blue-50/80 text-blue-900 font-bold'
+                                    : 'border-slate-200 bg-slate-50 text-slate-500'
+                                }`}
+                              >
+                                <option value="">Unassigned</option>
+                                {technicians.map((t) => (
+                                  <option key={t._id} value={t._id}>
+                                    {t.name} {t.designation ? `(${t.designation})` : ''}
+                                  </option>
+                                ))}
+                              </select>
                             </td>
                             <td className="py-3.5 px-3.5 font-bold text-slate-800">
                               <span className="flex items-center gap-1">
@@ -585,6 +650,39 @@ export default function OfficerDashboardPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Field Technician Assignment */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="modalTechnician" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                      <Wrench className="h-3.5 w-3.5 text-blue-600" />
+                      Assign Field Technician / Worker
+                    </Label>
+                    <Link
+                      href="/officer/staff"
+                      target="_blank"
+                      className="text-[11px] font-semibold text-emerald-700 hover:underline flex items-center gap-1"
+                    >
+                      Manage Staff ↗
+                    </Link>
+                  </div>
+                  <select
+                    id="modalTechnician"
+                    value={selectedTechnicianId}
+                    onChange={(e) => setSelectedTechnicianId(e.target.value)}
+                    className="w-full h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-[#0B1C30] focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  >
+                    <option value="">— Unassigned (Awaiting Field Crew) —</option>
+                    {technicians.map((t) => (
+                      <option key={t._id} value={t._id}>
+                        {t.name} {t.designation ? `• ${t.designation}` : ''} {t.phone ? `(${t.phone})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-slate-500">
+                    Technician will be recorded on dispatch dockets and operational reports.
+                  </p>
+                </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="newStatus" className="text-xs font-semibold text-slate-700">
