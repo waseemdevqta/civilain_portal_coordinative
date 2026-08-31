@@ -33,7 +33,7 @@ import { cn } from '@/lib/utils';
 import { AwazLogo } from '@/components/common/AwazLogo';
 
 export function Navbar() {
-  const { user, isAuthenticated, isOfficer, isCitizen, logout } = useAuth();
+  const { user, isAuthenticated, isOfficer, isCitizen, isTechnician, logout } = useAuth();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
