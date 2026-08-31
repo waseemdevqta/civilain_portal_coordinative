@@ -702,6 +702,47 @@ const assignTechnician = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get work orders assigned to current technician
+ * @route   GET /api/complaints/assigned-to-me
+ * @access  Private (Field staff: Technician or Officer)
+ */
+const getTechnicianTasks = async (req, res, next) => {
+  try {
+    const filter = req.user.role === 'technician'
+      ? { assignedTechnician: req.user._id }
+      : { assignedTechnician: { $ne: null } };
+
+    const { status, category, priority, search } = req.query;
+    if (status) filter.status = status;
+    if (category) filter.category = category;
+    if (priority) filter.priority = priority;
+    if (search && search.trim()) {
+      filter.$or = [
+        { title: { $regex: search.trim(), $options: 'i' } },
+        { area: { $regex: search.trim(), $options: 'i' } },
+        { description: { $regex: search.trim(), $options: 'i' } },
+      ];
+    }
+
+    const complaints = await Complaint.find(filter)
+      .sort({ priorityScore: -1, createdAt: -1 })
+      .populate('createdBy', 'name email')
+      .populate('assignedTechnician', 'name email designation phone');
+
+    const formattedComplaints = complaints.map(attachPriority);
+
+    return successResponse(
+      res,
+      200,
+      'Technician tasks retrieved successfully',
+      formattedComplaints
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createComplaint,
   getComplaints,
@@ -716,4 +757,5 @@ module.exports = {
   exportComplaintsCSV,
   computeComplaintsStats,
   assignTechnician,
+  getTechnicianTasks,
 };

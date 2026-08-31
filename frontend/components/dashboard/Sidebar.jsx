@@ -11,7 +11,6 @@ import {
   FileText,
   Layers,
   ShieldCheck,
-  Megaphone,
   LogOut,
   User,
 } from 'lucide-react';
@@ -32,12 +31,12 @@ export function DashboardSidebar({ className, onItemClick }) {
       icon: PlusCircle,
     },
     {
-      name: 'My Reports',
+      name: 'My Complaints',
       href: '/complaints/mine',
       icon: FileText,
     },
     {
-      name: 'Explore Issues',
+      name: 'Community Issues',
       href: '/complaints',
       icon: Layers,
     },
@@ -50,12 +49,12 @@ export function DashboardSidebar({ className, onItemClick }) {
 
   const officerNav = [
     {
-      name: 'Operations Overview',
+      name: 'Operations Console',
       href: '/officer/dashboard',
       icon: ShieldCheck,
     },
     {
-      name: 'Explore Issues',
+      name: 'All Complaints',
       href: '/complaints',
       icon: Layers,
     },
@@ -72,21 +71,13 @@ export function DashboardSidebar({ className, onItemClick }) {
     <aside className={cn('flex flex-col h-full bg-white border-r border-slate-200 text-[#0B1C30]', className)}>
       {/* Brand Header */}
       <div className="flex h-16 items-center px-5 border-b border-slate-100">
-        <Link href="/" className="flex items-center space-x-2.5 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#0F172A] text-white shadow-xs">
-            <Megaphone className="h-4.5 w-4.5" />
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-base tracking-tight text-[#0B1C30]">
-                AWAZ
-              </span>
-              <span className="rounded-full bg-[#EFF4FF] px-2 py-0.5 text-[9px] font-bold text-[#1E40AF] border border-[#BFDBFE]">
-                {isOfficer ? 'OFFICER' : 'CITIZEN'}
-              </span>
-            </div>
-            <span className="text-[10px] text-slate-500 font-medium">Your voice. Your city.</span>
-          </div>
+        <Link href="/" className="group">
+          <AwazLogo
+            size="sm"
+            showText={true}
+            badgeText={isOfficer ? 'OFFICER' : 'CITIZEN'}
+            subtitle="Your voice. Your city."
+          />
         </Link>
       </div>
 

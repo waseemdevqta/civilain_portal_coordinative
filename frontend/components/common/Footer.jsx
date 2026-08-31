@@ -18,7 +18,11 @@ import {
   ExternalLink,
   Lock,
   Megaphone,
+  Wrench,
 } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
+import { AwazLogo } from '@/components/common/AwazLogo';
 
 export function Footer() {
   const { isAuthenticated, isOfficer, isCitizen } = useAuth();
@@ -30,23 +34,13 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
           {/* BRAND COLUMN (Span 2) */}
           <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="flex items-center space-x-3 group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0F172A] text-white shadow-sm transition-all group-hover:scale-105">
-                <Megaphone className="h-5 w-5" />
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-black text-xl tracking-tight text-[#0B1C30]">
-                    AWAZ
-                  </span>
-                  <span className="rounded-full bg-[#EFF4FF] px-2.5 py-0.5 text-[9px] font-extrabold text-[#1F6C3A] border border-[#A4F1B2] tracking-wider">
-                    CIVIC PORTAL
-                  </span>
-                </div>
-                <span className="text-[11px] text-slate-500 font-medium">
-                  Your voice. Your city. Your change.
-                </span>
-              </div>
+            <Link href="/" className="group">
+              <AwazLogo
+                size="md"
+                showText={true}
+                badgeText="CIVIC PORTAL"
+                subtitle="Your voice. Your city. Your change."
+              />
             </Link>
 
             <p className="text-xs text-slate-600 leading-relaxed max-w-sm">
@@ -197,6 +191,24 @@ export function Footer() {
                 >
                   <Sparkles className="h-3.5 w-3.5 text-amber-500" />
                   Gemini AI Operations
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/staff/dashboard"
+                  className="text-slate-600 hover:text-[#0B1C30] flex items-center gap-1.5 transition-colors"
+                >
+                  <Wrench className="h-3.5 w-3.5 text-blue-600" />
+                  Field Tasks Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/staff/login"
+                  className="text-slate-600 hover:text-[#0B1C30] flex items-center gap-1.5 transition-colors"
+                >
+                  <Wrench className="h-3.5 w-3.5 text-slate-400" />
+                  Staff / Crew Login
                 </Link>
               </li>
               <li>

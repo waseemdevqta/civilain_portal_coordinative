@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/toaster';
 import {
-  Megaphone,
   Eye,
   EyeOff,
   Lock,
@@ -19,12 +18,13 @@ import {
   CheckCircle2,
   ShieldCheck,
 } from 'lucide-react';
+import { AwazLogo } from '@/components/common/AwazLogo';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams?.get('redirect');
-  const { login, isAuthenticated, user, isOfficer } = useAuth();
+  const { login, isAuthenticated, user, isOfficer, isTechnician } = useAuth();
 
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -35,11 +35,13 @@ function LoginForm() {
     if (isAuthenticated && user) {
       if (isOfficer) {
         router.replace('/officer/dashboard');
+      } else if (isTechnician || user.role === 'technician') {
+        router.replace('/staff/dashboard');
       } else {
         router.replace(redirectUrl || '/dashboard');
       }
     }
-  }, [isAuthenticated, user, isOfficer, router, redirectUrl]);
+  }, [isAuthenticated, user, isOfficer, isTechnician, router, redirectUrl]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -57,7 +59,13 @@ function LoginForm() {
     const res = await login(formData.email.trim(), formData.password);
     if (res.success) {
       toast.success(`Welcome back, ${res.user.name}!`);
-      router.replace(redirectUrl || '/dashboard');
+      if (res.user.role === 'officer') {
+        router.replace('/officer/dashboard');
+      } else if (res.user.role === 'technician') {
+        router.replace('/staff/dashboard');
+      } else {
+        router.replace(redirectUrl || '/dashboard');
+      }
     } else {
       setError(res.message);
       toast.error(res.message);
@@ -176,14 +184,13 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FF] text-[#0B1C30] flex flex-col justify-between transition-colors">
       <header className="container mx-auto max-w-6xl px-4 py-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center space-x-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-[0_4px_12px_rgba(5,150,105,0.28)] transition-transform group-hover:scale-105">
-            <Megaphone className="h-5 w-5" />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="font-black text-xl tracking-tight text-[#0B1C30]">AWAZ</span>
-            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[9px] font-extrabold text-emerald-800 border border-emerald-200">CIVIC</span>
-          </div>
+        <Link href="/" className="group">
+          <AwazLogo
+            size="md"
+            showText={true}
+            badgeText="CITIZEN"
+            subtitle="Your voice. Your city."
+          />
         </Link>
       </header>
 

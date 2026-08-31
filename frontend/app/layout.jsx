@@ -6,6 +6,11 @@ export const metadata = {
   title: 'AWAZ — Your Voice. Your City. Your Change.',
   description:
     'A transparent municipal complaint and civic accountability platform connecting citizens directly with local authorities. Report neighborhood infrastructure issues, rally community support, and track verified resolutions.',
+  icons: {
+    icon: '/awaz_logo.jpeg',
+    shortcut: '/awaz_logo.jpeg',
+    apple: '/awaz_logo.jpeg',
+  },
 };
 
 export default function RootLayout({ children }) {

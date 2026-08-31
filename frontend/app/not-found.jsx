@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Megaphone, Home, Layers } from 'lucide-react';
+import { Home, Layers } from 'lucide-react';
+import { AwazLogo } from '@/components/common/AwazLogo';
 
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#F8F9FF] text-[#0B1C30] px-4 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0F172A] text-white shadow-sm mb-4">
-        <Megaphone className="h-7 w-7" />
+      <div className="mb-4">
+        <AwazLogo size="lg" />
       </div>
 
       <div className="inline-flex items-center gap-1.5 rounded-full bg-[#EFF4FF] px-3 py-0.5 text-xs font-mono font-bold text-[#1E40AF] uppercase tracking-wider mb-2">

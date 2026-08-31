@@ -27,8 +27,10 @@ import {
   Megaphone,
   Home,
   Sparkles,
+  Wrench,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AwazLogo } from '@/components/common/AwazLogo';
 
 export function Navbar() {
   const { user, isAuthenticated, isOfficer, isCitizen, logout } = useAuth();
@@ -44,23 +46,14 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/90 bg-white/95 backdrop-blur-md transition-all shadow-[0_2px_12px_rgba(11,28,48,0.03)]">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand / Logo */}
-        <Link href="/" className="flex items-center space-x-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-[0_4px_12px_rgba(5,150,105,0.28)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_6px_18px_rgba(5,150,105,0.4)]">
-            <Megaphone className="h-5 w-5" />
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className="font-black text-xl tracking-tight text-[#0B1C30]">
-                AWAZ
-              </span>
-              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[9px] font-extrabold text-emerald-700 border border-emerald-200 tracking-wider uppercase">
-                Civic Platform
-              </span>
-            </div>
-            <span className="text-[10px] text-slate-500 font-medium leading-none">
-              Your voice. Your city. Your change.
-            </span>
-          </div>
+        <Link href="/" className="group">
+          <AwazLogo
+            size="md"
+            showText={true}
+            badgeText="Civic Platform"
+            subtitle="Your voice. Your city. Your change."
+            priority={true}
+          />
         </Link>
 
         {/* Desktop Navigation Links */}
@@ -147,6 +140,21 @@ export function Navbar() {
                 Staff
               </Link>
             </>
+          )}
+
+          {isAuthenticated && isTechnician && (
+            <Link
+              href="/staff/dashboard"
+              className={cn(
+                'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
+                isActive('/staff/dashboard')
+                  ? 'text-blue-950 bg-blue-50/80 border border-blue-200/60 font-bold shadow-2xs'
+                  : 'text-slate-600 hover:text-[#0B1C30] hover:bg-slate-50'
+              )}
+            >
+              <Wrench className="h-3.5 w-3.5 text-blue-600" />
+              Field Tasks
+            </Link>
           )}
         </nav>
 
@@ -281,6 +289,28 @@ export function Navbar() {
                       </DropdownMenuItem>
                     </>
                   )}
+                  {isTechnician && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/staff/dashboard"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-blue-50 hover:text-blue-900"
+                        >
+                          <Wrench className="mr-2 h-3.5 w-3.5 text-blue-600" />
+                          Field Work Orders
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/dashboard/profile"
+                          className="cursor-pointer text-slate-700 rounded-xl px-2.5 py-2 hover:bg-blue-50 hover:text-blue-900"
+                        >
+                          <User className="mr-2 h-3.5 w-3.5 text-blue-600" />
+                          Staff Profile
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator className="bg-slate-100" />
                   <DropdownMenuItem
                     onClick={logout}
@@ -296,13 +326,13 @@ export function Navbar() {
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="flex md:hidden items-center">
+        <div className="flex md:hidden items-center space-x-2">
           <button
+            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 transition-colors"
-            aria-label="Toggle Menu"
+            className="inline-flex items-center justify-center p-2 rounded-xl text-slate-700 hover:bg-slate-100 focus:outline-none"
           >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
       </div>
@@ -390,6 +420,27 @@ export function Navbar() {
               >
                 <User className="h-4 w-4 text-emerald-600" />
                 Officer Profile
+              </Link>
+            </>
+          )}
+
+          {isAuthenticated && isTechnician && (
+            <>
+              <Link
+                href="/staff/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-semibold bg-blue-600 text-white shadow-sm"
+              >
+                <Wrench className="h-4 w-4 text-blue-100" />
+                Field Operations Console
+              </Link>
+              <Link
+                href="/dashboard/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 font-medium text-slate-800 hover:bg-blue-50 hover:text-blue-900"
+              >
+                <User className="h-4 w-4 text-blue-600" />
+                Staff Profile
               </Link>
             </>
           )}

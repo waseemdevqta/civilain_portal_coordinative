@@ -168,6 +168,7 @@ export const complaintApi = {
   getStats: () => api.get('/complaints/stats'),
   getHotspots: () => api.get('/complaints/hotspots'),
   assignTechnician: (id, technicianId) => api.patch(`/complaints/${id}/assign`, { technicianId }),
+  getAssignedToMe: (params) => api.get('/complaints/assigned-to-me', { params }),
   exportCSV: (params) =>
     api.get('/complaints/export', {
       params,

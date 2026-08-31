@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { AwazLogo } from '@/components/common/AwazLogo';
 
 export default function WorkOrderModal({
   isOpen,
@@ -64,19 +65,22 @@ export default function WorkOrderModal({
         <div className="p-8 bg-white text-[#0B1C30] print:p-0">
           {/* Header Banner */}
           <div className="border-b-2 border-[#0B1C30] pb-6 flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-black tracking-tight text-[#0B1C30]">AWAZ</span>
-                <span className="text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-[#1F6C3A]/10 text-[#1F6C3A] border border-[#1F6C3A]/20">
-                  Municipal Dispatch
-                </span>
+            <div className="flex items-start gap-3.5">
+              <AwazLogo size="lg" />
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-black tracking-tight text-[#0B1C30]">AWAZ</span>
+                  <span className="text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-[#1F6C3A]/10 text-[#1F6C3A] border border-[#1F6C3A]/20">
+                    Municipal Dispatch
+                  </span>
+                </div>
+                <p className="text-xs text-[#526071] mt-0.5 font-medium">
+                  Civilian Infrastructure & Public Works Department
+                </p>
+                <p className="text-[11px] text-[#94A3B8]">
+                  Docket Auth Code: CF-DOCK-{complaint._id?.slice(-8).toUpperCase()}
+                </p>
               </div>
-              <p className="text-xs text-[#526071] mt-1 font-medium">
-                Civilian Infrastructure & Public Works Department
-              </p>
-              <p className="text-[11px] text-[#94A3B8]">
-                Docket Auth Code: CF-DOCK-{complaint._id?.slice(-8).toUpperCase()}
-              </p>
             </div>
 
             <div className="text-right">

@@ -21,6 +21,7 @@ import {
   ClipboardList,
   MapPin,
 } from 'lucide-react';
+import { AwazLogo } from '@/components/common/AwazLogo';
 
 export default function OfficerLoginPage() {
   const router = useRouter();
@@ -78,13 +79,14 @@ export default function OfficerLoginPage() {
     <div className="min-h-screen bg-[#0B1C30] text-white flex flex-col justify-between">
       {/* Header */}
       <header className="container mx-auto max-w-6xl px-4 py-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center space-x-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_4px_12px_rgba(5,150,105,0.35)] transition-transform group-hover:scale-105">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
+        <Link href="/" className="group flex items-center gap-3">
+          <AwazLogo
+            size="md"
+            showText={false}
+          />
           <div className="flex flex-col">
             <span className="font-black text-lg tracking-tight text-white leading-none">AWAZ</span>
-            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest">Municipal Officer Portal</span>
+            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mt-0.5">Municipal Officer Portal</span>
           </div>
         </Link>
 
