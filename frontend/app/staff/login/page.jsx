@@ -87,7 +87,7 @@ export default function StaffLoginPage() {
           <AwazLogo size="md" showText={false} />
           <div className="flex flex-col">
             <span className="font-black text-lg tracking-tight text-white leading-none">AWAZ</span>
-            <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest mt-0.5">Field Crew & Staff Portal</span>
+            <span className="text-[9px] font-bold text-amber-400 uppercase tracking-widest mt-0.5">Field Crew & Staff Portal</span>
           </div>
         </Link>
 
@@ -109,8 +109,8 @@ export default function StaffLoginPage() {
           {/* Left Context Side */}
           <div className="hidden md:block md:col-span-6 space-y-8">
             <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-bold text-blue-400">
-                <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1 text-xs font-bold text-amber-400 shadow-[0_2px_10px_rgba(245,158,11,0.15)]">
+                <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
                 FIELD CREW & TECHNICIAN DISPATCH
               </div>
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
@@ -122,8 +122,8 @@ export default function StaffLoginPage() {
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-start gap-3 p-4 rounded-2xl border border-white/5 bg-white/5">
-                <ClipboardList className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 p-4 rounded-2xl border border-white/5 bg-white/5 hover:border-amber-500/20 transition-colors">
+                <ClipboardList className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
                 <div>
                   <div className="text-xs font-bold text-white">Assigned Work Orders</div>
                   <div className="text-[11px] text-slate-400 mt-0.5">
@@ -132,8 +132,8 @@ export default function StaffLoginPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-4 rounded-2xl border border-white/5 bg-white/5">
-                <Camera className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 p-4 rounded-2xl border border-white/5 bg-white/5 hover:border-amber-500/20 transition-colors">
+                <Camera className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
                 <div>
                   <div className="text-xs font-bold text-white">Field Proof-of-Fix Upload</div>
                   <div className="text-[11px] text-slate-400 mt-0.5">
@@ -142,8 +142,8 @@ export default function StaffLoginPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-4 rounded-2xl border border-white/5 bg-white/5">
-                <BadgeCheck className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 p-4 rounded-2xl border border-white/5 bg-white/5 hover:border-amber-500/20 transition-colors">
+                <BadgeCheck className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
                 <div>
                   <div className="text-xs font-bold text-white">1-Tap Status Updates</div>
                   <div className="text-[11px] text-slate-400 mt-0.5">
@@ -159,8 +159,8 @@ export default function StaffLoginPage() {
             <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm p-7 sm:p-9 space-y-6 shadow-[0_12px_36px_rgba(0,0,0,0.4)]">
               {/* Form header */}
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-[0_4px_14px_rgba(59,130,246,0.35)]">
-                  <Wrench className="h-6 w-6" />
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 text-slate-950 flex items-center justify-center shadow-[0_4px_16px_rgba(245,158,11,0.35)]">
+                  <Wrench className="h-6 w-6 font-bold" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white">Staff Sign In</h2>
@@ -181,13 +181,13 @@ export default function StaffLoginPage() {
                     Technician Email Address
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
+                    <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
                     <Input
                       id="staff-email"
                       name="email"
                       type="email"
                       placeholder="technician@municipality.gov"
-                      className="pl-10 h-11 text-sm bg-slate-900/90 border-slate-700 text-white placeholder:text-slate-400 focus-visible:bg-slate-900 focus-visible:text-white focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                      className="pl-10 h-11 text-sm bg-slate-900/90 border-slate-700 text-white placeholder:text-slate-400 focus-visible:bg-slate-900 focus-visible:text-white focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:border-amber-500"
                       value={formData.email}
                       onChange={handleChange}
                       required
@@ -201,13 +201,13 @@ export default function StaffLoginPage() {
                     Password
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
+                    <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
                     <Input
                       id="staff-password"
                       name="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className="pl-10 pr-10 h-11 text-sm bg-slate-900/90 border-slate-700 text-white placeholder:text-slate-400 focus-visible:bg-slate-900 focus-visible:text-white focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                      className="pl-10 pr-10 h-11 text-sm bg-slate-900/90 border-slate-700 text-white placeholder:text-slate-400 focus-visible:bg-slate-900 focus-visible:text-white focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:border-amber-500"
                       value={formData.password}
                       onChange={handleChange}
                       required
@@ -228,11 +228,11 @@ export default function StaffLoginPage() {
                   type="submit"
                   size="lg"
                   disabled={loading}
-                  className="w-full font-bold text-xs sm:text-sm h-11 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-[0_4px_14px_rgba(59,130,246,0.4)]"
+                  className="w-full font-bold text-xs sm:text-sm h-11 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-[0_4px_16px_rgba(245,158,11,0.35)]"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin text-slate-950" />
                       Authenticating Staff...
                     </span>
                   ) : (

@@ -148,11 +148,11 @@ export function Navbar() {
               className={cn(
                 'px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5',
                 isActive('/staff/dashboard')
-                  ? 'text-blue-950 bg-blue-50/80 border border-blue-200/60 font-bold shadow-2xs'
+                  ? 'text-amber-950 bg-amber-50/80 border border-amber-200/60 font-bold shadow-2xs'
                   : 'text-slate-600 hover:text-[#0B1C30] hover:bg-slate-50'
               )}
             >
-              <Wrench className="h-3.5 w-3.5 text-blue-600" />
+              <Wrench className="h-3.5 w-3.5 text-amber-600" />
               Field Tasks
             </Link>
           )}

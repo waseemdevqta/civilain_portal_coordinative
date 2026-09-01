@@ -217,8 +217,8 @@ export default function StaffDashboardPage() {
         <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-[0_8px_30px_rgba(11,28,48,0.04)]">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-800 border border-blue-200">
-                <Wrench className="h-3.5 w-3.5 text-blue-600" />
+              <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 border border-amber-200 shadow-2xs">
+                <Wrench className="h-3.5 w-3.5 text-amber-600" />
                 <span>FIELD CREW OPERATIONS CONSOLE</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0B1C30]">
@@ -227,7 +227,7 @@ export default function StaffDashboardPage() {
               <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
                 {user?.designation && (
                   <span className="flex items-center gap-1 font-semibold text-slate-700">
-                    <Briefcase className="h-3.5 w-3.5 text-blue-600" />
+                    <Briefcase className="h-3.5 w-3.5 text-amber-600" />
                     {user.designation}
                   </span>
                 )}
@@ -269,7 +269,7 @@ export default function StaffDashboardPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between text-slate-500 mb-1">
               <span className="text-xs font-semibold uppercase tracking-wider">Assigned Tasks</span>
-              <Wrench className="h-4 w-4 text-blue-600" />
+              <Wrench className="h-4 w-4 text-amber-600" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-[#0B1C30]">{totalTasks}</div>
             <div className="text-[11px] text-slate-400 mt-1">Total in dispatch queue</div>
@@ -284,13 +284,13 @@ export default function StaffDashboardPage() {
             <div className="text-[11px] text-amber-700/80 mt-1">Requires crew mobilization</div>
           </div>
 
-          <div className="rounded-2xl border border-blue-200 bg-blue-50/40 p-5 shadow-xs">
-            <div className="flex items-center justify-between text-blue-800 mb-1">
+          <div className="rounded-2xl border border-orange-200 bg-orange-50/40 p-5 shadow-xs">
+            <div className="flex items-center justify-between text-orange-800 mb-1">
               <span className="text-xs font-bold uppercase tracking-wider">In Progress</span>
-              <Sparkles className="h-4 w-4 text-blue-600" />
+              <Sparkles className="h-4 w-4 text-orange-600" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-blue-900">{inProgressTasks}</div>
-            <div className="text-[11px] text-blue-700/80 mt-1">Repairs currently active</div>
+            <div className="text-2xl sm:text-3xl font-black text-orange-900">{inProgressTasks}</div>
+            <div className="text-[11px] text-orange-700/80 mt-1">Repairs currently active</div>
           </div>
 
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 shadow-xs">
@@ -518,7 +518,7 @@ export default function StaffDashboardPage() {
                           <Button
                             size="sm"
                             variant="default"
-                            className="flex-1 text-xs h-9 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold gap-1.5 shadow-xs"
+                            className="flex-1 text-xs h-9 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold gap-1.5 shadow-xs"
                             onClick={() => openResolveModal(task)}
                           >
                             <Camera className="h-3.5 w-3.5" />
@@ -548,7 +548,7 @@ export default function StaffDashboardPage() {
                       </Button>
                     </div>
 
-                    <Link href={`/complaints/${task._id}`} className="block text-center text-[11px] font-semibold text-slate-500 hover:text-blue-600 transition-colors">
+                    <Link href={`/complaints/${task._id}`} className="block text-center text-[11px] font-semibold text-slate-500 hover:text-emerald-700 transition-colors">
                       View Public Complaint Tracker &rarr;
                     </Link>
                   </div>
@@ -643,7 +643,7 @@ export default function StaffDashboardPage() {
                   rows={3}
                   required
                   placeholder="Describe the maintenance work completed (e.g. Cleared 2 metric tons of waste from dumpster, disinfected perimeter)..."
-                  className="w-full text-xs rounded-xl border border-slate-200 bg-[#F8F9FF] p-3 text-[#0B1C30] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-xs rounded-xl border border-slate-200 bg-[#F8F9FF] p-3 text-[#0B1C30] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   value={resolutionRemarks}
                   onChange={(e) => setResolutionRemarks(e.target.value)}
                 />
@@ -654,7 +654,7 @@ export default function StaffDashboardPage() {
                 <Button
                   type="submit"
                   disabled={uploadingResolution}
-                  className="flex-1 font-bold text-xs h-10 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                  className="flex-1 font-bold text-xs h-10 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-xs"
                 >
                   {uploadingResolution ? (
                     <span className="flex items-center gap-2">
