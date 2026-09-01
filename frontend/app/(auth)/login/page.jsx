@@ -163,19 +163,6 @@ function LoginForm() {
           Register Here
         </Link>
       </div>
-
-      {/* Officer redirect */}
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 text-xs text-slate-600">
-          <ShieldCheck className="h-4 w-4 text-slate-400 shrink-0" />
-          <span>Are you a municipal officer?</span>
-        </div>
-        <Link href="/officer/login">
-          <Button variant="outline" size="sm" className="text-xs h-8 rounded-xl font-semibold border-slate-300 hover:border-emerald-400 hover:text-emerald-800 hover:bg-emerald-50 shrink-0">
-            Officer Portal →
-          </Button>
-        </Link>
-      </div>
     </div>
   );
 }

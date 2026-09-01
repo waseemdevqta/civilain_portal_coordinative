@@ -20,6 +20,7 @@ import {
   BadgeCheck,
   ClipboardList,
   MapPin,
+  Wrench,
 } from 'lucide-react';
 import { AwazLogo } from '@/components/common/AwazLogo';
 
@@ -90,10 +91,17 @@ export default function OfficerLoginPage() {
           </div>
         </Link>
 
-        <Link href="/login" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors">
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Citizen Login
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/staff/login" className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors">
+            <Wrench className="h-3.5 w-3.5" />
+            Field Staff Portal
+          </Link>
+          <span className="text-slate-600">|</span>
+          <Link href="/login" className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors">
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Citizen Login
+          </Link>
+        </div>
       </header>
 
       {/* Main */}
@@ -166,13 +174,13 @@ export default function OfficerLoginPage() {
                     Officer Email
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-500 pointer-events-none" />
+                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
                     <Input
                       id="officer-email"
                       name="email"
                       type="email"
                       placeholder="officer@municipality.gov"
-                      className="pl-10 h-10 text-xs bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                      className="pl-10 h-11 text-sm bg-slate-900/90 border-slate-700 text-white placeholder:text-slate-400 focus-visible:bg-slate-900 focus-visible:text-white focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
                       value={formData.email}
                       onChange={handleChange}
                       required
@@ -186,13 +194,13 @@ export default function OfficerLoginPage() {
                     Password
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-500 pointer-events-none" />
+                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
                     <Input
                       id="officer-password"
                       name="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className="pl-10 pr-10 h-10 text-xs bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                      className="pl-10 pr-10 h-11 text-sm bg-slate-900/90 border-slate-700 text-white placeholder:text-slate-400 focus-visible:bg-slate-900 focus-visible:text-white focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
                       value={formData.password}
                       onChange={handleChange}
                       required
@@ -201,7 +209,7 @@ export default function OfficerLoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300"
+                      className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-200 transition-colors"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -228,11 +236,16 @@ export default function OfficerLoginPage() {
                 </Button>
               </form>
 
-              <div className="pt-3 border-t border-white/10 text-center text-xs text-slate-500">
-                Officer accounts are provisioned by system administrators only.{' '}
-                <Link href="/login" className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline">
-                  Citizen Login →
-                </Link>
+              <div className="pt-3 border-t border-white/10 space-y-2 text-center text-xs">
+                <div className="text-slate-300">
+                  Field technician or maintenance crew?{' '}
+                  <Link href="/staff/login" className="font-bold text-blue-400 hover:text-blue-300 hover:underline">
+                    Staff & Technician Portal →
+                  </Link>
+                </div>
+                <div className="text-slate-500 text-[11px]">
+                  Officer accounts are provisioned by super administrators only.
+                </div>
               </div>
             </div>
           </div>

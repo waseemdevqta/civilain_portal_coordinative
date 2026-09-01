@@ -19,6 +19,7 @@ import {
   Lock,
   Megaphone,
   Wrench,
+  MapPin,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -204,20 +205,11 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/staff/login"
+                  href="/complaints"
                   className="text-slate-600 hover:text-[#0B1C30] flex items-center gap-1.5 transition-colors"
                 >
-                  <Wrench className="h-3.5 w-3.5 text-slate-400" />
-                  Staff / Crew Login
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/officer/login"
-                  className="text-slate-600 hover:text-[#0B1C30] flex items-center gap-1.5 transition-colors"
-                >
-                  <Lock className="h-3.5 w-3.5 text-slate-400" />
-                  Officer Portal Login
+                  <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                  Civic Issues Feed
                 </Link>
               </li>
               <li>

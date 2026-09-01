@@ -181,13 +181,13 @@ export default function StaffLoginPage() {
                     Technician Email Address
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-500 pointer-events-none" />
+                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
                     <Input
                       id="staff-email"
                       name="email"
                       type="email"
                       placeholder="technician@municipality.gov"
-                      className="pl-10 h-10 text-xs bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                      className="pl-10 h-11 text-sm bg-slate-900/90 border-slate-700 text-white placeholder:text-slate-400 focus-visible:bg-slate-900 focus-visible:text-white focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                       value={formData.email}
                       onChange={handleChange}
                       required
@@ -201,13 +201,13 @@ export default function StaffLoginPage() {
                     Password
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-500 pointer-events-none" />
+                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
                     <Input
                       id="staff-password"
                       name="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className="pl-10 pr-10 h-10 text-xs bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                      className="pl-10 pr-10 h-11 text-sm bg-slate-900/90 border-slate-700 text-white placeholder:text-slate-400 focus-visible:bg-slate-900 focus-visible:text-white focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                       value={formData.password}
                       onChange={handleChange}
                       required
@@ -216,7 +216,7 @@ export default function StaffLoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-3 text-slate-500 hover:text-slate-300 transition-colors"
+                      className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-200 transition-colors"
                       tabIndex={-1}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
