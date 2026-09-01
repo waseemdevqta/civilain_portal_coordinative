@@ -110,6 +110,22 @@ body {
   background: #94a3b8;
 }
 
+/* Universal Smooth Interactive Transitions */
+a, button, input, select, textarea, [role="button"] {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Enhanced Link Hover Micro-Interactions */
+a {
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-skip-ink: auto;
+}
+
 /* Animations & Micro-Interactions */
 @keyframes pulseGlow {
   0%, 100% {
@@ -137,4 +153,18 @@ body {
 
 .animate-float {
   animation: floatGentle 4s ease-in-out infinite;
+}
+
+/* Interactive Card & Button Elevation */
+.hover-lift {
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(11, 28, 48, 0.08), 0 8px 10px -6px rgba(11, 28, 48, 0.04);
+}
+
+.hover-lift:active {
+  transform: translateY(0) scale(0.99);
 }
