@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Complaint = require('../models/Complaint');
+const Upvote = require('../models/Upvote');
 const { attachPriority, calculatePriority } = require('../utils/priority');
 const { successResponse, errorResponse } = require('../utils/apiResponse');
 
@@ -286,19 +287,28 @@ const upvoteComplaint = async (req, res, next) => {
       return errorResponse(res, 404, 'Complaint not found');
     }
 
-    // Check if user has already upvoted
+    // Check if user has already upvoted in Upvote collection or complaint.upvotedBy
     const userIdStr = req.user._id.toString();
-    const hasUpvoted = complaint.upvotedBy.some(
-      (uid) => uid.toString() === userIdStr
-    );
+    const existingUpvote = await Upvote.findOne({ complaint: id, user: req.user._id });
+    const hasUpvoted = existingUpvote || (complaint.upvotedBy && complaint.upvotedBy.some((uid) => uid.toString() === userIdStr));
 
     if (hasUpvoted) {
       return errorResponse(res, 400, 'You have already upvoted this complaint');
     }
 
-    // Atomic increment
+    // Record in dedicated upvotes collection
+    await Upvote.create({
+      complaint: id,
+      user: req.user._id,
+      userModel: req.user.role === 'officer' ? 'Officer' : (req.user.role === 'technician' ? 'Staff' : 'Citizen'),
+      userEmail: req.user.email || '',
+    }).catch((err) => console.warn('[Upvote Collection Record]:', err.message));
+
+    // Atomic increment on Complaint
     complaint.upvotes = (complaint.upvotes || 0) + 1;
-    complaint.upvotedBy.push(req.user._id);
+    if (!complaint.upvotedBy.some((uid) => uid.toString() === userIdStr)) {
+      complaint.upvotedBy.push(req.user._id);
+    }
 
     await complaint.save();
 

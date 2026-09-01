@@ -16,7 +16,7 @@ const generateAccessToken = (id, role = 'citizen') => {
       expiresIn:
         process.env.JWT_ACCESS_EXPIRES_IN ||
         process.env.JWT_EXPIRES_IN ||
-        '15m',
+        '1h',
     }
   );
 };
@@ -26,7 +26,7 @@ const generateToken = generateAccessToken;
 /**
  * Generate Refresh JWT token
  * @param {string} id - User ID
- * @param {string} role - User role ('citizen' | 'officer')
+ * @param {string} role - User role ('citizen' | 'officer' | 'technician')
  * @returns {string} Signed JWT refresh token
  */
 const generateRefreshToken = (id, role = 'citizen') => {
@@ -35,7 +35,7 @@ const generateRefreshToken = (id, role = 'citizen') => {
     process.env.JWT_REFRESH_SECRET ||
       'ae635afda89f6e30e854d18fce8a1466698c200ff6f5c4fa0e3cfeeffc7145e6',
     {
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
     }
   );
 };

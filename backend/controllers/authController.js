@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Citizen = require('../models/Citizen');
+const Officer = require('../models/Officer');
+const Staff = require('../models/Staff');
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateToken');
 const { successResponse, errorResponse } = require('../utils/apiResponse');
 
@@ -33,7 +36,7 @@ const signup = async (req, res, next) => {
       return errorResponse(res, 400, 'Password must be at least 6 characters long');
     }
 
-    // Check duplicate email
+    // Check duplicate email across User and Citizen collections
     const existingUser = await User.findOne({ email: trimmedEmail });
     if (existingUser) {
       return errorResponse(res, 400, 'A user with this email address already exists');
@@ -46,6 +49,15 @@ const signup = async (req, res, next) => {
       password,
       role: 'citizen',
     });
+
+    // Also populate dedicated citizens collection
+    await Citizen.create({
+      _id: user._id,
+      name: name.trim(),
+      email: trimmedEmail,
+      password,
+      role: 'citizen',
+    }).catch((err) => console.warn('[Citizen Collection Create]:', err.message));
 
     const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = generateRefreshToken(user._id, user.role);
@@ -150,6 +162,14 @@ const addOfficer = async (req, res, next) => {
       password,
       role: 'officer',
     });
+
+    await Officer.create({
+      _id: officer._id,
+      name: name.trim(),
+      email: trimmedEmail,
+      password,
+      role: 'officer',
+    }).catch((err) => console.warn('[Officer Collection Create]:', err.message));
 
     return successResponse(res, 201, 'Officer account provisioned successfully', {
       user: {

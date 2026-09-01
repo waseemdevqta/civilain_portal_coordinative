@@ -76,8 +76,14 @@ const complaintSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
-    // Technician assigned to handle this complaint in the field
+    // Technician/Staff assigned to handle this complaint in the field
     assignedTechnician: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    // Supervising Officer overseeing this work order
+    assignedOfficer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       default: null,
@@ -106,6 +112,7 @@ const complaintSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    collection: 'complaints',
     toJSON: {
       transform(doc, ret) {
         delete ret.__v;
@@ -121,7 +128,7 @@ const complaintSchema = new mongoose.Schema(
   }
 );
 
-// Optional text index for search support
+// Text index for search support
 complaintSchema.index({ title: 'text', description: 'text', area: 'text' });
 
 const Complaint = mongoose.model('Complaint', complaintSchema);

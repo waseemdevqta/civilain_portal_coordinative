@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const Officer = require('../models/Officer');
+const Staff = require('../models/Staff');
 const { successResponse, errorResponse } = require('../utils/apiResponse');
 
 const checkIsSuper = (user) => {
@@ -95,6 +97,30 @@ const provisionStaff = async (req, res) => {
 
     const newUser = await User.create(userData);
 
+    if (role === 'officer') {
+      await Officer.create({
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        password: userData.password,
+        role: 'officer',
+        designation: newUser.designation || 'Municipal Officer',
+        phone: newUser.phone || '',
+      }).catch((err) => console.warn('[Officer Create]:', err.message));
+    } else if (role === 'technician') {
+      await Staff.create({
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        password: userData.password,
+        role: 'technician',
+        designation: newUser.designation || 'Field Technician',
+        phone: newUser.phone || '',
+        assignedOfficer: newUser.assignedOfficer || null,
+        crewType: 'general',
+      }).catch((err) => console.warn('[Staff Create]:', err.message));
+    }
+
     return successResponse(res, 201, `${role.charAt(0).toUpperCase() + role.slice(1)} account created successfully.`, {
       user: newUser,
     });
@@ -129,6 +155,7 @@ const assignOfficerToTechnician = async (req, res) => {
     }
 
     await technician.save();
+    await Staff.findByIdAndUpdate(id, { assignedOfficer: technician.assignedOfficer }).catch(() => {});
     const updated = await User.findById(id).populate('assignedOfficer', 'name email');
 
     return successResponse(res, 200, 'Technician assignment updated.', { technician: updated });
@@ -160,6 +187,8 @@ const removeStaff = async (req, res) => {
     }
 
     await User.findByIdAndDelete(id);
+    await Officer.findByIdAndDelete(id).catch(() => {});
+    await Staff.findByIdAndDelete(id).catch(() => {});
     return successResponse(res, 200, 'Staff member removed successfully.');
   } catch (err) {
     return errorResponse(res, 500, err.message);

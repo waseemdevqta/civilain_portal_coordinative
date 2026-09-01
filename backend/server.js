@@ -8,21 +8,17 @@ const morgan = require('morgan');
 const connectDB = require('./config/db');
 const User = require('./models/User');
 const seedDatabase = require('./scripts/seed');
+const syncCollections = require('./config/migrateCollections');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
-// Connect to MongoDB Atlas & seed only if database is completely empty
+// Connect to MongoDB Atlas & ensure collection segregation
 if (process.env.NODE_ENV !== 'test') {
   connectDB().then(async () => {
     try {
-      const userCount = await User.countDocuments({});
-      if (userCount === 0) {
-        console.log('[Server] Database is empty, auto-seeding demo data...');
-        await seedDatabase();
-      } else {
-        console.log(`[Server] Connected to Atlas. ${userCount} users found in database.`);
-      }
+      await seedDatabase();
+      await syncCollections();
     } catch (err) {
-      console.error('[Server Auto-Seed Error]:', err.message);
+      console.error('[Server DB Init Error]:', err.message);
     }
   });
 }
